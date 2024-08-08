@@ -1,0 +1,18 @@
+# If using a dedicated output directory:
+dist/
+build/
+node_modules/
+
+.cartesi
+
+
+
+.cartesi.env
+
+.env
+.env.local
+.env.*.local
+
+
+
+*.tsbuildinfo
