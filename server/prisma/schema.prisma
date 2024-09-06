@@ -12,3 +12,248 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  displayName   String
+  walletAddress String    @unique
+  username      String    @unique
+  profileImage  String?
+  country       String?
+  listener      Listener?
+  artist        Artist?
+  token         Token[]
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Listener {
+  id                String             @id @default(uuid())
+  subscriptionLevel String             @default("FREE")
+  playlists         Playlist[]
+  favorites         UserFavorite[]
+  streamingHistory  StreamingHistory[]
+  follows           Follow[]
+  Subscription      Subscription[]
+  user              User?              @relation(fields: [userId], references: [id])
+  userId            String?            @unique
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model Artist {
+  id               String          @id @default(uuid())
+  biography        String?
+  socialMediaLinks String?
+  genre            String?
+  albums           Album[]
+  tracks           Track[]
+  followers        Follow[]
+  categories       Category[]      @relation("CategoryArtists")
+  collaborations   Collaboration[]
+  user             User?           @relation(fields: [userId], references: [id])
+  userId           String?         @unique
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model UserActivity {
+  id String @id @default(uuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id          String    @id @default(uuid())
+  token       String
+  type        String
+  expires     DateTime?
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blacklisted Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Album {
+  id            String     @id @default(uuid())
+  title         String
+  releaseDate   DateTime
+  coverImageUrl String?
+  totalTracks   Int
+  label         String
+  genre         String
+  artistId      String
+  artist        Artist     @relation(fields: [artistId], references: [id])
+  tracks        Track[]
+  categories    Category[] @relation("CategoryAlbums")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Track {
+  id               String             @id @default(uuid())
+  title            String
+  duration         Int
+  trackNumber      Int
+  explicit         Boolean
+  popularity       Int
+  audioFileUrl     String
+  lyrics           String?
+  albumId          String
+  album            Album              @relation(fields: [albumId], references: [id])
+  artistId         String?
+  artist           Artist?            @relation(fields: [artistId], references: [id])
+  isrcCode         String
+  collaborations   Collaboration[]
+  playlistTracks   PlaylistTrack[]
+  streamingHistory StreamingHistory[]
+  categories       Category[]         @relation("CategoryTracks")
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+}
+
+model Playlist {
+  id            String  @id @default(uuid())
+  title         String
+  description   String?
+  coverImageUrl String?
+  public        Boolean @default(true)
+
+  tracks     PlaylistTrack[]
+  listener   Listener?       @relation(fields: [listenerId], references: [id])
+  listenerId String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model PlaylistTrack {
+  playlistId String
+  trackId    String
+  addedAt    DateTime @default(now())
+
+  playlist  Playlist @relation(fields: [playlistId], references: [id])
+  track     Track    @relation(fields: [trackId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([playlistId, trackId])
+}
+
+model UserFavorite {
+  id           String @id @default(uuid())
+  favoriteType String @default("TRACK")
+  itemId       String
+
+  listener   Listener? @relation(fields: [listenerId], references: [id])
+  listenerId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([listenerId, itemId])
+}
+
+model Follow {
+  id                String   @id @default(uuid())
+  followerId        String
+  followingArtistId String
+  followedAt        DateTime @default(now())
+
+  followingArtist Artist    @relation(fields: [followingArtistId], references: [id])
+  follower        Listener? @relation(fields: [followerId], references: [id])
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([followerId, followingArtistId])
+}
+
+model StreamingHistory {
+  id String @id @default(uuid())
+
+  trackId    String
+  streamedAt DateTime @default(now())
+  device     String   @default("WEB")
+  location   String?
+
+  track      Track     @relation(fields: [trackId], references: [id])
+  listener   Listener? @relation(fields: [listenerId], references: [id])
+  listenerId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Collaboration {
+  id        String   @id @default(uuid())
+  trackId   String
+  artistId  String
+  role      String   @default("MAIN_ARTIST")
+  track     Track    @relation(fields: [trackId], references: [id])
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([trackId, artistId])
+}
+
+model Subscription {
+  id                String    @id @default(uuid())
+  userId            String
+  subscriptionLevel String    @default("FREE")
+  startDate         DateTime
+  endDate           DateTime?
+  paymentMethod     String    @default("CTSI")
+  autoRenew         Boolean   @default(true)
+
+  listener   Listener? @relation(fields: [listenerId], references: [id])
+  listenerId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  albums      Album[]  @relation("CategoryAlbums")
+  tracks      Track[]  @relation("CategoryTracks")
+  artists     Artist[] @relation("CategoryArtists")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// enum TokenType {
+//   ACCESS
+//   REFRESH
+// }
+
+// enum SubscriptionLevel {
+//   FREE
+//   PREMIUM
+// }
+
+// enum Device {
+//   MOBILE
+//   DESKTOP
+//   WEB
+// }
+
+// enum FavoriteType {
+//   TRACK
+//   ALBUM
+//   ARTIST
+// }
+
+// enum CollaborationRole {
+//   MAIN_ARTIST
+//   FEATURED_ARTIST
+//   PRODUCER
+// }
+
+// enum PaymentMethod {
+// CTSI
+// MELO
+// }
