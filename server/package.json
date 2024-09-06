@@ -4,19 +4,53 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/index.ts"
+    "start": "npx tsc && pm2 start ecosystem.config.json --no-daemon",
+    "start:ts": "ts-node src/index.ts",
+    "tsc": "tsc --watch",
+    "kill-server": "pm2 kill",
+    "start:prod": " node ./build/index.js",
+    "start:dev": "ts-node-dev --respawn --transpile-only --exit-child src/index.ts",
+    "dev": "npx tsc && cross-env NODE_ENV=development nodemon src/index.ts",
+    "build:docker": "docker compose up -d",
+    "db:migrate": "npx prisma migrate dev --name $MIGRATION_NAME --create-only && yarn prisma generate",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "build": "npx tsc "
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^22.4.2",
+    "@prisma/client": "^5.19.0",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.5.1",
+    "axios": "^1.7.5",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "prisma": "^5.18.0"
+    "helmet": "^7.1.0",
+    "http-status": "^1.7.4",
+    "joi": "^17.13.3",
+    "mailgen": "^2.0.28",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.14",
+    "nodemon": "^3.1.4",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "pm2": "^5.4.2",
+    "prisma": "5.19.0",
+    "thirdweb": "^5.49.0",
+    "winston": "^3.14.2",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
+    "@types/passport": "^1.0.16",
+    "@types/passport-jwt": "^4.0.1",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.4"
   }
 }
