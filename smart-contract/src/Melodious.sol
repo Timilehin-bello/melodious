@@ -59,20 +59,17 @@ import "./MelodiousNFT1155.sol";
     constructor (address _owner) Ownable(_owner) {}
 
     // Artist uploads a song - generates both NFT721 (ownership) and NFT1155 (fractional ownership)
-    function uploadSong(ERC1155ContractData memory data, uint256 _tokenPrice) external onlyOwner nonReentrant {
+    function uploadSong(ERC1155ContractData memory data, uint256 _tokenPrice) external  nonReentrant {
         songCounter.increment();
         uint256 songId = songCounter.current();
 
-        MelodiousNFT721 erc721Contract = new MelodiousNFT721("MelodiousNFT721", "M721");
+        MelodiousNFT721 erc721Contract = new MelodiousNFT721("MelodiousNFT721", "M721", data._artist);
         erc721ContractAddress[songId] = address(erc721Contract);
         // Create the ERC721 for the song ownership
         erc721Contract.safeMint(songId, data._artist, data._uri);
 
         MelodiousNFT1155 erc1155Contract = new MelodiousNFT1155(data._artist, string(data._uri));
         erc1155ContractAddress[songId] = address(erc1155Contract);
-
-
-
 
         erc1155Contract.safeMint(data._artist, songId, data._maxSupply, data._uri);
 
