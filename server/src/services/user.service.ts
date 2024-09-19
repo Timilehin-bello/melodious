@@ -7,6 +7,7 @@ import { prisma } from ".";
 const createUser = async (
   userBody: Omit<Prisma.UserCreateInput, "userType"> & {
     userType: { LISTENER: string; ARTIST: string };
+    chainId?: string;
   }
 ): Promise<any> => {
   try {
@@ -16,7 +17,7 @@ const createUser = async (
     if (!(await getUserByUniqueValue({ walletAddress }))) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        "Wallet address already taken"
+        "User with wallet address already taken"
       );
     }
     if (!(await getUserByUniqueValue({ username }))) {
@@ -33,6 +34,7 @@ const createUser = async (
             displayName,
             walletAddress,
             username,
+            ...rest,
           },
         });
 
@@ -52,6 +54,7 @@ const createUser = async (
             displayName,
             walletAddress,
             username,
+            ...rest,
           },
         });
 
