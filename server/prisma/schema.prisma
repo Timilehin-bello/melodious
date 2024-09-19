@@ -45,6 +45,8 @@ model Listener {
 
 model Artist {
   id               String          @id @default(uuid())
+  walletAddress    String          @unique
+  listeningTime    Int?
   biography        String?
   socialMediaLinks String?
   genre            String?

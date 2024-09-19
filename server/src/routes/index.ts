@@ -10,7 +10,7 @@ interface IRoute {
 
 const defaultRoutes: IRoute[] = [
   {
-    path: "/",
+    path: "/auth",
     route: authRoute,
   },
 ];

@@ -1,6 +1,7 @@
 export const tokenTypes = {
   ACCESS: "ACCESS",
   REFRESH: "REFRESH",
+  THIRDWEB: "THIRDWEB",
 };
 
 export const subscriptionLevel = {
