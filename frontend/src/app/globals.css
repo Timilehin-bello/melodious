@@ -8,6 +8,31 @@
   --background-end-rgb: 255, 255, 255;
 }
 
+html,
+body,
+:root {
+  height: 100%;
+  /* background-color: black;
+  color-scheme: dark; */
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.connect-button {
+  background-color: #910a43 !important;
+  border-radius: 15px;
+  color: white !important;
+}
+/* 
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
@@ -30,4 +55,13 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-}
+} */
+
+/* 
+html,
+body, 
+:root {
+  height: 100%;
+  background-color: rgba(126, 57, 240, 1);
+  color-scheme: dark;
+} */
