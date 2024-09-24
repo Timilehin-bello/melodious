@@ -11,16 +11,15 @@ import "./MelodiousNFT1155.sol";
 
 /**
  * @title Melodious
- * @notice Melodious is a platform for artists to upload their music and 
+ * @notice Melodious is a platform for artists to upload their music and
  * for fans to purchase fractional ownership of the music as ERC1155 tokens.
- * @dev This contract allows artists to upload their music and for fans to purchase 
+ * @dev This contract allows artists to upload their music and for fans to purchase
  * fractional ownership of the music as ERC1155 tokens.
  */
- contract Melodious is Ownable, ReentrancyGuard {
+contract Melodious is Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     Counters.Counter private songCounter;
-
 
     struct Song {
         uint256 songId;
@@ -31,10 +30,10 @@ import "./MelodiousNFT1155.sol";
         address nft1155ContractAddress;
         uint256 tokenPrice;
     }
+
     uint256 public constant ARTIST_SHARE_ERC1155 = 30; // Artist keeps 30% of ERC1155
     uint256 public constant FAN_SHARE_ERC1155 = 70; // 70% sold to fans
     uint256 public constant PURCHASE_LIMIT = 10; // Max tokens a fan can purchase
-
 
     // struct to store the data for the ERC1155 contract
     struct ERC1155ContractData {
@@ -56,10 +55,10 @@ import "./MelodiousNFT1155.sol";
     event SongUploaded(uint256 indexed songId, address indexed artist);
     event ERC1155Purchased(uint256 indexed songId, address indexed buyer, uint256 amount);
 
-    constructor (address _owner) Ownable(_owner) {}
+    constructor(address _owner) Ownable(_owner) {}
 
     // Artist uploads a song - generates both NFT721 (ownership) and NFT1155 (fractional ownership)
-    function uploadSong(ERC1155ContractData memory data, uint256 _tokenPrice) external  nonReentrant {
+    function uploadSong(ERC1155ContractData memory data, uint256 _tokenPrice) external nonReentrant {
         songCounter.increment();
         uint256 songId = songCounter.current();
 
@@ -72,7 +71,6 @@ import "./MelodiousNFT1155.sol";
         erc1155ContractAddress[songId] = address(erc1155Contract);
 
         erc1155Contract.safeMint(data._artist, songId, data._maxSupply, data._uri);
-
 
         songs[songId] = Song({
             songId: songId,
@@ -126,7 +124,7 @@ import "./MelodiousNFT1155.sol";
             value = revenueShare / totalSupply;
         } else {
             // Fallback value calculation based on engagement metric or a predefined value
-            value = 0.001 ether;  
+            value = 0.001 ether;
             if (song.engagementMetric > 0) {
                 value += value * song.engagementMetric / 100;
             }
