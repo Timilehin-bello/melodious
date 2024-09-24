@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import {Counters} from "./Counter.sol";
 
 contract MelodiousNFT1155 is ERC1155, Ownable, ERC1155Supply {
-
-    
     uint256 public constant ARTIST_SHARE = 30;
     uint256 public constant COMMUNITY_SHARE = 70;
 
