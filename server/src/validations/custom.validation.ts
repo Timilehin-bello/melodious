@@ -5,4 +5,14 @@ const objectId = (value: string, helpers: any) => {
   return value;
 };
 
-export { objectId };
+const ethAddress = (value: string, helpers: any) => {
+  const regex = new RegExp("^0x[a-fA-F0-9]{40}$");
+  if (!value.match(regex)) {
+    return helpers.message(
+      '"{{#label}}" must be a valid Ethereum wallet address'
+    );
+  }
+  return value;
+};
+
+export { objectId, ethAddress };

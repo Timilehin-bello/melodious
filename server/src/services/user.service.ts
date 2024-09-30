@@ -7,36 +7,41 @@ import { prisma } from ".";
 const createUser = async (
   userBody: Omit<Prisma.UserCreateInput, "userType"> & {
     userType: { LISTENER: string; ARTIST: string };
+    chainId?: string;
   }
 ): Promise<any> => {
   try {
     const { name, displayName, walletAddress, username, userType, ...rest } =
       userBody;
 
-    if (!(await getUserByUniqueValue({ walletAddress }))) {
+    if (await getUserByUniqueValue({ walletAddress })) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
-        "Wallet address already taken"
+        "User with wallet address already taken"
       );
     }
-    if (!(await getUserByUniqueValue({ username }))) {
+
+    if (await getUserByUniqueValue({ username })) {
       throw new ApiError(httpStatus.BAD_REQUEST, "Username already taken");
     }
 
     // Create the user transactionally
     return await prisma.$transaction(async (tx) => {
+      console.log("userType", userType);
       if (userType.LISTENER === "LISTENER") {
+        console.log("test---");
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
             name,
             displayName,
             walletAddress,
-            username,
+            username: username.toLowerCase(),
+            ...rest,
           },
         });
-
-        // Create the client associated with the user
+        console.log("userInfo", userInfo);
+        // Create the client associated with the  user
         await tx.listener.create({
           data: {
             userId: userInfo.id,
@@ -51,7 +56,8 @@ const createUser = async (
             name,
             displayName,
             walletAddress,
-            username,
+            username: username.toLowerCase(),
+            ...rest,
           },
         });
 
@@ -120,7 +126,7 @@ const getUserByUniqueValue = async (
   where: Prisma.UserWhereUniqueInput,
   include?: Prisma.UserInclude
 ) => {
-  return prisma.user.findUnique({ where, include });
+  return await prisma.user.findUnique({ where, include });
 };
 
 const getUserInfo = async (
