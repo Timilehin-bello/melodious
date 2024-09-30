@@ -7,6 +7,9 @@ const register = {
     walletAddress: Joi.string().required().custom(ethAddress),
     name: Joi.string().required(),
     displayName: Joi.string().required(),
+    username: Joi.string()
+      .required()
+      .pattern(/^[a-zA-Z0-9_.-]+$/),
     profileImage: Joi.string(),
     country: Joi.string(),
     userType: Joi.object()
@@ -50,7 +53,7 @@ const login = {
         version: Joi.string().required(),
       })
       .required(),
-    signature: Joi.string().optional(),
+    signature: Joi.string().required(),
   }),
 };
 
