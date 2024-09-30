@@ -16,6 +16,8 @@ const register = catchAsync(async (req: Request, res: Response) => {
 
   const user = await userService.createUser(userBody);
 
+  console.log("user", user);
+
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, "User not created");
   }

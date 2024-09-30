@@ -16,4 +16,8 @@ router
   .route("/login")
   .post(validate(authValidation.login), authController.login);
 
+router
+  .route("/register")
+  .post(validate(authValidation.register), authController.register);
+
 export default router;
