@@ -1,5 +1,5 @@
 {
-  "name": "cartesi-backend",
+  "name": "mydapp",
   "version": "0.1.0",
   "description": "TypeScript DApp",
   "dependencies": {

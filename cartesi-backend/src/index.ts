@@ -1,10 +1,17 @@
 import { hexToString } from "viem";
 import { AdvanceRoute, DefaultRoute, Router } from "cartesi-router";
 import { Wallet, Notice, Output, Error_out, Report } from "cartesi-wallet";
-import viem from "viem"
+import viem from "viem";
 import deployments from "./rollups.json";
 import { CreateGreeting } from "./examples/greetings";
-import { CreateGreetingRoute, DeleteGreetingRoute, DeleteGreetingsRoute, GreetingRoute, GreetingsRoute, UpdateGreetingRoute } from "./examples/routes";
+import {
+  CreateGreetingRoute,
+  DeleteGreetingRoute,
+  DeleteGreetingsRoute,
+  GreetingRoute,
+  GreetingsRoute,
+  UpdateGreetingRoute,
+} from "./examples/routes";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -23,15 +30,14 @@ var handlers: any = {
   inspect_state: handle_inspect,
 };
 
-const greeting = new CreateGreeting()
+const greeting = new CreateGreeting();
 
-router.addRoute("create_greeting", new CreateGreetingRoute(greeting))
-router.addRoute("update_greeting", new UpdateGreetingRoute(greeting))
-router.addRoute("get_greeting", new GreetingRoute(greeting))
-router.addRoute("get_greetings", new GreetingsRoute(greeting))
-router.addRoute("delete_greeting", new DeleteGreetingRoute(greeting))
-router.addRoute("delete_greetings", new DeleteGreetingsRoute(greeting))
-
+router.addRoute("create_greeting", new CreateGreetingRoute(greeting));
+router.addRoute("update_greeting", new UpdateGreetingRoute(greeting));
+router.addRoute("get_greeting", new GreetingRoute(greeting));
+router.addRoute("get_greetings", new GreetingsRoute(greeting));
+router.addRoute("delete_greeting", new DeleteGreetingRoute(greeting));
+router.addRoute("delete_greetings", new DeleteGreetingsRoute(greeting));
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
@@ -57,14 +63,12 @@ const send_request = async (output: Output | Set<Output>) => {
     console.debug(
       `received ${output.payload} status ${response.status} body ${response.body}`
     );
-  }
-   else {
+  } else {
     output.forEach((value: Output) => {
       send_request(value);
     });
   }
 };
-
 
 async function handle_advance(data: any) {
   console.log("Received advance request data " + JSON.stringify(data));
@@ -73,7 +77,7 @@ async function handle_advance(data: any) {
     const msg_sender: string = data.metadata.msg_sender;
     console.log("msg sender is", msg_sender.toLowerCase());
     const payloadStr = hexToString(payload);
-    
+
     if (
       msg_sender.toLowerCase() ===
       deployments.contracts.EtherPortal.address.toLowerCase()
@@ -120,7 +124,7 @@ async function handle_advance(data: any) {
         return new Error_out(`failed ot process ERC20Deposit ${payload} ${e}`);
       }
     }
-    
+
     try {
       const jsonpayload = JSON.parse(payloadStr);
       console.log("payload is ", data);
@@ -128,13 +132,11 @@ async function handle_advance(data: any) {
     } catch (e) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
     }
-
   } catch (e) {
     console.error(e);
     return new Error_out(`failed to process advance_request ${e}`);
   }
 }
-
 
 async function handle_inspect(data: any) {
   console.debug(`received inspect request data${data}`);
