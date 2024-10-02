@@ -1,18 +1,7 @@
-# If using a dedicated output directory:
-dist/
-build/
-node_modules/
-
-.cartesi
-
-
-
-.cartesi.env
-
 .env
-.env.local
-.env.*.local
+.cartesi
+/dist
+/node_modules
+src/schema.d.ts
 
 
-
-*.tsbuildinfo
