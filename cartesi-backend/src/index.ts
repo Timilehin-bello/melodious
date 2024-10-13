@@ -3,6 +3,7 @@ import { AdvanceRoute, DefaultRoute, Router } from "cartesi-router";
 import { Wallet, Notice, Output, Error_out, Report } from "cartesi-wallet";
 import viem from "viem";
 import deployments from "./rollups.json";
+
 import { CreateGreeting } from "./examples/greetings";
 import {
   CreateGreetingRoute,
@@ -127,7 +128,9 @@ async function handle_advance(data: any) {
 
     try {
       const jsonpayload = JSON.parse(payloadStr);
+      console.log("json payload is ", jsonpayload.method);
       console.log("payload is ", data);
+
       return router.process(jsonpayload.method, data);
     } catch (e) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
