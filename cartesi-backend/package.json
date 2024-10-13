@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "TypeScript DApp",
   "dependencies": {
+    "@polybase/client": "^0.6.6",
+    "@polybase/eth": "^0.6.6",
     "cartesi-router": "^1.0.4",
     "cartesi-wallet": "^1.0.5",
     "openapi-fetch": "^0.7",
@@ -21,7 +23,11 @@
     "build": "run-s codegen compile",
     "codegen": "ts-node schema.ts",
     "compile": "tsc && esbuild ./src/index.ts --bundle --outfile=dist/index.js --platform=node --target=node20",
-    "start": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:5004\" ts-node src/index.ts"
+    "start": "ROLLUP_HTTP_SERVER_URL=\"http://127.0.0.1:5004\" ts-node src/index.ts",
+    "db:migrate": "npx prisma migrate dev --name $MIGRATION_NAME --create-only && yarn prisma generate",
+    "db:push": "npx prisma db push",
+    "db:studio": "npx prisma studio",
+    "db:generate": "npx prisma generate"
   },
   "keywords": [
     "cartesi"
