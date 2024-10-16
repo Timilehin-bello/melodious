@@ -1,3 +1,4 @@
+import { PaymentMethod, SubscriptionLevel } from "../configs/enum";
 import { Listener } from "./listener.model";
 
 class Subscription {
