@@ -6,7 +6,7 @@
 # If any needed dependencies rely on native binaries, you must use 
 # a riscv64 image such as cartesi/node:20-jammy for the build stage,
 # to ensure that the appropriate binaries will be generated.
-FROM node:20.8.0-bookworm as build-stage
+FROM node:20.16.0-bookworm AS build-stage
 
 WORKDIR /opt/cartesi/dapp
 COPY . .
@@ -41,6 +41,7 @@ ENV PATH="/opt/cartesi/bin:${PATH}"
 
 WORKDIR /opt/cartesi/dapp
 COPY --from=build-stage /opt/cartesi/dapp/dist .
+
 
 ENV ROLLUP_HTTP_SERVER_URL="http://127.0.0.1:5004"
 
