@@ -13,34 +13,40 @@ datasource db {
   url      = "file:./dev.db"
 }
 
+// model Greeting {
+//   id             Int      @id @default(autoincrement())
+//   message        String
+//   creatorAddress String
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+// }
+
 model User {
-  id            String    @id @default(uuid())
-  name          String
-  displayName   String
-  walletAddress String    @unique
-  username      String    @unique
-  profileImage  String?
-  country       String?
-  listener      Listener?
-  artist        Artist?
+  id String @id @default(uuid())
+
+  walletAddress String  @unique
   token         Token[]
-  lastLogin     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  lastLogin DateTime? // not available on cartesi
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  listener  Listener?
+  Artist    Artist?
 }
 
 model Listener {
-  id                String             @id @default(uuid())
-  subscriptionLevel String             @default("FREE")
-  playlists         Playlist[]
-  favorites         UserFavorite[]
-  streamingHistory  StreamingHistory[]
-  follows           Follow[]
-  Subscription      Subscription[]
-  user              User?              @relation(fields: [userId], references: [id])
-  userId            String?            @unique
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id                String @id @default(uuid())
+  subscriptionLevel String @default("FREE")
+
+  playlists        Playlist[]
+  favorites        UserFavorite[] // not sure if it should be on cartesi
+  streamingHistory StreamingHistory[] // not available on cartesi
+  follows          Follow[] // not available on cartesi
+  subscription     Subscription?
+  user             User?              @relation(fields: [userId], references: [id])
+  userId           String?            @unique
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model Artist {
@@ -51,9 +57,9 @@ model Artist {
   genre            String?
   albums           Album[]
   tracks           Track[]
-  followers        Follow[]
-  categories       Category[]      @relation("CategoryArtists")
-  collaborations   Collaboration[]
+  followers        Follow[] // not available on cartesi
+  genres           Genre[]         @relation("GenreArtists")
+  collaborations   Collaboration[] // not available on cartesi
   user             User?           @relation(fields: [userId], references: [id])
   userId           String?         @unique
   createdAt        DateTime        @default(now())
@@ -80,25 +86,26 @@ model Token {
 }
 
 model Album {
-  id            String     @id @default(uuid())
-  title         String
-  releaseDate   DateTime
-  coverImageUrl String?
-  totalTracks   Int
-  label         String
-  genre         String
-  artistId      String
-  artist        Artist     @relation(fields: [artistId], references: [id])
-  tracks        Track[]
-  categories    Category[] @relation("CategoryAlbums")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id          String   @id @default(uuid())
+  title       String
+  releaseDate DateTime
+  imageUrl    String?
+  totalTracks Int
+  label       String
+  genre       String
+  artistId    String
+  artist      Artist   @relation(fields: [artistId], references: [id])
+  tracks      Track[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Track {
   id               String             @id @default(uuid())
   title            String
   duration         Int
+  image            String
   trackNumber      Int
   explicit         Boolean
   popularity       Int
@@ -109,52 +116,47 @@ model Track {
   artistId         String?
   artist           Artist?            @relation(fields: [artistId], references: [id])
   isrcCode         String
-  collaborations   Collaboration[]
-  playlistTracks   PlaylistTrack[]
-  streamingHistory StreamingHistory[]
-  categories       Category[]         @relation("CategoryTracks")
+  collaborations   Collaboration[] // no used on cartesi
+  playlistTracks   PlaylistTrack[] // not used on Cartesi
+  streamingHistory StreamingHistory[] // not used on Cartesi
+  genres           Genre[]            @relation("GenreTracks")
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
 }
 
 model Playlist {
-  id            String  @id @default(uuid())
-  title         String
-  description   String?
-  coverImageUrl String?
-  public        Boolean @default(true)
-
-  tracks     PlaylistTrack[]
-  listener   Listener?       @relation(fields: [listenerId], references: [id])
-  listenerId String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id          String          @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String?
+  public      Boolean         @default(true)
+  tracks      PlaylistTrack[]
+  listener    Listener?       @relation(fields: [listenerId], references: [id])
+  listenerId  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model PlaylistTrack {
+  id      String   @id @default(uuid())
+  trackId String
+  addedAt DateTime @default(now())
+
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
   playlistId String
-  trackId    String
-  addedAt    DateTime @default(now())
-
-  playlist  Playlist @relation(fields: [playlistId], references: [id])
-  track     Track    @relation(fields: [trackId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@id([playlistId, trackId])
+  track      Track    @relation(fields: [trackId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model UserFavorite {
-  id           String @id @default(uuid())
-  favoriteType String @default("TRACK")
+  id           String    @id @default(uuid())
+  favoriteType String    @default("TRACK")
   itemId       String
-
-  listener   Listener? @relation(fields: [listenerId], references: [id])
-  listenerId String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  @@unique([listenerId, itemId])
+  listener     Listener? @relation(fields: [listenerId], references: [id])
+  listenerId   String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Follow {
@@ -200,28 +202,27 @@ model Collaboration {
 }
 
 model Subscription {
-  id                String    @id @default(uuid())
-  userId            String
-  subscriptionLevel String    @default("FREE")
+  id                String   @id @default(uuid())
+  subscriptionLevel String   @default("FREE")
   startDate         DateTime
-  endDate           DateTime?
-  paymentMethod     String    @default("CTSI")
-  autoRenew         Boolean   @default(true)
-
-  listener   Listener? @relation(fields: [listenerId], references: [id])
-  listenerId String?
+  endDate           DateTime
+  paymentMethod     String   @default("CTSI")
+  autoRenew         Boolean  @default(true)
+  listener          Listener @relation(fields: [listenerId], references: [id])
+  listenerId        String   @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
+model Genre {
+  id   String @id @default(uuid())
+  name String @unique
+
+  imageUrl    String
   description String?
-  albums      Album[]  @relation("CategoryAlbums")
-  tracks      Track[]  @relation("CategoryTracks")
-  artists     Artist[] @relation("CategoryArtists")
+  tracks      Track[]  @relation("GenreTracks")
+  artists     Artist[] @relation("GenreArtists")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
