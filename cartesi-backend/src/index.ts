@@ -4,15 +4,13 @@ import { Wallet, Notice, Output, Error_out, Report } from "cartesi-wallet";
 import viem from "viem";
 import deployments from "./rollups.json";
 
-import { CreateGreeting } from "./examples/greetings";
 import {
-  CreateGreetingRoute,
-  DeleteGreetingRoute,
-  DeleteGreetingsRoute,
-  GreetingRoute,
-  GreetingsRoute,
-  UpdateGreetingRoute,
-} from "./examples/routes";
+  CreateUserRoute,
+  UpdateUserRoute,
+  UserRoute,
+  UsersRoute,
+} from "./routes";
+import { CreateUser } from "./models/user.model";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -31,14 +29,14 @@ var handlers: any = {
   inspect_state: handle_inspect,
 };
 
-const greeting = new CreateGreeting();
-
-router.addRoute("create_greeting", new CreateGreetingRoute(greeting));
-router.addRoute("update_greeting", new UpdateGreetingRoute(greeting));
-router.addRoute("get_greeting", new GreetingRoute(greeting));
-router.addRoute("get_greetings", new GreetingsRoute(greeting));
-router.addRoute("delete_greeting", new DeleteGreetingRoute(greeting));
-router.addRoute("delete_greetings", new DeleteGreetingsRoute(greeting));
+// Create User Route
+const user = new CreateUser();
+router.addRoute("create_user", new CreateUserRoute(user));
+router.addRoute("update_user", new UpdateUserRoute(user));
+router.addRoute("get_users", new UsersRoute(user));
+router.addRoute("get_user", new UserRoute(user));
+// router.addRoute("delete_user", new DeleteUserRoute(user));
+// router.addRoute("delete_users", new DeleteUsersRoute(user));
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {

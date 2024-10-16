@@ -1,3 +1,4 @@
+import { Error_out } from "cartesi-wallet";
 import { Album } from "./album.model";
 import { Genre } from "./genre.model";
 import { Track } from "./track.model";
@@ -10,35 +11,65 @@ export interface Json {
 class Artist {
   static nextId = 0;
   id: number;
-  user: User;
   userId: number;
-  biography: string;
-  socialMediaLinks?: Json;
+  biography?: string | null;
+  socialMediaLinks?: Json | null;
   // genre: string;
   albums: Album[];
   tracks: Track[];
   genres: Genre[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number | Date;
+  updatedAt: number | Date;
 
   constructor(
-    user: User,
     userId: number,
-    biography: string,
+    createdAt: number | Date,
+    updatedAt: number | Date,
+    biography?: string,
     socialMediaLinks?: Json
   ) {
     this.id = Artist.nextId++;
-    this.user = user;
     this.userId = userId;
-    this.biography = biography;
-    this.socialMediaLinks = socialMediaLinks;
+    this.biography = biography || null;
+    this.socialMediaLinks = socialMediaLinks || null;
     // this.genre = "";
     this.genres = [];
     this.albums = [];
     this.tracks = [];
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 }
 
-export { Artist };
+class CreateArtist {
+  artists: Artist[];
+  constructor() {
+    this.artists = [];
+  }
+
+  create(artistBody: { user: User }) {
+    if (this.getArtistByUserId(artistBody.user.id)) {
+      throw new Error_out("artist with user ID already exists");
+    }
+    try {
+      const artist = new Artist(
+        artistBody.user.id,
+        artistBody.user.createdAt,
+        artistBody.user.updatedAt
+      );
+      console.log("Artist Creating Successfully");
+      this.artists.push(artist);
+      return artist;
+    } catch (error) {
+      const error_msg = `Failed to create Artist ${error}`;
+      console.debug(error_msg);
+      throw new Error_out(error_msg);
+    }
+  }
+
+  getArtistByUserId(userId: number) {
+    return this.artists.find((artist) => artist.userId === userId);
+  }
+}
+
+export { Artist, CreateArtist };

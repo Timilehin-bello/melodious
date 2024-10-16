@@ -1,3 +1,4 @@
+import { FavouriteType } from "../configs/enum";
 import { Listener } from "./listener.model";
 
 class UserFavorites {
