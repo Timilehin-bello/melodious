@@ -10,7 +10,7 @@ import {
   UserRoute,
   UsersRoute,
 } from "./routes";
-import { CreateUser } from "./models/user.model";
+import { UserController } from "./controllers";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -30,13 +30,15 @@ var handlers: any = {
 };
 
 // Create User Route
-const user = new CreateUser();
+const user = new UserController();
 router.addRoute("create_user", new CreateUserRoute(user));
 router.addRoute("update_user", new UpdateUserRoute(user));
 router.addRoute("get_users", new UsersRoute(user));
 router.addRoute("get_user", new UserRoute(user));
 // router.addRoute("delete_user", new DeleteUserRoute(user));
 // router.addRoute("delete_users", new DeleteUsersRoute(user));
+
+// Create
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {

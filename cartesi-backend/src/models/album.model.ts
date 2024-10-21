@@ -1,5 +1,4 @@
 import { Artist } from "./artist.model";
-import { Genre } from "./genre.model";
 import { Track } from "./track.model";
 
 class Album {
@@ -12,7 +11,7 @@ class Album {
   coverImageUrl: string;
   totalTracks: number;
   label: string;
-  genres: Genre[];
+  genreId: number;
   tracks: Track[];
   createdAt: Date;
   updatedAt: Date;
@@ -24,7 +23,7 @@ class Album {
     coverImageUrl: string,
     totalTracks: number,
     label: string,
-    genres: Genre[],
+    genreId: number,
     tracks: Track[]
   ) {
     this.id = Album.nextId++;
@@ -36,7 +35,7 @@ class Album {
     this.coverImageUrl = coverImageUrl;
     this.totalTracks = totalTracks;
     this.label = label;
-    this.genres = genres || [];
+    this.genreId = genreId;
     this.tracks = tracks || [];
     this.createdAt = new Date();
     this.updatedAt = new Date();

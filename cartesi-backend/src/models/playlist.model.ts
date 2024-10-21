@@ -1,18 +1,36 @@
+import { create } from "domain";
+import { Track } from "./track.model";
+
 class Playlist {
   static nextId = 0;
   id: number;
-  subscriptionLevel: string;
-  walletAddress: string;
-  username: string;
+  title: string;
+  imageUrl: string;
+  description: string;
+  public: boolean;
+  listenerId: number;
+  tracks: Track[];
+  createdAt: Date;
+  updatedAt: Date;
 
   constructor(
-    subscriptionLevel: string,
-    walletAddress: string,
-    username: string
+    title: string,
+    imageUrl: string,
+    description: string,
+    listenerId: number,
+    createdAt: Date,
+    updatedAt: Date
   ) {
     this.id = Playlist.nextId++;
-    this.subscriptionLevel = subscriptionLevel || "FREE";
-    this.walletAddress = walletAddress;
-    this.username = username;
+    this.public = true;
+    this.title = title;
+    this.listenerId = listenerId;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    this.tracks = [];
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 }
+
+export { Playlist };
