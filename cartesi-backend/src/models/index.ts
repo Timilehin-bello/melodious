@@ -1,3 +1,10 @@
-import * as User from "./user.model";
+import { User } from "./user.model";
+import { Listener } from "./listener.model";
+import { Artist } from "./artist.model";
+import { Subscription } from "./subscription.model";
+import { Playlist } from "./playlist.model";
+import { Track } from "./track.model";
+import { Album } from "./album.model";
+import { Genre } from "./genre.model";
 
-export { User };
+export { User, Listener, Artist, Subscription, Playlist, Track, Album, Genre };

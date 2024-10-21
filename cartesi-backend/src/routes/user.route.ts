@@ -1,11 +1,11 @@
 import { AdvanceRoute, DefaultRoute, WalletRoute } from "cartesi-router";
 import { Error_out, Output, Report, Notice, Wallet } from "cartesi-wallet";
 
-import { CreateUser } from "../models/user.model";
+import { UserController } from "../controllers";
 
 class CreateUserRoute extends AdvanceRoute {
-  user: CreateUser;
-  constructor(user: CreateUser) {
+  user: UserController;
+  constructor(user: UserController) {
     super();
     this.user = user;
   }
@@ -15,8 +15,6 @@ class CreateUserRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      console.log("metadata timestamp", request.metadata.timestamp);
-
       return this.user.create({
         walletAddress: this.msg_sender,
         createdAt: new Date(request.metadata.timestamp * 1000),
@@ -32,8 +30,8 @@ class CreateUserRoute extends AdvanceRoute {
 }
 
 class UpdateUserRoute extends AdvanceRoute {
-  user: CreateUser;
-  constructor(user: CreateUser) {
+  user: UserController;
+  constructor(user: UserController) {
     super();
     this.user = user;
   }
@@ -58,8 +56,8 @@ class UpdateUserRoute extends AdvanceRoute {
 }
 
 class DeleteUserRoute extends AdvanceRoute {
-  user: CreateUser;
-  constructor(user: CreateUser) {
+  user: UserController;
+  constructor(user: UserController) {
     super();
     this.user = user;
   }
@@ -79,8 +77,8 @@ class DeleteUserRoute extends AdvanceRoute {
 }
 
 class DeleteUsersRoute extends AdvanceRoute {
-  user: CreateUser;
-  constructor(user: CreateUser) {
+  user: UserController;
+  constructor(user: UserController) {
     super();
     this.user = user;
   }
@@ -99,8 +97,8 @@ class DeleteUsersRoute extends AdvanceRoute {
 }
 
 class InspectRoute extends DefaultRoute {
-  user: CreateUser;
-  constructor(user: CreateUser) {
+  user: UserController;
+  constructor(user: UserController) {
     super();
     this.user = user;
   }
