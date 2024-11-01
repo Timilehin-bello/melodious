@@ -5,10 +5,10 @@ class Album {
   static nextId = 0;
   id: number;
   title: string;
-  artist: Artist;
   artistId: number;
   releaseDate: Date;
   coverImageUrl: string;
+  isPublished: boolean;
   totalTracks: number;
   label: string;
   genreId: number;
@@ -17,26 +17,26 @@ class Album {
   updatedAt: Date;
   constructor(
     title: string,
-    artist: Artist,
     artistId: number,
     releaseDate: Date,
     coverImageUrl: string,
     totalTracks: number,
     label: string,
     genreId: number,
+    isPublished: boolean,
     tracks: Track[]
   ) {
     this.id = Album.nextId++;
     this.title = title;
     this.releaseDate = new Date();
-    this.artist = artist;
     this.artistId = artistId;
     this.releaseDate = releaseDate;
     this.coverImageUrl = coverImageUrl;
     this.totalTracks = totalTracks;
     this.label = label;
     this.genreId = genreId;
-    this.tracks = tracks || [];
+    this.isPublished = isPublished;
+    this.tracks = tracks;
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
