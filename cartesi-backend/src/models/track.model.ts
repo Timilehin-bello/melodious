@@ -12,6 +12,7 @@ class Track {
   isrcCode: string;
   genreId: string;
   album: Album;
+  isPublished: boolean;
   albumId: number;
   artist: Artist;
   artistId: number;
@@ -32,6 +33,7 @@ class Track {
     artistId: number,
     duration: number,
     trackNumber: number,
+    isPublished: boolean,
     lyrics?: string
   ) {
     this.id = Track.nextId++;
@@ -46,6 +48,7 @@ class Track {
     this.artist = artist;
     this.artistId = artistId;
     this.duration = duration;
+    this.isPublished = isPublished;
     this.playLists = []; // TODO: implement playlist relation using a join table or an array of playlist IDs.  // 1 track can belong to many playlists, 1 playlist can contain many tracks.  // We use an array for simplicity.  // If you want to use a join table, you can create a "Playlists_tracks" table with columns "track_id" and "playlist_id".
     this.trackNumber = trackNumber;
     this.createdAt = new Date();

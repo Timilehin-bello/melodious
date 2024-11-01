@@ -14,12 +14,12 @@ class User {
   displayName: string;
   cartesiTokenBalance: number | 0;
   walletAddress: string;
+  role: "LISTENER" | "ARTIST";
   username: string;
   profileImage: string | null;
   country: string | null;
   artist: Artist | null;
   listener: Listener | null;
-  permissions: { [address: string]: string[] };
   createdAt: Date;
   updatedAt: Date;
 
@@ -28,6 +28,7 @@ class User {
     displayName: string,
     walletAddress: string,
     username: string,
+    role: "LISTENER" | "ARTIST",
     createAt: Date,
     updatedAt: Date,
     artist?: Artist | null,
@@ -59,8 +60,8 @@ class User {
     this.displayName = displayName;
     this.walletAddress = walletAddress.toLowerCase();
     this.cartesiTokenBalance = 0;
+    this.role = role;
     this.username = username.toLowerCase();
-    this.permissions = { [walletAddress]: ["read", "write", "delete"] };
     this.profileImage = profileImage || null;
     this.country = country || null;
     this.artist = artist || null;

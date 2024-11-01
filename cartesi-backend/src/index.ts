@@ -5,12 +5,17 @@ import viem from "viem";
 import deployments from "./rollups.json";
 
 import {
+  CreateGenreRoute,
   CreateUserRoute,
+  DeleteGenreRoute,
+  GenreRoute,
+  GenresRoute,
+  UpdateGenreRoute,
   UpdateUserRoute,
   UserRoute,
   UsersRoute,
 } from "./routes";
-import { UserController } from "./controllers";
+import { GenreController, UserController } from "./controllers";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -29,7 +34,7 @@ var handlers: any = {
   inspect_state: handle_inspect,
 };
 
-// Create User Route
+// User Route
 const user = new UserController();
 router.addRoute("create_user", new CreateUserRoute(user));
 router.addRoute("update_user", new UpdateUserRoute(user));
@@ -38,7 +43,14 @@ router.addRoute("get_user", new UserRoute(user));
 // router.addRoute("delete_user", new DeleteUserRoute(user));
 // router.addRoute("delete_users", new DeleteUsersRoute(user));
 
-// Create
+//Genre Route
+const genre = new GenreController();
+router.addRoute("create_genre", new CreateGenreRoute(genre));
+router.addRoute("update_genre", new UpdateGenreRoute(genre));
+router.addRoute("get_genres", new GenresRoute(genre));
+router.addRoute("get_genre", new GenreRoute(genre));
+// router.addRoute("delete_genre", new DeleteGenreRoute(genre));
+// router.addRoute("delete_genres", new DeleteGenresRoute(genre));
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
