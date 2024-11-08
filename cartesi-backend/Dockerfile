@@ -1,3 +1,4 @@
+
 # syntax=docker.io/docker/dockerfile:1
 
 # build stage: includes resources necessary for installing dependencies
@@ -37,6 +38,13 @@ rm -rf /var/lib/apt/lists/* /var/log/* /var/cache/*
 useradd --create-home --user-group dapp
 EOF
 
+# # Set up user and permissions
+# RUN mkdir -p /opt/cartesi/dapp/db && \
+#     chown -R dapp:dapp /opt/cartesi/dapp
+
+# # Switch to the dapp user
+# USER dapp
+
 ENV PATH="/opt/cartesi/bin:${PATH}"
 
 WORKDIR /opt/cartesi/dapp
@@ -47,3 +55,5 @@ ENV ROLLUP_HTTP_SERVER_URL="http://127.0.0.1:5004"
 
 ENTRYPOINT ["rollup-init"]
 CMD ["node", "index.js"]
+
+

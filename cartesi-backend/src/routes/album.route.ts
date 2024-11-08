@@ -1,13 +1,13 @@
 import { AdvanceRoute, DefaultRoute, WalletRoute } from "cartesi-router";
-import { Error_out, Output, Report, Notice, Wallet } from "cartesi-wallet";
+import { Error_out, Notice, Output } from "cartesi-wallet";
 
-import { UserController } from "../controllers";
+import { AlbumController } from "../controllers";
 
-class CreateUserRoute extends AdvanceRoute {
-  user: UserController;
-  constructor(user: UserController) {
+class CreateAlbumRoute extends AdvanceRoute {
+  album: AlbumController;
+  constructor(album: AlbumController) {
     super();
-    this.user = user;
+    this.album = album;
   }
   _parse_request(request: any) {
     this.parse_request(request);
@@ -15,25 +15,28 @@ class CreateUserRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      return this.user.create({
+      const album = this.album.createAlbum({
         walletAddress: this.msg_sender,
         createdAt: new Date(request.metadata.timestamp * 1000),
         updatedAt: new Date(request.metadata.timestamp * 1000),
+        releaseDate: new Date(request.metadata.timestamp * 1000),
         ...this.request_args,
-      });
+      }) as Notice | Error_out;
+
+      return album;
     } catch (error) {
-      const error_msg = `Failed to create user ${error}`;
+      const error_msg = `Failed to create album ${error}`;
       console.debug(error_msg);
       return new Error_out(error_msg);
     }
   };
 }
 
-class UpdateUserRoute extends AdvanceRoute {
-  user: UserController;
-  constructor(user: UserController) {
+class UpdateAlbumRoute extends AdvanceRoute {
+  album: AlbumController;
+  constructor(album: AlbumController) {
     super();
-    this.user = user;
+    this.album = album;
   }
   _parse_request(request: any) {
     this.parse_request(request);
@@ -41,10 +44,10 @@ class UpdateUserRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      console.log("Executing Update User request");
-      return this.user.updateUser({
+      console.log("Executing Update album request");
+      return this.album.updateAlbum({
         walletAddress: this.msg_sender,
-        timestamp: request.metadata.timestamp,
+        updatedAt: new Date(request.metadata.timestamp * 1000),
         ...this.request_args,
       });
     } catch (error) {
@@ -55,11 +58,11 @@ class UpdateUserRoute extends AdvanceRoute {
   };
 }
 
-class DeleteUserRoute extends AdvanceRoute {
-  user: UserController;
-  constructor(user: UserController) {
+class DeleteAlbumRoute extends AdvanceRoute {
+  album: AlbumController;
+  constructor(album: AlbumController) {
     super();
-    this.user = user;
+    this.album = album;
   }
   _parse_request(request: any) {
     this.parse_request(request);
@@ -67,7 +70,7 @@ class DeleteUserRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      return this.user.deleteUser(parseInt(this.request_args.userId));
+      return this.album.deleteAlbum(parseInt(this.request_args.albumId));
     } catch (error) {
       const error_msg = `Failed to delete message ${error}`;
       console.debug(error_msg);
@@ -76,18 +79,18 @@ class DeleteUserRoute extends AdvanceRoute {
   };
 }
 
-class DeleteUsersRoute extends AdvanceRoute {
-  user: UserController;
-  constructor(user: UserController) {
+class DeleteAlbumsRoute extends AdvanceRoute {
+  album: AlbumController;
+  constructor(album: AlbumController) {
     super();
-    this.user = user;
+    this.album = album;
   }
   _parse_request(request: any) {
     this.parse_request(request);
   }
   public execute = (request: any) => {
     try {
-      return this.user.deleteUsers();
+      return this.album.deleteAlbums();
     } catch (error) {
       const error_msg = `Failed to delete message ${error}`;
       console.debug(error_msg);
@@ -97,30 +100,30 @@ class DeleteUsersRoute extends AdvanceRoute {
 }
 
 class InspectRoute extends DefaultRoute {
-  user: UserController;
-  constructor(user: UserController) {
+  album: AlbumController;
+  constructor(album: AlbumController) {
     super();
-    this.user = user;
+    this.album = album;
   }
 }
 
-class UsersRoute extends InspectRoute {
+class AlbumsRoute extends InspectRoute {
   execute = (request: any): Output => {
-    return this.user.getUsers();
+    return this.album.getAlbums();
   };
 }
 
-class UserRoute extends InspectRoute {
+class AlbumRoute extends InspectRoute {
   execute = (request: any): Output => {
-    return this.user.getUser(parseInt(<string>request));
+    return this.album.getAlbum(parseInt(<string>request));
   };
 }
 
 export {
-  UpdateUserRoute,
-  DeleteUserRoute,
-  DeleteUsersRoute,
-  CreateUserRoute,
-  UsersRoute,
-  UserRoute,
+  UpdateAlbumRoute,
+  DeleteAlbumRoute,
+  DeleteAlbumsRoute,
+  CreateAlbumRoute,
+  AlbumsRoute,
+  AlbumRoute,
 };

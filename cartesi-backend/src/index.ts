@@ -4,13 +4,8 @@ import { Wallet, Notice, Output, Error_out, Report } from "cartesi-wallet";
 import viem from "viem";
 import deployments from "./rollups.json";
 
-import {
-  CreateUserRoute,
-  UpdateUserRoute,
-  UserRoute,
-  UsersRoute,
-} from "./routes";
-import { UserController } from "./controllers";
+import * as Controllers from "./controllers";
+import * as Routes from "./routes";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -29,16 +24,41 @@ var handlers: any = {
   inspect_state: handle_inspect,
 };
 
-// Create User Route
-const user = new UserController();
-router.addRoute("create_user", new CreateUserRoute(user));
-router.addRoute("update_user", new UpdateUserRoute(user));
-router.addRoute("get_users", new UsersRoute(user));
-router.addRoute("get_user", new UserRoute(user));
-// router.addRoute("delete_user", new DeleteUserRoute(user));
-// router.addRoute("delete_users", new DeleteUsersRoute(user));
+// User Route
+const user = new Controllers.UserController();
+router.addRoute("create_user", new Routes.CreateUserRoute(user));
+router.addRoute("update_user", new Routes.UpdateUserRoute(user));
+router.addRoute("get_users", new Routes.UsersRoute(user));
+router.addRoute("get_user", new Routes.UserRoute(user));
+// router.addRoute("delete_user", new Routes.DeleteUserRoute(user));
+// router.addRoute("delete_users", new Routes.DeleteUsersRoute(user));
 
-// Create
+//Genre Route
+const genre = new Controllers.GenreController();
+router.addRoute("create_genre", new Routes.CreateGenreRoute(genre));
+router.addRoute("update_genre", new Routes.UpdateGenreRoute(genre));
+router.addRoute("get_genres", new Routes.GenresRoute(genre));
+router.addRoute("get_genre", new Routes.GenreRoute(genre));
+// router.addRoute("delete_genre", new Routes.DeleteGenreRoute(genre));
+// router.addRoute("delete_genres", new Routes.DeleteGenresRoute(genre));
+
+// Album Route
+const album = new Controllers.AlbumController();
+router.addRoute("create_album", new Routes.CreateAlbumRoute(album));
+router.addRoute("update_album", new Routes.UpdateAlbumRoute(album));
+router.addRoute("get_albums", new Routes.AlbumsRoute(album));
+router.addRoute("get_album", new Routes.AlbumRoute(album));
+// router.addRoute("delete_album", new DeleteAlbumRoute(album));
+// router.addRoute("delete_albums", new DeleteAlbumsRoute(album));
+
+// Track Route
+const track = new Controllers.TrackController();
+router.addRoute("create_track", new Routes.CreateTrackRoute(track));
+router.addRoute("update_track", new Routes.UpdateTrackRoute(track));
+router.addRoute("get_tracks", new Routes.TracksRoute(track));
+router.addRoute("get_track", new Routes.TrackRoute(track));
+// router.addRoute("delete_track", new DeleteTrackRoute(track));
+// router.addRoute("delete_tracks", new DeleteTracksRoute(track));
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {

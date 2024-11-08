@@ -4,27 +4,29 @@ import { UserType } from "../configs/enum";
 import { ListenerController } from "./listener.controller";
 import { ArtistController } from "./artist.controller";
 import { Json } from "../interfaces";
+import { Repository } from "../services";
 
 class UserController {
-  users: User[];
-
-  constructor() {
-    this.users = [];
-  }
-
-  create(
+  public create(
     userBody: Omit<User, "userType"> & {
       userType: "LISTENER" | "ARTIST";
       biography?: string;
       socialMediaLinks?: Json;
     }
   ) {
-    if (this.getUserByUniqueValue({ walletAddress: userBody.walletAddress })) {
+    if (
+      this.getUserByUniqueValue({
+        key: "walletAddress",
+        value: userBody.walletAddress,
+      })
+    ) {
       console.log("User with wallet address already exists");
       return new Error_out("User with wallet address already exists");
     }
 
-    if (this.getUserByUniqueValue({ username: userBody.username })) {
+    if (
+      this.getUserByUniqueValue({ key: "username", value: userBody.username })
+    ) {
       console.log("User with username already exists");
       return new Error_out("User with wallet address already exists");
     }
@@ -35,13 +37,14 @@ class UserController {
         userBody.displayName,
         userBody.walletAddress,
         userBody.username,
+        userBody.userType,
         userBody.createdAt,
         userBody.updatedAt
       );
 
       if (userBody.userType === UserType.LISTENER) {
         console.log("Creating listener");
-        const listener = new ListenerController().create({ user });
+        const listener = new ListenerController().createListener({ user });
 
         user.listener = listener;
         if (!user || !listener) {
@@ -49,7 +52,7 @@ class UserController {
         }
       } else if (userBody.userType === UserType.ARTIST) {
         console.log("Creating artist");
-        const artist = new ArtistController().create({
+        const artist = new ArtistController().createArtist({
           user,
           biography: userBody.biography || null,
           socialMediaLinks: userBody.socialMediaLinks || null,
@@ -61,7 +64,8 @@ class UserController {
         }
       }
 
-      this.users.push(user);
+      Repository.users.push(user);
+      Repository.users.push(user);
 
       console.log("user", user);
 
@@ -70,8 +74,6 @@ class UserController {
       console.log(
         `User ${user.name} created with wallet address ${user.walletAddress}`
       );
-      // const notice_payload_json = parse(user_json);
-      // console.log("notice parse", notice_payload_json);
       return new Notice(notice_payload);
     } catch (error) {
       const error_msg = `Failed to create User ${error}`;
@@ -80,32 +82,36 @@ class UserController {
     }
   }
 
-  updateUser(
-    currentWalletAddress: string,
-    timestamp: number,
-    userBody: Partial<User>
+  public updateUser(
+    userBody: User & {
+      currentWalletAddress: string;
+      timestamp: number;
+    }
   ) {
     try {
       const updateUser = this.getUserByUniqueValue({
-        walletAddress: currentWalletAddress,
+        key: "walletAddress",
+        value: userBody.currentWalletAddress,
       });
+
+      if (!updateUser) {
+        return new Error_out(
+          `User with wallet ${userBody.currentWalletAddress} not found`
+        );
+      }
+      const isUsernameTaken = this.getUserByUniqueValue({
+        key: "username",
+        value: `${userBody.username}`,
+      });
+
+      if (userBody.username && isUsernameTaken) {
+        return new Error_out("Username already taken");
+      }
+
       if (
-        !this.getUserByUniqueValue({
-          walletAddress: currentWalletAddress,
-        })
+        updateUser?.walletAddress !==
+        userBody.currentWalletAddress.toLowerCase()
       ) {
-        return new Error_out(
-          `User with wallet ${currentWalletAddress} not found`
-        );
-      }
-
-      if (this.getUserByUniqueValue({ username: userBody.username })) {
-        return new Error_out(
-          `User with username ${userBody.username} already exists`
-        );
-      }
-
-      if (updateUser?.walletAddress !== currentWalletAddress.toLowerCase()) {
         return new Error_out("Only the user itself can update its details");
       }
 
@@ -114,12 +120,20 @@ class UserController {
       //   updateUser.artist.socialMediaLinks = userBody.socialMediaLinks;
       // }
 
-      const { id, cartesiTokenBalance, walletAddress, updatedAt, ...rest } =
-        userBody;
+      const {
+        id,
+        cartesiTokenBalance,
+        walletAddress,
+        timestamp,
+        updatedAt,
+        ...rest
+      } = userBody;
       Object.assign(updateUser, {
         ...rest,
         updatedAt: new Date(timestamp * 1000),
       });
+
+      // this.fileHelper.writeFile(Repository.users); // Persist changes to JSON
       const user_json = JSON.stringify(updateUser);
 
       console.log("Updating User", user_json);
@@ -131,9 +145,12 @@ class UserController {
       return new Error_out(`Failed to update user with id ${userBody.id}`);
     }
   }
-  getUsers() {
+
+  public getUsers() {
     try {
-      const users_json = JSON.stringify(this.users);
+      // const users = this.fileHelper.readFile<User>(); // Read directly from file
+      // console.log("Get Users from God", JSON.stringify(users));
+      const users_json = JSON.stringify(Repository.users);
       console.log("Users", users_json);
       return new Log(users_json);
     } catch (error) {
@@ -143,24 +160,26 @@ class UserController {
     }
   }
 
-  getUser(user_id: number) {
+  public getUser(userId: number) {
     try {
-      let user_json = JSON.stringify(this.users[user_id]);
+      const user_json = JSON.stringify(
+        this.getUserByUniqueValue({ key: "id", value: userId })
+      );
       console.log("User", user_json);
       return new Log(user_json);
     } catch (error) {
-      return new Error_out(`User with id ${user_id} not found`);
+      return new Error_out(`User with id ${userId} not found`);
     }
   }
 
-  deleteUser(user_id: number) {
+  public deleteUser(userId: number) {
     try {
-      const user = this.getUserByUniqueValue({ id: user_id });
+      const user = this.getUserByUniqueValue({ key: "id", value: userId });
       if (!user) {
-        return new Error_out(`User with id ${user_id} not found`);
+        return new Error_out(`User with id ${userId} not found`);
       }
 
-      this.users = this.users.filter((u) => u.id !== user_id);
+      Repository.users = Repository.users.filter((user) => user.id !== userId);
 
       console.log("User deleted", user);
 
@@ -172,13 +191,13 @@ class UserController {
       return new Notice(notice_payload);
     } catch (error) {
       console.debug("Error deleting user", error);
-      return new Error_out(`Failed to delete user with id ${user_id}`);
+      return new Error_out(`Failed to delete user with id ${userId}`);
     }
   }
 
-  deleteUsers() {
+  public deleteUsers() {
     try {
-      this.users = [];
+      Repository.users = [];
       console.log("All Users deleted");
       return new Notice(`{{"type":"delete_all_users","content":null }}`);
     } catch (error) {
@@ -186,22 +205,16 @@ class UserController {
       return new Error_out("Failed to delete all users");
     }
   }
-
-  getUserByUniqueValue({
-    id,
-    walletAddress,
-    username,
+  public getUserByUniqueValue({
+    key,
+    value,
   }: {
-    id?: number;
-    walletAddress?: string;
-    username?: string;
+    key: keyof Pick<User, "username" | "walletAddress" | "id">;
+    value: User[keyof Pick<User, "username" | "walletAddress" | "id">];
   }) {
-    return this.users.find(
-      (user) =>
-        user.id === id ||
-        user.walletAddress === walletAddress ||
-        user.username === username
-    );
+    console.log("key", key, "value", value);
+    const user = Repository.users.find((user) => user[key] === value);
+    return user;
   }
 }
 
