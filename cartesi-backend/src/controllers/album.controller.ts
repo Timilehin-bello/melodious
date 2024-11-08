@@ -1,65 +1,186 @@
 import { Error_out, Log, Notice } from "cartesi-wallet";
-import { Album, User } from "../models";
-
+import { Album, Track, User } from "../models";
 import { UserController } from "./user.controller";
-
-const user = new UserController();
+import { UserType } from "../configs/enum";
+import { TrackController } from "./track.controller";
+import { GenreController } from "./genre.controller";
+import { Repository } from "../services";
 
 class AlbumController {
-  albums: Album[];
+  createAlbum(albumBody: Album & { walletAddress: string }) {
+    console.log("albumBody", albumBody);
 
-  constructor() {
-    this.albums = [];
-  }
+    if (
+      !albumBody.title ||
+      !albumBody.imageUrl ||
+      !albumBody.label ||
+      !albumBody.isPublished ||
+      !albumBody.tracks ||
+      albumBody.tracks.length === 0
+    ) {
+      return new Error_out("Missing required fields");
+    }
 
-  create(albumBody: { album: Album; walletAddress: string }) {
-    const findUser: User | any = user.getUserByUniqueValue({
-      key: "walletAddress",
-      value: albumBody.walletAddress,
-    });
+    const findUser: User | undefined =
+      new UserController().getUserByUniqueValue({
+        key: "walletAddress",
+        value: albumBody.walletAddress.toLowerCase(),
+      });
+
     if (!findUser) {
       return new Error_out("User with wallet address does not exist");
     }
 
+    if (findUser.role !== UserType.ARTIST || !findUser.artist) {
+      return new Error_out("Only artists can update albums");
+    }
+
+    const genre = new GenreController().getGenreById(albumBody.genreId);
+
+    if (!genre) {
+      return new Error_out("Genre with id does not exist");
+    }
+
     try {
-      const album = new Album(
-        albumBody.album.title,
+      const newAlbum = new Album(
+        albumBody.title,
         findUser.artist.id,
-        albumBody.album.releaseDate,
-        albumBody.album.coverImageUrl,
-        albumBody.album.totalTracks,
-        albumBody.album.label,
-        albumBody.album.genreId,
-        albumBody.album.isPublished,
-        albumBody.album.tracks
+        albumBody.releaseDate,
+        albumBody.imageUrl,
+        albumBody.tracks.length,
+        albumBody.label,
+        genre.id,
+        albumBody.isPublished,
+        albumBody.createdAt,
+        albumBody.updatedAt
       );
 
-      return new Notice(`{{"type":"create_album","content"}}`);
+      const createdTracks = albumBody.tracks.map((track) => {
+        if (!findUser.artist) {
+          return new Error_out("Only artists can create tracks");
+        }
+        return new TrackController().createTrack({
+          ...track,
+          walletAddress: albumBody.walletAddress,
+          genreId: track.genreId,
+          createdAt: albumBody.createdAt,
+          updatedAt: albumBody.updatedAt,
+          albumId: newAlbum.id,
+          artistId: findUser.artist.id,
+          lyrics: track.lyrics || null,
+        });
+      });
+
+      const errorTracks = createdTracks.filter(
+        (track) => track instanceof Error_out
+      ) as Error_out[];
+
+      if (errorTracks.length > 0) {
+        console.debug("Error creating tracks", errorTracks);
+        return errorTracks[0];
+      }
+
+      if (!newAlbum || !createdTracks || createdTracks.length === 0) {
+        return new Error_out("Failed to create album");
+      }
+
+      newAlbum.tracks = createdTracks.filter(
+        (track) => track instanceof Track
+      ) as Track[];
+
+      console.log("Album created", newAlbum);
+
+      Repository.albums.push(newAlbum);
+
+      const album_json = JSON.stringify(Repository.albums);
+      const notice_payload = `{{"type":"create_album","content:${album_json} }}`;
+      return new Notice(notice_payload);
     } catch (error) {
-      const error_msg = `Failed to create User ${error}`;
-      console.debug("Create User", error_msg);
+      const error_msg = `Failed to create album ${error}`;
+      console.debug("Create Album", error_msg);
       return new Error_out(error_msg);
     }
   }
 
-  updateAlbum(
-    currentWalletAddress: string,
-    timestamp: number,
-    albumBody: Partial<User>
-  ) {
+  updateAlbum(albumBody: Album & { walletAddress: string }) {
+    console.log("albumBody", albumBody);
+    if (!albumBody.id) {
+      return new Error_out("Missing required field");
+    }
+
+    const genre = new GenreController().getGenreById(albumBody.genreId);
+
+    if (albumBody.genreId && !genre) {
+      return new Error_out("Genre with id does not exist");
+    }
+
+    const findAlbumToUpdate = this.getAlbumById({ id: albumBody.id });
+    if (!findAlbumToUpdate) {
+      return new Error_out(`Album with id ${albumBody.id} not found`);
+    }
+
+    const findUser: User | undefined =
+      new UserController().getUserByUniqueValue({
+        key: "walletAddress",
+        value: albumBody.walletAddress.toLowerCase(),
+      });
+
+    if (!findUser) {
+      return new Error_out("User with wallet address does not exist");
+    }
+
+    if (findUser.role !== UserType.ARTIST || !findUser.artist) {
+      return new Error_out("Only artists can update albums");
+    }
+
+    if (findUser.artist.id !== findAlbumToUpdate.artistId) {
+      return new Error_out(
+        "Not authorized to update this album. Only the creator of the album can update it"
+      );
+    }
+
     try {
-      return new Notice("notice_payload");
+      const {
+        artistId,
+        releaseDate,
+        createdAt,
+        walletAddress,
+        tracks,
+        ...rest
+      } = albumBody;
+
+      if (tracks.length > 0 && tracks) {
+        const updatedTrack = tracks.map((track) =>
+          new TrackController().updateTrack({
+            walletAddress,
+            ...track,
+          })
+        );
+        findAlbumToUpdate.tracks = updatedTrack.filter(
+          (track) => track instanceof Track
+        ) as Track[];
+      }
+
+      Object.assign(findAlbumToUpdate, {
+        ...rest,
+      });
+
+      const album_json = JSON.stringify(findAlbumToUpdate);
+
+      console.log("Updating album", album_json);
+
+      const notice_payload = `{{"type":"update_album","content:${album_json} }}`;
+
+      return new Notice(notice_payload);
     } catch (error) {
-      console.debug("Error updating user", error);
-      return new Error_out(`Failed to update user with id ${albumBody.id}`);
+      console.debug("Error updating album", error);
+      return new Error_out(`Failed to update album with id ${albumBody.id}`);
     }
   }
 
-  getAlbums() {
+  public getAlbums() {
     try {
-      // const albums = this.fileHelper.readFile<User>(); // Read directly from file
-      // console.log("Get albums from God", JSON.stringify(albums));
-      const albums_json = JSON.stringify(this.albums);
+      const albums_json = JSON.stringify(Repository.albums);
       console.log("albums", albums_json);
       return new Log(albums_json);
     } catch (error) {
@@ -69,42 +190,42 @@ class AlbumController {
     }
   }
 
-  getAlbum(user_id: number) {
+  public getAlbum(album_id: number) {
     try {
-      let user_json = JSON.stringify(this.albums[user_id]);
-      console.log("User", user_json);
-      return new Log(user_json);
+      let album_json = JSON.stringify(Repository.albums[album_id]);
+      console.log("Album", album_json);
+      return new Log(album_json);
     } catch (error) {
-      return new Error_out(`User with id ${user_id} not found`);
+      return new Error_out(`Album with id ${album_id} not found`);
     }
   }
 
-  deleteAlbum(user_id: number) {
+  public deleteAlbum(album_id: number) {
     try {
-      const user = this.getAlbumById({ id: user_id });
-      if (!user) {
-        return new Error_out(`User with id ${user_id} not found`);
+      const album = this.getAlbumById({ id: album_id });
+      if (!album) {
+        return new Error_out(`Album with id ${album_id} not found`);
       }
 
-      this.albums = this.albums.filter((u) => u.id !== user_id);
+      Repository.albums = Repository.albums.filter((u) => u.id !== album_id);
 
-      console.log("User deleted", user);
+      console.log("Album deleted", album);
 
-      const user_json = JSON.stringify(user);
-      console.log("Deleting User", user_json);
+      const album_json = JSON.stringify(album);
+      console.log("Deleting album", album_json);
 
-      const notice_payload = `{{"type":"delete_user","content":${user_json} }}`;
+      const notice_payload = `{{"type":"delete_album","content":${album_json} }}`;
 
       return new Notice(notice_payload);
     } catch (error) {
-      console.debug("Error deleting user", error);
-      return new Error_out(`Failed to delete user with id ${user_id}`);
+      console.debug("Error deleting album", error);
+      return new Error_out(`Failed to delete album with id ${album_id}`);
     }
   }
 
-  deleteAlbums() {
+  public deleteAlbums() {
     try {
-      this.albums = [];
+      Repository.albums = [];
       console.log("All albums deleted");
       return new Notice(`{{"type":"delete_all_albums","content":null }}`);
     } catch (error) {
@@ -113,8 +234,8 @@ class AlbumController {
     }
   }
 
-  getAlbumById({ id }: { id: number }) {
-    return this.albums.find((user) => user.id === id);
+  public getAlbumById({ id }: { id: number }) {
+    return Repository.albums.find((album) => album.id === id);
   }
 }
 

@@ -25,6 +25,15 @@ import {
   GenreRoute,
 } from "./genre.route";
 
+import {
+  CreateTrackRoute,
+  DeleteTrackRoute,
+  DeleteTracksRoute,
+  UpdateTrackRoute,
+  TracksRoute,
+  TrackRoute,
+} from "./track.route";
+
 export {
   // User
   CreateUserRoute,
@@ -49,4 +58,12 @@ export {
   UpdateGenreRoute,
   GenresRoute,
   GenreRoute,
+
+  //Track
+  CreateTrackRoute,
+  DeleteTrackRoute,
+  DeleteTracksRoute,
+  UpdateTrackRoute,
+  TracksRoute,
+  TrackRoute,
 };

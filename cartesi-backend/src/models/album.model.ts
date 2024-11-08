@@ -1,4 +1,3 @@
-import { Artist } from "./artist.model";
 import { Track } from "./track.model";
 
 class Album {
@@ -7,7 +6,7 @@ class Album {
   title: string;
   artistId: number;
   releaseDate: Date;
-  coverImageUrl: string;
+  imageUrl: string;
   isPublished: boolean;
   totalTracks: number;
   label: string;
@@ -19,26 +18,28 @@ class Album {
     title: string,
     artistId: number,
     releaseDate: Date,
-    coverImageUrl: string,
+    imageUrl: string,
     totalTracks: number,
     label: string,
     genreId: number,
     isPublished: boolean,
-    tracks: Track[]
+    createdAt: Date,
+    updatedAt: Date,
+    tracks: Track[] = []
   ) {
     this.id = Album.nextId++;
     this.title = title;
     this.releaseDate = new Date();
     this.artistId = artistId;
     this.releaseDate = releaseDate;
-    this.coverImageUrl = coverImageUrl;
+    this.imageUrl = imageUrl;
     this.totalTracks = totalTracks;
     this.label = label;
     this.genreId = genreId;
     this.isPublished = isPublished;
-    this.tracks = tracks;
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
+    this.tracks = tracks || [];
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 }
 

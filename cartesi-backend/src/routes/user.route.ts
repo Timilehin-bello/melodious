@@ -42,11 +42,11 @@ class UpdateUserRoute extends AdvanceRoute {
     this._parse_request(request);
     try {
       console.log("Executing Update User request");
-      return this.user.updateUser(
-        this.msg_sender,
-        request.metadata.timestamp,
-        this.request_args
-      );
+      return this.user.updateUser({
+        walletAddress: this.msg_sender,
+        timestamp: request.metadata.timestamp,
+        ...this.request_args,
+      });
     } catch (error) {
       const error_msg = `Failed to update message ${error}`;
       console.debug(error_msg);
