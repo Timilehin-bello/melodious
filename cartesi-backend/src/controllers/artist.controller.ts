@@ -2,14 +2,10 @@ import { Error_out } from "cartesi-wallet";
 import { Json } from "../interfaces";
 import { Artist } from "../models/";
 import { User } from "../models/user.model";
+import { Repository } from "../services";
 
 class ArtistController {
-  artists: Artist[];
-  constructor() {
-    this.artists = [];
-  }
-
-  create(artistBody: {
+  createArtist(artistBody: {
     user: User;
     biography?: string | null;
     socialMediaLinks?: Json | null;
@@ -26,7 +22,7 @@ class ArtistController {
         artistBody.socialMediaLinks
       );
       console.log("Artist Creating Successfully");
-      this.artists.push(artist);
+      Repository.artists.push(artist);
       return artist;
     } catch (error) {
       const error_msg = `Failed to create Artist ${error}`;
@@ -54,7 +50,7 @@ class ArtistController {
   }
 
   getArtistByUserId(userId: number) {
-    return this.artists.find((artist) => artist.userId === userId);
+    return Repository.artists.find((artist) => artist.userId === userId);
   }
 }
 
