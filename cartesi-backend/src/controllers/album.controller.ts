@@ -4,7 +4,7 @@ import { UserController } from "./user.controller";
 import { UserType } from "../configs/enum";
 import { TrackController } from "./track.controller";
 import { GenreController } from "./genre.controller";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class AlbumController {
   createAlbum(albumBody: Album & { walletAddress: string }) {
@@ -90,9 +90,9 @@ class AlbumController {
 
       console.log("Album created", newAlbum);
 
-      Repository.albums.push(newAlbum);
+      RepositoryService.albums.push(newAlbum);
 
-      const album_json = JSON.stringify(Repository.albums);
+      const album_json = JSON.stringify(RepositoryService.albums);
       const notice_payload = `{{"type":"create_album","content:${album_json} }}`;
       return new Notice(notice_payload);
     } catch (error) {
@@ -180,7 +180,7 @@ class AlbumController {
 
   public getAlbums() {
     try {
-      const albums_json = JSON.stringify(Repository.albums);
+      const albums_json = JSON.stringify(RepositoryService.albums);
       console.log("albums", albums_json);
       return new Log(albums_json);
     } catch (error) {
@@ -192,7 +192,7 @@ class AlbumController {
 
   public getAlbum(album_id: number) {
     try {
-      let album_json = JSON.stringify(Repository.albums[album_id]);
+      let album_json = JSON.stringify(RepositoryService.albums[album_id]);
       console.log("Album", album_json);
       return new Log(album_json);
     } catch (error) {
@@ -207,7 +207,9 @@ class AlbumController {
         return new Error_out(`Album with id ${album_id} not found`);
       }
 
-      Repository.albums = Repository.albums.filter((u) => u.id !== album_id);
+      RepositoryService.albums = RepositoryService.albums.filter(
+        (u) => u.id !== album_id
+      );
 
       console.log("Album deleted", album);
 
@@ -225,7 +227,7 @@ class AlbumController {
 
   public deleteAlbums() {
     try {
-      Repository.albums = [];
+      RepositoryService.albums = [];
       console.log("All albums deleted");
       return new Notice(`{{"type":"delete_all_albums","content":null }}`);
     } catch (error) {
@@ -235,7 +237,7 @@ class AlbumController {
   }
 
   public getAlbumById({ id }: { id: number }) {
-    return Repository.albums.find((album) => album.id === id);
+    return RepositoryService.albums.find((album) => album.id === id);
   }
 }
 
