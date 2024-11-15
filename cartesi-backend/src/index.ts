@@ -1,7 +1,6 @@
 import { hexToString } from "viem";
-import { AdvanceRoute, DefaultRoute, Router } from "cartesi-router";
-import { Wallet, Notice, Output, Error_out, Report } from "cartesi-wallet";
-import viem from "viem";
+import { Router } from "cartesi-router";
+import { Wallet, Notice, Output, Error_out } from "cartesi-wallet";
 import deployments from "./rollups.json";
 
 import * as Controllers from "./controllers";
@@ -12,10 +11,10 @@ const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
 
 let Network: string = "localhost";
 Network = <string>process.env.Network;
-console.info("rollup server url is ", rollup_server, Network);
 if (Network === undefined) {
   Network = "localhost";
 }
+console.info("rollup server url is ", rollup_server, Network);
 
 const wallet = new Wallet(new Map());
 const router = new Router(wallet);
@@ -23,6 +22,24 @@ var handlers: any = {
   advance_state: handle_advance,
   inspect_state: handle_inspect,
 };
+
+// const configService = new ConfigService();
+// const configResult = configService.createConfig({
+//   adminWalletAddresses: ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"],
+//   cartesiTokenContractAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+//   vaultContractAddress: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+//   artistPercentage: 70,
+//   poolPercentage: 30,
+//   feesPercentage: 2,
+//   serverAddress: "0x0000000000000000000000000000000000000000",
+//   dappContractAddress: "0x0000000000000000000000000000000000000000",
+//   melodiousNftAddress: "0x0000000000000000000000000000000000000000",
+// });
+// console.log("config result is ", configResult);
+// if (configResult instanceof Error_out) {
+//   console.error(configResult);
+//   process.exit(1);
+// }
 
 // User Route
 const user = new Controllers.UserController();
@@ -59,6 +76,16 @@ router.addRoute("get_tracks", new Routes.TracksRoute(track));
 router.addRoute("get_track", new Routes.TrackRoute(track));
 // router.addRoute("delete_track", new DeleteTrackRoute(track));
 // router.addRoute("delete_tracks", new DeleteTracksRoute(track));
+
+// Vault Route
+const vault = new Controllers.VaultController();
+router.addRoute("vault_deposit", new Routes.DepositVaultRoute(vault));
+
+// Config Route
+const config = new Controllers.ConfigController();
+router.addRoute("create_config", new Routes.CreateConfigRoute(config));
+router.addRoute("update_config", new Routes.UpdateConfigRoute(config));
+router.addRoute("get_config", new Routes.ConfigsRoute(config));
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {

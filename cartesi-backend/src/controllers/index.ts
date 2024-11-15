@@ -4,6 +4,8 @@ import { UserController } from "./user.controller";
 import { AlbumController } from "./album.controller";
 import { GenreController } from "./genre.controller";
 import { TrackController } from "./track.controller";
+import { VaultController } from "./vault.controller";
+import { ConfigController } from "./config.controller";
 
 export {
   ArtistController,
@@ -12,4 +14,6 @@ export {
   AlbumController,
   GenreController,
   TrackController,
+  VaultController,
+  ConfigController,
 };

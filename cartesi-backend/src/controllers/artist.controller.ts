@@ -2,7 +2,7 @@ import { Error_out } from "cartesi-wallet";
 import { Json } from "../interfaces";
 import { Artist } from "../models/";
 import { User } from "../models/user.model";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class ArtistController {
   createArtist(artistBody: {
@@ -22,7 +22,7 @@ class ArtistController {
         artistBody.socialMediaLinks
       );
       console.log("Artist Creating Successfully");
-      Repository.artists.push(artist);
+      RepositoryService.artists.push(artist);
       return artist;
     } catch (error) {
       const error_msg = `Failed to create Artist ${error}`;
@@ -50,7 +50,7 @@ class ArtistController {
   }
 
   getArtistByUserId(userId: number) {
-    return Repository.artists.find((artist) => artist.userId === userId);
+    return RepositoryService.artists.find((artist) => artist.userId === userId);
   }
 }
 

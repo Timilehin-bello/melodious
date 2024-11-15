@@ -6,5 +6,16 @@ import { Playlist } from "./playlist.model";
 import { Track } from "./track.model";
 import { Album } from "./album.model";
 import { Genre } from "./genre.model";
+import { Config } from "./config.model";
 
-export { User, Listener, Artist, Subscription, Playlist, Track, Album, Genre };
+export {
+  User,
+  Listener,
+  Artist,
+  Subscription,
+  Playlist,
+  Track,
+  Album,
+  Genre,
+  Config,
+};

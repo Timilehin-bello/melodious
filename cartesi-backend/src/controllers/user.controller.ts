@@ -4,7 +4,7 @@ import { UserType } from "../configs/enum";
 import { ListenerController } from "./listener.controller";
 import { ArtistController } from "./artist.controller";
 import { Json } from "../interfaces";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class UserController {
   public create(
@@ -64,8 +64,8 @@ class UserController {
         }
       }
 
-      Repository.users.push(user);
-      Repository.users.push(user);
+      RepositoryService.users.push(user);
+      RepositoryService.users.push(user);
 
       console.log("user", user);
 
@@ -133,7 +133,7 @@ class UserController {
         updatedAt: new Date(timestamp * 1000),
       });
 
-      // this.fileHelper.writeFile(Repository.users); // Persist changes to JSON
+      // this.fileHelper.writeFile(RepositoryService.users); // Persist changes to JSON
       const user_json = JSON.stringify(updateUser);
 
       console.log("Updating User", user_json);
@@ -150,7 +150,7 @@ class UserController {
     try {
       // const users = this.fileHelper.readFile<User>(); // Read directly from file
       // console.log("Get Users from God", JSON.stringify(users));
-      const users_json = JSON.stringify(Repository.users);
+      const users_json = JSON.stringify(RepositoryService.users);
       console.log("Users", users_json);
       return new Log(users_json);
     } catch (error) {
@@ -179,7 +179,9 @@ class UserController {
         return new Error_out(`User with id ${userId} not found`);
       }
 
-      Repository.users = Repository.users.filter((user) => user.id !== userId);
+      RepositoryService.users = RepositoryService.users.filter(
+        (user) => user.id !== userId
+      );
 
       console.log("User deleted", user);
 
@@ -197,7 +199,7 @@ class UserController {
 
   public deleteUsers() {
     try {
-      Repository.users = [];
+      RepositoryService.users = [];
       console.log("All Users deleted");
       return new Notice(`{{"type":"delete_all_users","content":null }}`);
     } catch (error) {
@@ -213,7 +215,7 @@ class UserController {
     value: User[keyof Pick<User, "username" | "walletAddress" | "id">];
   }) {
     console.log("key", key, "value", value);
-    const user = Repository.users.find((user) => user[key] === value);
+    const user = RepositoryService.users.find((user) => user[key] === value);
     return user;
   }
 }
