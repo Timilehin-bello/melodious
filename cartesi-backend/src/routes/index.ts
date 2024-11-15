@@ -34,6 +34,13 @@ import {
   TrackRoute,
 } from "./track.route";
 
+import { DepositVaultRoute } from "./vault.route";
+import {
+  CreateConfigRoute,
+  UpdateConfigRoute,
+  ConfigsRoute,
+} from "./config.route";
+
 export {
   // User
   CreateUserRoute,
@@ -66,4 +73,12 @@ export {
   UpdateTrackRoute,
   TracksRoute,
   TrackRoute,
+
+  // Vault
+  DepositVaultRoute,
+
+  // Config
+  CreateConfigRoute,
+  UpdateConfigRoute,
+  ConfigsRoute,
 };

@@ -1,7 +1,7 @@
 import { Error_out } from "cartesi-wallet";
 import { Listener } from "../models";
 import { User } from "../models/user.model";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class ListenerController {
   createListener(listenerBody: { user: User }) {
@@ -14,7 +14,7 @@ class ListenerController {
         listenerBody.user.createdAt,
         listenerBody.user.updatedAt
       );
-      Repository.listeners.push(listener);
+      RepositoryService.listeners.push(listener);
       return listener;
     } catch (error) {
       const error_msg = `Failed to create Listener ${error}`;
@@ -24,7 +24,9 @@ class ListenerController {
   }
 
   getListenerByUserId(userId: number) {
-    return Repository.listeners.find((listener) => listener.userId === userId);
+    return RepositoryService.listeners.find(
+      (listener) => listener.userId === userId
+    );
   }
 }
 

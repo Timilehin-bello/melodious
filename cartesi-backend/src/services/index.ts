@@ -1,3 +1,4 @@
-import { Repository } from "./repository.service";
+import { RepositoryService } from "./repository.service";
+import { ConfigService } from "./config.service";
 
-export { Repository };
+export { RepositoryService, ConfigService };

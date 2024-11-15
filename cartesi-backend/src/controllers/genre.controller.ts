@@ -1,6 +1,6 @@
 import { Error_out, Log, Notice } from "cartesi-wallet";
 import { Genre } from "../models";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class GenreController {
   public createGenre(genreBody: Genre) {
@@ -27,7 +27,7 @@ class GenreController {
         genreBody.updatedAt
       );
 
-      Repository.genres.push(genre);
+      RepositoryService.genres.push(genre);
       console.log("Genre created", genre);
 
       const genre_json = JSON.stringify(genre);
@@ -69,7 +69,9 @@ class GenreController {
       if (!genre) {
         return new Error_out(`Genre with id ${id} not found`);
       }
-      Repository.genres = Repository.genres.filter((genre) => genre.id !== id);
+      RepositoryService.genres = RepositoryService.genres.filter(
+        (genre) => genre.id !== id
+      );
       console.log("Genre deleted", genre);
       const genre_json = JSON.stringify(genre);
       const notice_payload = `{{"type":"delete_genre","content":${genre_json}}}`;
@@ -81,7 +83,7 @@ class GenreController {
 
   public deleteGenres() {
     try {
-      Repository.genres = [];
+      RepositoryService.genres = [];
       console.log("All Genres deleted");
 
       return new Notice(`{{"type":"delete_all_genres","content":null }}`);
@@ -92,7 +94,7 @@ class GenreController {
 
   public getGenreByName(name: string) {
     try {
-      return Repository.genres.find(
+      return RepositoryService.genres.find(
         (genre) => genre.name.toLowerCase() === name.toLowerCase()
       );
 
@@ -107,7 +109,7 @@ class GenreController {
 
   public getGenres() {
     try {
-      const genre_json = JSON.stringify(Repository.genres);
+      const genre_json = JSON.stringify(RepositoryService.genres);
       console.log("genres", genre_json);
       return new Log(genre_json);
     } catch (error) {
@@ -128,7 +130,7 @@ class GenreController {
   }
 
   public getGenreById(id: number) {
-    return Repository.genres.find((genre) => genre.id === id);
+    return RepositoryService.genres.find((genre) => genre.id === id);
   }
 }
 export { GenreController };

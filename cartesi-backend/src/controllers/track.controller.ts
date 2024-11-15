@@ -2,7 +2,7 @@ import { Error_out, Log, Notice } from "cartesi-wallet";
 import { Track, User } from "../models";
 import { GenreController, UserController } from "./";
 import { UserType } from "../configs/enum";
-import { Repository } from "../services";
+import { RepositoryService } from "../services";
 
 class TrackController {
   public createTrack(
@@ -38,37 +38,46 @@ class TrackController {
     if (findUser.role !== UserType.ARTIST || !findUser.artist) {
       return new Error_out("Only artist can create tracks");
     }
+    try {
+      const newTrack = new Track(
+        trackBody.title,
+        trackBody.imageUrl,
+        trackBody.audioUrl,
+        trackBody.genreId,
+        trackBody.albumId || null,
+        findUser.artist.id,
+        trackBody.duration,
+        trackBody.isPublished,
+        trackBody.createdAt,
+        trackBody.updatedAt,
+        trackBody.trackNumber || null,
+        trackBody.isrcCode || null,
+        trackBody.lyrics || null
+      );
+      if (!newTrack) {
+        return new Error_out("Failed to create track");
+      }
 
-    const newTrack = new Track(
-      trackBody.title,
-      trackBody.imageUrl,
-      trackBody.audioUrl,
-      trackBody.genreId,
-      trackBody.albumId || null,
-      findUser.artist.id,
-      trackBody.duration,
-      trackBody.isPublished,
-      trackBody.createdAt,
-      trackBody.updatedAt,
-      trackBody.trackNumber || null,
-      trackBody.isrcCode || null,
-      trackBody.lyrics || null
-    );
-    if (!newTrack) {
-      return new Error_out("Failed to create track");
+      RepositoryService.tracks.push(newTrack);
+
+      console.log("Track created", newTrack);
+      const track_json = JSON.stringify(newTrack);
+      if (!returnAsNotice) {
+        console.log(
+          "All  tracks",
+          RepositoryService.tracks,
+          RepositoryService.tracks.length
+        );
+        console.log("Creating track", track_json);
+        return newTrack;
+      }
+      const notice_payload = `{{"type":"create_track", "content":${track_json} }}`;
+      return new Notice(notice_payload);
+    } catch (error) {
+      const error_msg = `Failed to create Track ${error}`;
+      console.debug(error_msg);
+      return new Error_out(error_msg);
     }
-
-    Repository.tracks.push(newTrack);
-
-    console.log("Track created", newTrack);
-    const track_json = JSON.stringify(newTrack);
-    if (!returnAsNotice) {
-      console.log("All  tracks", Repository.tracks, Repository.tracks.length);
-      console.log("Creating track", track_json);
-      return newTrack;
-    }
-    const notice_payload = `{{"type":"create_track", "content":${track_json} }}`;
-    return new Notice(notice_payload);
   }
 
   public updateTrack(
@@ -114,7 +123,7 @@ class TrackController {
         ...rest,
       });
 
-      //  Repository.tracks = Repository.tracks.map((track) =>
+      //  RepositoryService.tracks = RepositoryService.tracks.map((track) =>
       //    track.id === findTrackToUpdate.id ? findTrackToUpdate : track
       //  );
 
@@ -147,7 +156,7 @@ class TrackController {
 
   public getTracks() {
     try {
-      const tracks_json = JSON.stringify(Repository.tracks);
+      const tracks_json = JSON.stringify(RepositoryService.tracks);
       console.log("tracks", tracks_json);
       return new Log(tracks_json);
     } catch (error) {
@@ -163,7 +172,7 @@ class TrackController {
       if (!track) {
         return new Error_out("Track with id does not exist");
       }
-      Repository.tracks = Repository.tracks.filter(
+      RepositoryService.tracks = RepositoryService.tracks.filter(
         (track) => track.id !== trackId
       );
       console.log("Track deleted", track);
@@ -178,7 +187,7 @@ class TrackController {
 
   public deleteTracks() {
     try {
-      Repository.tracks = [];
+      RepositoryService.tracks = [];
       console.log("All tracks deleted");
       return new Notice(`{{"type":"delete_all_tracks","content":null }}`);
     } catch (error) {
@@ -188,11 +197,11 @@ class TrackController {
   }
 
   public getTrackById({ id }: { id: number }) {
-    return Repository.tracks.find((track) => track.id === id);
+    return RepositoryService.tracks.find((track) => track.id === id);
   }
 
   public getAllTracks() {
-    return Repository.tracks;
+    return RepositoryService.tracks;
   }
 }
 
