@@ -1,18 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-
 model User {
   id Int @id @default(autoincrement())
 
@@ -20,19 +5,18 @@ model User {
   token         Token[]
   listener      Listener?
   artist        Artist?
-
-  lastLogin DateTime? // not available on cartesi
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  lastLogin     DateTime? // not available on Cartesi
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Listener {
   id                Int    @id @default(autoincrement())
   subscriptionLevel String @default("FREE")
 
-  favorites        UserFavorite[] // not sure if it should be on cartesi
-  streamingHistory StreamingHistory[] // not available on cartesi
-  follows          Follow[] // not available on cartesi
+  favorites        UserFavorite[]
+  streamingHistory StreamingHistory[]
+  follows          Follow[]
   user             User?              @relation(fields: [userId], references: [id])
   userId           Int?               @unique
   createdAt        DateTime           @default(now())
@@ -40,21 +24,15 @@ model Listener {
 }
 
 model Artist {
-  id            Int      @id @default(autoincrement())
-  listeningTime Int?
-  tracks        Track[]
-  followers     Follow[]
-  user          User?    @relation(fields: [userId], references: [id])
-  userId        Int?     @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-model UserActivity {
   id Int @id @default(autoincrement())
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  tracks         Track[]
+  followers      Follow[]
+  listeningTimes ListeningTime[]
+  user           User?           @relation(fields: [userId], references: [id])
+  userId         Int?            @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 model Token {
@@ -70,15 +48,31 @@ model Token {
 }
 
 model Track {
-  id    Int    @id @default(autoincrement())
-  title String
-
-  artist   Artist? @relation(fields: [artistId], references: [id])
-  artistId Int?
+  id         Int    @id @default(autoincrement())
+  title      String
+  listenTime Int?
+  artist     Artist @relation(fields: [artistId], references: [id])
+  artistId   Int
 
   streamingHistory StreamingHistory[]
+  listeningTimes   ListeningTime[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+}
+
+model ListeningTime {
+  id                 Int @id @default(autoincrement())
+  trackId            Int
+  artistId           Int
+  totalListeningTime Int @default(0)
+
+  track  Track  @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([trackId, artistId])
 }
 
 model UserFavorite {
