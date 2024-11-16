@@ -7,12 +7,13 @@ class ConfigService {
     if (RepositoryService.config) {
       return new Error_out("Config already exists. Update it instead.");
     }
+
     if (
       !configData.adminWalletAddresses ||
       !configData.cartesiTokenContractAddress ||
       !configData.artistPercentage ||
       !configData.poolPercentage ||
-      !configData.feesPercentage ||
+      !configData.feePercentage ||
       !configData.serverAddress ||
       !configData.dappContractAddress ||
       !configData.melodiousNftAddress

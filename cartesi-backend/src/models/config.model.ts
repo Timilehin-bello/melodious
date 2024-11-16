@@ -5,9 +5,10 @@ class Config {
   cartesiTokenContractAddress: `0x${string}`;
   vaultContractAddress: `0x${string}`;
   vaultBalance: number;
+  feeBalance: number;
   artistPercentage: number;
   poolPercentage: number;
-  feesPercentage: number;
+  feePercentage: number;
   serverAddress: string;
   dappContractAddress: string;
   melodiousNftAddress: string;
@@ -18,11 +19,12 @@ class Config {
     vaultContractAddress: `0x${string}`,
     artistPercentage: number,
     poolPercentage: number,
-    feesPercentage: number,
+    feePercentage: number,
     serverAddress: string,
     dappContractAddress: string,
     melodiousNftAddress: string,
-    vaultBalance: number = 0
+    vaultBalance: number = 0,
+    feeBalance: number = 0
   ) {
     const addressFields = [
       ...adminWalletAddresses,
@@ -42,9 +44,10 @@ class Config {
     this.cartesiTokenContractAddress = cartesiTokenContractAddress;
     this.vaultContractAddress = vaultContractAddress;
     this.vaultBalance = vaultBalance;
+    this.feeBalance = feeBalance;
     this.artistPercentage = artistPercentage;
     this.poolPercentage = poolPercentage;
-    this.feesPercentage = feesPercentage;
+    this.feePercentage = feePercentage;
     this.serverAddress = serverAddress;
     this.dappContractAddress = dappContractAddress;
     this.melodiousNftAddress = melodiousNftAddress;

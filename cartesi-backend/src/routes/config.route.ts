@@ -23,11 +23,12 @@ class CreateConfigRoute extends AdvanceRoute {
         vaultContractAddress: this.request_args.vaultContractAddress,
         artistPercentage: this.request_args.artistPercentage,
         poolPercentage: this.request_args.poolPercentage,
-        feesPercentage: this.request_args.feesPercentage,
+        feePercentage: this.request_args.feePercentage,
         serverAddress: this.request_args.serverAddress,
         dappContractAddress: this.request_args.dappContractAddress,
         melodiousNftAddress: this.request_args.melodiousNftAddress,
         vaultBalance: 0,
+        feeBalance: 0,
       });
 
       return config;

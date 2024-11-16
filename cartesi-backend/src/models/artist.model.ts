@@ -5,6 +5,7 @@ import { Json } from "../interfaces";
 class Artist {
   static nextId = 0;
   id: number;
+  totalListeningTime: number;
   userId: number;
   biography?: string | null;
   socialMediaLinks?: Json | null;
@@ -18,10 +19,12 @@ class Artist {
     createdAt: number | Date,
     updatedAt: number | Date,
     biography?: string | null,
-    socialMediaLinks?: Json | null
+    socialMediaLinks?: Json | null,
+    totalListeningTime: number = 0
   ) {
     this.id = Artist.nextId++;
     this.userId = userId;
+    this.totalListeningTime = totalListeningTime || 0;
     this.biography = biography || null;
     this.socialMediaLinks = socialMediaLinks || null;
     this.albums = [];
