@@ -1,4 +1,4 @@
-import { Error_out, Voucher } from "cartesi-wallet";
+import { Error_out, Log, Voucher } from "cartesi-wallet";
 import { IDeposit } from "../interfaces";
 import { UserController } from "./user.controller";
 import { encodeFunctionData, hexToBytes, parseEther } from "viem";
@@ -46,7 +46,7 @@ class VaultController {
       );
       console.log("voucher", voucher);
 
-      getConfigService.vaultBalance += Number(depositBody.depositAmount);
+      getConfigService.vaultBalance += depositBody.depositAmount;
 
       return voucher;
     } catch (error) {
@@ -62,7 +62,19 @@ class VaultController {
     } catch (error) {}
   }
 
-  public getBalance() {}
+  public getBalance() {
+    const getConfigService = new ConfigService().getConfig();
+    if (!getConfigService) return new Error_out("Failed to get configuration");
+    try {
+      const vaultBalance = getConfigService.vaultBalance;
+      const vaultBalance_json = JSON.stringify(vaultBalance);
+      console.log("vaultBalance", vaultBalance_json);
+      return new Log(vaultBalance_json);
+    } catch (error) {
+      console.debug("Error getting vault balance", error);
+      return new Error_out("Failed to get vault balance");
+    }
+  }
 }
 
 export { VaultController };
