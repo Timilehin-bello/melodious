@@ -47,11 +47,18 @@ class ListeningRewardService {
         (totalListeningTime / totalCummulativeListeningTime) *
         artistTokenAllocation;
 
-      //TODO: The total listening time is not getting updated correctly
+      const feeAmount =
+        (artistRewardAmount * getConfigService.feePercentage) / 100;
+
+      getConfigService.feeBalance += feeAmount;
+
+      const amountFeeDeductedFromArtistRewardAmount =
+        artistRewardAmount - feeAmount;
+
       user.artist.totalListeningTime += totalListeningTime;
       console.log("Artists ", JSON.stringify(RepositoryService.artists));
 
-      user.cartesiTokenBalance += artistRewardAmount;
+      user.cartesiTokenBalance += amountFeeDeductedFromArtistRewardAmount;
     });
     return true;
   }
