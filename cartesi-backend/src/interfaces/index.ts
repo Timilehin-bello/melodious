@@ -4,7 +4,7 @@ export interface Json {
 
 export interface IDeposit {
   walletAddress: string;
-  depositAmount: number;
+  amount: number;
 }
 
 export interface IListeningReward {

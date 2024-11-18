@@ -80,6 +80,21 @@ router.addRoute("get_track", new Routes.TrackRoute(track));
 // Vault Route
 const vault = new Controllers.VaultController();
 router.addRoute("vault_deposit", new Routes.DepositVaultRoute(vault));
+router.addRoute(
+  "withdraw_artist_vault",
+  new Routes.WithdrawalArtistVaultRoute(vault)
+);
+
+// Reward Route
+const reward = new Controllers.ListeningRewardController();
+router.addRoute(
+  "distribute_reward_to_artists",
+  new Routes.ListeningRewardRoute(reward)
+);
+// router.addRoute(
+//   "distribute_referral_reward",
+//   new Routes.ReferralRewardRoute(reward)
+// );
 
 // Config Route
 const config = new Controllers.ConfigController();

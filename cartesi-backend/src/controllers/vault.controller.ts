@@ -1,19 +1,15 @@
 import { Error_out, Log, Voucher } from "cartesi-wallet";
-import { IDeposit } from "../interfaces";
-import { UserController } from "./user.controller";
+import { IDeposit, IWithdrawal } from "../interfaces";
 import { encodeFunctionData, hexToBytes, parseEther } from "viem";
-import {
-  ctsiTokenConfigABI,
-  MelodiousVaultConfigABI,
-  networkConfig,
-} from "../configs";
-import { ConfigService } from "../services";
+import { ctsiTokenConfigABI, MelodiousVaultConfigABI } from "../configs";
+import { ConfigService, ListeningRewardService } from "../services";
+import { UserController } from "./user.controller";
 
 class VaultController {
   constructor() {}
 
   public depositToVault(depositBody: IDeposit) {
-    if (!depositBody.walletAddress || !depositBody.depositAmount) {
+    if (!depositBody.walletAddress || !depositBody.amount) {
       return new Error_out("Missing required fields");
     }
 
@@ -28,7 +24,7 @@ class VaultController {
     }
 
     const depositAmountInWei = Number(
-      parseEther(depositBody.depositAmount.toString())
+      parseEther(depositBody.amount.toString())
     );
 
     try {
@@ -46,7 +42,7 @@ class VaultController {
       );
       console.log("voucher", voucher);
 
-      getConfigService.vaultBalance += depositBody.depositAmount;
+      getConfigService.vaultBalance += depositBody.amount;
 
       return voucher;
     } catch (error) {
@@ -55,11 +51,66 @@ class VaultController {
     }
   }
 
-  public withdraw() {
-    // if()
+  public withdraw(withdrawBody: IWithdrawal) {
+    if (!withdrawBody.walletAddress || !withdrawBody.amount) {
+      return new Error_out("Missing required fields");
+    }
+    const listeningRewardService =
+      new ListeningRewardService().withdrawListeningReward(withdrawBody);
+
+    if (listeningRewardService instanceof Error_out) {
+      return listeningRewardService;
+    }
+
+    const user = new UserController().getUserByUniqueValue({
+      key: "walletAddress",
+      value: withdrawBody.walletAddress.toLowerCase(),
+    });
+
+    if (!user) {
+      return new Error_out(
+        `User with wallet address ${withdrawBody.walletAddress} does not exist`
+      );
+    }
+
+    const getConfigService = new ConfigService().getConfig();
+
+    if (!getConfigService) {
+      return new Error_out("Failed to get configuration");
+    }
+
+    const withdrawalAmountInWei = Number(
+      parseEther(withdrawBody.amount.toString())
+    );
+
+    if (!listeningRewardService) {
+      user.cartesiTokenBalance += withdrawBody.amount;
+      return new Error_out("Failed to withdraw funds");
+    }
 
     try {
-    } catch (error) {}
+      const callData = encodeFunctionData({
+        abi: MelodiousVaultConfigABI,
+        functionName: "withdraw",
+        args: [withdrawBody.walletAddress, withdrawalAmountInWei],
+      });
+
+      console.log("callData", callData);
+
+      const voucher = new Voucher(
+        getConfigService.vaultContractAddress,
+        hexToBytes(callData)
+      );
+
+      console.log("voucher", voucher);
+
+      getConfigService.vaultBalance -= withdrawBody.amount;
+
+      return voucher;
+    } catch (error) {
+      console.debug("Error withdrawing funds", error);
+      return new Error_out("Failed to withdraw funds");
+    }
   }
 
   public getBalance() {
