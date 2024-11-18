@@ -34,7 +34,9 @@ import {
   TrackRoute,
 } from "./track.route";
 
-import { DepositVaultRoute } from "./vault.route";
+import { DepositVaultRoute, WithdrawalArtistVaultRoute } from "./vault.route";
+
+import { ListeningRewardRoute, ReferralRewardRoute } from "./reward.route";
 import {
   CreateConfigRoute,
   UpdateConfigRoute,
@@ -76,6 +78,11 @@ export {
 
   // Vault
   DepositVaultRoute,
+  WithdrawalArtistVaultRoute,
+
+  // Reward
+  ListeningRewardRoute,
+  ReferralRewardRoute,
 
   // Config
   CreateConfigRoute,
