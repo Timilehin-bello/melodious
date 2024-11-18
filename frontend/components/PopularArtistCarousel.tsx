@@ -2,7 +2,7 @@
 import * as React from "react";
 import Autoplay from "embla-carousel-autoplay";
 
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -41,16 +41,6 @@ export function PopularArtistCarousel() {
       artistName: "Chris Singer 3",
       shortDescription: "Award Winning musician3",
     },
-    // {
-    //   imageUrl: "/images/album_cover1.svg",
-    //   artistName: "Chris Singer 2",
-    //   shortDescription: "Grammy Award",
-    // },
-    // {
-    //   imageUrl: "/images/album_cover2.svg",
-    //   artistName: "3 Chris Singer",
-    //   shortDescription: "Soft life award",
-    // },
   ];
 
   React.useEffect(() => {
@@ -68,7 +58,7 @@ export function PopularArtistCarousel() {
     return () => {
       carouselApi.off("select", updateCarouselState); // Clean up on unmount
     };
-  }, [carouselApi]);
+  }, [carouselApi, popularArtists.length]);
 
   return (
     <div className="flex flex-col">
@@ -98,9 +88,11 @@ export function PopularArtistCarousel() {
                         className="object-cover p-1 rounded-md"
                       />
 
-                      <div className="absolute bottom-0 flex flex-col justify-center items-center backdrop-blur-0 bg-gray-900/25 p-4 w-full text-gray-200 h-20">
-                        <h3 className="font-bold">{_.artistName}</h3>
-                        <p className="font-semibold">{_.shortDescription}</p>
+                      <div className="absolute bottom-0 flex flex-col justify-center items-center text-center  backdrop-blur-0 bg-gray-900/25 p-4 w-full text-gray-200 h-20">
+                        <h3 className="font-bold text-md">{_.artistName}</h3>
+                        <p className="font-semibold text-sm">
+                          {_.shortDescription}
+                        </p>
                       </div>
                       {/* </div> */}
                     </div>
