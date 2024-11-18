@@ -1,12 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent } from "./ui/card";
-import {
-  Heart,
-  HeartIcon,
-  Play,
-  PlayCircle,
-  PlayCircleIcon,
-} from "lucide-react";
+import { HeartIcon, PlayCircle } from "lucide-react";
 
 interface TrendingSoundProps {
   imageUrl: string;

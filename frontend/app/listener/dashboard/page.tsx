@@ -4,7 +4,6 @@ import GenreItem from "@/components/GenreItem";
 import { PopularArtistCarousel } from "@/components/PopularArtistCarousel";
 import RecentItem from "@/components/RecentItem";
 import TrendingSoundItem from "@/components/TrendingSoundItem";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import Image from "next/image";
 
 export default function Page() {

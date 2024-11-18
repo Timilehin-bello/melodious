@@ -1,14 +1,5 @@
 "use client";
-import {
-  Calendar,
-  ChevronUp,
-  Home,
-  Inbox,
-  LogOut,
-  Search,
-  Settings,
-  User2,
-} from "lucide-react";
+import { Calendar, Home, Inbox, LogOut, Search, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -26,7 +17,6 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/router";
 
 // Menu items.
 const items = [
