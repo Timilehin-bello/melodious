@@ -65,7 +65,6 @@ class UserController {
       }
 
       RepositoryService.users.push(user);
-      RepositoryService.users.push(user);
 
       console.log("user", user);
 
