@@ -23,6 +23,7 @@ class VaultController {
       return new Error_out("Failed to get configuration");
     }
 
+    //TODO: check why the amount in vault is not correspoding to the expected amount
     const depositAmountInWei = Number(
       parseEther(depositBody.amount.toString())
     );
@@ -79,6 +80,7 @@ class VaultController {
       return new Error_out("Failed to get configuration");
     }
 
+    //TODO: check why the amount in vault is not correspoding to the expected amount
     const withdrawalAmountInWei = Number(
       parseEther(withdrawBody.amount.toString())
     );
