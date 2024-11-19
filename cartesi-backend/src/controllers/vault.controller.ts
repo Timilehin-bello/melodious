@@ -81,7 +81,6 @@ class VaultController {
     }
 
     //TODO: check why the amount in vault is not correspoding to the expected amount
-
     const withdrawalAmountInWei = Number(
       parseEther(withdrawBody.amount.toString())
     );
