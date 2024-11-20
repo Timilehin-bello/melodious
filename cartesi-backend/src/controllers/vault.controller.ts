@@ -108,6 +108,9 @@ class VaultController {
 
       getConfigService.vaultBalance -= withdrawBody.amount;
 
+      //TODO: Check later if this gives the expected value
+      getConfigService.lastVaultBalanceDistributed -= withdrawBody.amount;
+
       return voucher;
     } catch (error) {
       console.debug("Error withdrawing funds", error);

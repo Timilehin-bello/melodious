@@ -12,6 +12,7 @@ class Config {
   serverAddress: string;
   dappContractAddress: string;
   melodiousNftAddress: string;
+  lastVaultBalanceDistributed: number;
 
   constructor(
     adminWalletAddresses: string[],
@@ -24,6 +25,7 @@ class Config {
     dappContractAddress: string,
     melodiousNftAddress: string,
     vaultBalance: number = 0,
+    lastVaultBalanceDistributed: number = 0,
     feeBalance: number = 0
   ) {
     const addressFields = [
@@ -44,6 +46,7 @@ class Config {
     this.cartesiTokenContractAddress = cartesiTokenContractAddress;
     this.vaultContractAddress = vaultContractAddress;
     this.vaultBalance = vaultBalance;
+    this.lastVaultBalanceDistributed = lastVaultBalanceDistributed;
     this.feeBalance = feeBalance;
     this.artistPercentage = artistPercentage;
     this.poolPercentage = poolPercentage;
