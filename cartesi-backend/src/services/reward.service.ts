@@ -14,27 +14,40 @@ class ListeningRewardService {
       return new Error_out("Failed to get configuration");
     }
 
-    const totalCummulativeListeningTime = ListeningRewardBody.reduce(
+    const totalVaultBalance = getConfigService.vaultBalance;
+    const lastDistributedBalance =
+      getConfigService.lastVaultBalanceDistributed || 0;
+
+    if (totalVaultBalance <= lastDistributedBalance) {
+      return new Error_out("No new funds to distribute");
+    }
+
+    const amountToDistribute = totalVaultBalance - lastDistributedBalance;
+
+    const artistTokenAllocation =
+      (amountToDistribute * getConfigService.artistPercentage) / 100;
+
+    const totalCumulativeListeningTime = ListeningRewardBody.reduce(
       (total, { totalListeningTime }) => total + totalListeningTime,
       0
     );
 
-    if (totalCummulativeListeningTime === 0) {
+    // const totalCumulativeListeningTimeOfArtistAfterDistribution = RepositoryService.artists.reduce(
+    //   (total, artist) => total + artist.totalListeningTime,
+    //   0)
+
+    if (totalCumulativeListeningTime === 0) {
       return new Error_out("Total listening time cannot be zero");
     }
 
-    const artistTokenAllocation =
-      (getConfigService.vaultBalance * getConfigService.artistPercentage) / 100;
-
     ListeningRewardBody.forEach(({ walletAddress, totalListeningTime }) => {
-      console.log("totalListeningTime", totalListeningTime);
       const user = new UserController().getUserByUniqueValue({
         key: "walletAddress",
         value: walletAddress.toLowerCase(),
       });
 
       if (!user || user.artist === null) {
-        return new Error_out("User with wallet address does not exist ");
+        return new Error_out("User with wallet address does not exist");
       }
 
       const artist = new ArtistController().getArtistByUserId(user.id);
@@ -44,7 +57,7 @@ class ListeningRewardService {
       }
 
       const artistRewardAmount =
-        (totalListeningTime / totalCummulativeListeningTime) *
+        (totalListeningTime / totalCumulativeListeningTime) *
         artistTokenAllocation;
 
       const feeAmount =
@@ -52,14 +65,14 @@ class ListeningRewardService {
 
       getConfigService.feeBalance += feeAmount;
 
-      const amountFeeDeductedFromArtistRewardAmount =
-        artistRewardAmount - feeAmount;
+      const netArtistReward = artistRewardAmount - feeAmount;
 
       user.artist.totalListeningTime += totalListeningTime;
-      console.log("Artists ", JSON.stringify(RepositoryService.artists));
-
-      user.cartesiTokenBalance += amountFeeDeductedFromArtistRewardAmount;
+      user.cartesiTokenBalance += netArtistReward;
     });
+
+    getConfigService.lastVaultBalanceDistributed = totalVaultBalance;
+
     return true;
   }
 
