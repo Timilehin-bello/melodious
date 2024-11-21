@@ -5,6 +5,77 @@ import { ArtistController, UserController } from "../controllers";
 import { RepositoryService } from "./repository.service";
 
 class ListeningRewardService {
+  // calculateArtistRewardBaseOnListeningTime(
+  //   ListeningRewardBody: IListeningReward[]
+  // ) {
+  //   const getConfigService = new ConfigService().getConfig();
+
+  //   if (!getConfigService) {
+  //     return new Error_out("Failed to get configuration");
+  //   }
+
+  //   const totalVaultBalance = getConfigService.vaultBalance;
+  //   const lastDistributedBalance =
+  //     getConfigService.lastVaultBalanceDistributed || 0;
+
+  //   if (totalVaultBalance <= lastDistributedBalance) {
+  //     return new Error_out("No new funds to distribute");
+  //   }
+
+  //   const amountToDistribute = totalVaultBalance - lastDistributedBalance;
+
+  //   const artistTokenAllocation =
+  //     (amountToDistribute * getConfigService.artistPercentage) / 100;
+
+  //   const totalCumulativeListeningTime = ListeningRewardBody.reduce(
+  //     (total, { totalListeningTime }) => total + totalListeningTime,
+  //     0
+  //   );
+
+  //   // const totalCumulativeListeningTimeOfArtistAfterDistribution = RepositoryService.artists.reduce(
+  //   //   (total, artist) => total + artist.totalListeningTime,
+  //   //   0)
+
+  //   if (totalCumulativeListeningTime === 0) {
+  //     return new Error_out("Total listening time cannot be zero");
+  //   }
+
+  //   ListeningRewardBody.forEach(({ walletAddress, totalListeningTime }) => {
+  //     const user = new UserController().getUserByUniqueValue({
+  //       key: "walletAddress",
+  //       value: walletAddress.toLowerCase(),
+  //     });
+
+  //     if (!user || user.artist === null) {
+  //       return new Error_out("User with wallet address does not exist");
+  //     }
+
+  //     const artist = new ArtistController().getArtistByUserId(user.id);
+
+  //     if (!artist) {
+  //       return new Error_out(`Artist with user ID ${user.id} does not exist`);
+  //     }
+
+  //     const artistRewardAmount =
+  //       (totalListeningTime / totalCumulativeListeningTime) *
+  //       artistTokenAllocation;
+
+  //     const feeAmount =
+  //       (artistRewardAmount * getConfigService.feePercentage) / 100;
+
+  //     getConfigService.feeBalance += feeAmount;
+
+  //     const netArtistReward = artistRewardAmount - feeAmount;
+
+  //     user.artist.totalListeningTime += totalListeningTime;
+  //     user.cartesiTokenBalance += netArtistReward;
+  //   });
+
+  //   getConfigService.lastVaultBalanceDistributed = totalVaultBalance;
+
+  //   return true;
+  // }
+
   calculateArtistRewardBaseOnListeningTime(
     ListeningRewardBody: IListeningReward[]
   ) {
@@ -15,8 +86,7 @@ class ListeningRewardService {
     }
 
     const totalVaultBalance = getConfigService.vaultBalance;
-    const lastDistributedBalance =
-      getConfigService.lastVaultBalanceDistributed || 0;
+    const lastDistributedBalance = getConfigService.lastVaultBalanceDistributed;
 
     if (totalVaultBalance <= lastDistributedBalance) {
       return new Error_out("No new funds to distribute");
@@ -27,7 +97,7 @@ class ListeningRewardService {
     const artistTokenAllocation =
       (amountToDistribute * getConfigService.artistPercentage) / 100;
 
-    const totalCumulativeListeningTime = ListeningRewardBody.reduce(
+    const totalCumulativeListeningTime = RepositoryService.artists.reduce(
       (total, { totalListeningTime }) => total + totalListeningTime,
       0
     );
@@ -57,22 +127,43 @@ class ListeningRewardService {
       }
 
       const artistRewardAmount =
-        (totalListeningTime / totalCumulativeListeningTime) *
+        (user.artist.totalListeningTime / totalCumulativeListeningTime) *
         artistTokenAllocation;
 
       const feeAmount =
         (artistRewardAmount * getConfigService.feePercentage) / 100;
 
+      const netArtistReward = artistRewardAmount - feeAmount;
       getConfigService.feeBalance += feeAmount;
 
-      const netArtistReward = artistRewardAmount - feeAmount;
-
-      user.artist.totalListeningTime += totalListeningTime;
+      // user.artist.totalListeningTime += totalListeningTime;
       user.cartesiTokenBalance += netArtistReward;
     });
 
     getConfigService.lastVaultBalanceDistributed = totalVaultBalance;
 
+    return true;
+  }
+
+  updateListeningTimeOfArtist(listeningRewardBody: IListeningReward[]) {
+    listeningRewardBody.forEach(({ walletAddress, totalListeningTime }) => {
+      const user = new UserController().getUserByUniqueValue({
+        key: "walletAddress",
+        value: walletAddress.toLowerCase(),
+      });
+
+      if (!user || user.artist === null) {
+        return new Error_out("User with wallet address does not exist");
+      }
+
+      const artist = new ArtistController().getArtistByUserId(user.id);
+
+      if (!artist) {
+        return new Error_out(`Artist with user ID ${user.id} does not exist`);
+      }
+
+      user.artist.totalListeningTime += totalListeningTime;
+    });
     return true;
   }
 

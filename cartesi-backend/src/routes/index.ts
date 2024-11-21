@@ -36,7 +36,11 @@ import {
 
 import { DepositVaultRoute, WithdrawalArtistVaultRoute } from "./vault.route";
 
-import { ListeningRewardRoute, ReferralRewardRoute } from "./reward.route";
+import {
+  ArtistDistributionRewardRoute,
+  UpdateArtistListeningTimeForRewardRoute,
+  ReferralRewardRoute,
+} from "./reward.route";
 import {
   CreateConfigRoute,
   UpdateConfigRoute,
@@ -81,7 +85,8 @@ export {
   WithdrawalArtistVaultRoute,
 
   // Reward
-  ListeningRewardRoute,
+  ArtistDistributionRewardRoute,
+  UpdateArtistListeningTimeForRewardRoute,
   ReferralRewardRoute,
 
   // Config
