@@ -89,8 +89,14 @@ router.addRoute(
 const reward = new Controllers.ListeningRewardController();
 router.addRoute(
   "distribute_reward_to_artists",
-  new Routes.ListeningRewardRoute(reward)
+  new Routes.ArtistDistributionRewardRoute(reward)
 );
+
+router.addRoute(
+  "update_artist_listening_time",
+  new Routes.UpdateArtistListeningTimeForRewardRoute(reward)
+);
+
 // router.addRoute(
 //   "distribute_referral_reward",
 //   new Routes.ReferralRewardRoute(reward)

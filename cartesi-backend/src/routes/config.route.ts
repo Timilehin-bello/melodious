@@ -28,6 +28,7 @@ class CreateConfigRoute extends AdvanceRoute {
         dappContractAddress: this.request_args.dappContractAddress,
         melodiousNftAddress: this.request_args.melodiousNftAddress,
         vaultBalance: 0,
+        lastVaultBalanceDistributed: 0,
         feeBalance: 0,
       });
 

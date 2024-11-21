@@ -28,6 +28,8 @@ class VaultController {
       parseEther(depositBody.amount.toString())
     );
 
+    console.log("depositAmountInWei", depositAmountInWei);
+
     try {
       const callData = encodeFunctionData({
         abi: ctsiTokenConfigABI,
