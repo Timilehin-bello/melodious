@@ -211,7 +211,7 @@ export function CustomAreaChart() {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            {/* <CartesianGrid vertical={false} /> */}
             <XAxis
               dataKey="date"
               tickLine={false}

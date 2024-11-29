@@ -7,6 +7,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   return (
@@ -155,7 +156,7 @@ export default function Page() {
           <p className="text-gray-500 font-semibold">See All</p>
         </div>
 
-        <div className="flex gap-14 px-2 py-2 mt-3 bg-[#323D4E] rounded-lg text-white text-sm font-semibold">
+        <div className="flex gap-14 px-2 py-3 mt-4 mb-2 bg-[#323D4E] rounded-lg text-white text-sm font-semibold">
           <p className="w-36 space-x-2">Song Name</p>
           <p className="w-36 space-x-2">Streams</p>
           <p className="w-36 space-x-2">Date Uploaded</p>
@@ -178,9 +179,12 @@ export default function Page() {
             <p className="w-36 space-x-2">12.09.2019 - 12.53 PM</p>
             <p className="w-36 space-x-2">423</p>
             <p className="w-36 space-x-2">
-              <button className="bg-[#950944] text-white py-2 px-6 rounded-lg">
+              <Link
+                href="/artist/song-analytics"
+                className="bg-[#950944] text-white py-3 px-4 rounded-lg"
+              >
                 Song Analytics
-              </button>
+              </Link>
             </p>
           </div>
           <hr className="border-t border-[#979797] my-3" />
@@ -201,9 +205,12 @@ export default function Page() {
             <p className="w-36 space-x-2">12.09.2019 - 12.53 PM</p>
             <p className="w-36 space-x-2">423</p>
             <p className="w-36 space-x-2">
-              <button className="bg-[#950944] text-white py-2 px-6 rounded-lg">
+              <Link
+                href="/artist/song-analytics"
+                className="bg-[#950944] text-white py-3 px-4 rounded-lg"
+              >
                 Song Analytics
-              </button>
+              </Link>
             </p>
           </div>
           <hr className="border-t border-[#979797] my-3" />
@@ -224,32 +231,12 @@ export default function Page() {
             <p className="w-36 space-x-2">12.09.2019 - 12.53 PM</p>
             <p className="w-36 space-x-2">423</p>
             <p className="w-36 space-x-2">
-              <button className="bg-[#950944] text-white py-2 px-6 rounded-lg">
+              <Link
+                href="/artist/song-analytics"
+                className="bg-[#950944] text-white py-3 px-4 rounded-lg"
+              >
                 Song Analytics
-              </button>
-            </p>
-          </div>
-          <hr className="border-t border-[#979797] my-3" />
-        </div>
-        <div className="mb-2">
-          <div className="flex items-center gap-14  px-2 py-2 mt-3 text-sm text-white">
-            <div className="w-36 space-x-2 flex items-center gap-2">
-              <Image
-                src="/images/woman-with-headphone-front.png"
-                alt=""
-                width={36}
-                height={36}
-                className="rounded-full"
-              />
-              <p>Apple Watch</p>
-            </div>
-            <p className="w-36 space-x-2">384</p>
-            <p className="w-36 space-x-2">12.09.2019 - 12.53 PM</p>
-            <p className="w-36 space-x-2">423</p>
-            <p className="w-36 space-x-2">
-              <button className="bg-[#950944] text-white py-2 px-6 rounded-lg">
-                Song Analytics
-              </button>
+              </Link>
             </p>
           </div>
           <hr className="border-t border-[#979797] my-3" />

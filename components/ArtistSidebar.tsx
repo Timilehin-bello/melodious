@@ -34,7 +34,7 @@ import { useRouter } from "next/navigation";
 const items = [
   {
     title: "Dashboard",
-    url: "/artist/home",
+    url: "/artist/dashboard",
     icon: Home,
   },
   {
