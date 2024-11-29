@@ -1,5 +1,16 @@
 "use client";
-import { Calendar, Home, Inbox, LogOut, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  ChartNoAxesColumn,
+  Home,
+  Inbox,
+  LayoutDashboard,
+  LayoutGrid,
+  ListCheck,
+  LogOut,
+  Search,
+  Settings,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -22,34 +33,29 @@ import { useRouter } from "next/navigation";
 // Menu items.
 const items = [
   {
-    title: "Home",
-    url: "/listener/dashboard",
+    title: "Dashboard",
+    url: "/artist/home",
     icon: Home,
   },
   {
-    title: "Playlist",
-    url: "/listener/playlist",
-    icon: Inbox,
+    title: "Song Analytics",
+    url: "/artist/song-analytics",
+    icon: ChartNoAxesColumn,
   },
   {
-    title: "Explore",
-    url: "/listener/explore",
-    icon: Search,
+    title: "My Music",
+    url: "/artist/my-music",
+    icon: LayoutGrid,
   },
   {
-    title: "Liked Songs",
-    url: "/listener/liked-songs",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "/listener/settings",
-    icon: Settings,
+    title: "Release",
+    url: "/artist/release",
+    icon: ListCheck,
   },
 ];
 
 export function ArtistSidebar() {
-  const [activeMenu, setActiveMenu] = useState("Home");
+  const [activeMenu, setActiveMenu] = useState("Dashboard");
   const { state } = useSidebar();
   const router = useRouter();
   const logOut = () => {
