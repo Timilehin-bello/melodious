@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 // Menu items.
 const items = [
@@ -50,7 +51,10 @@ const items = [
 export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
-
+  const router = useRouter();
+  const logOut = () => {
+    router.push("/");
+  };
   return (
     <Sidebar collapsible="icon" className="sidebar">
       <SidebarContent className="bg-sidebar-gradient text-white bg-cover bg-center border-0">
@@ -117,6 +121,7 @@ export function ListenerSidebar() {
           <SidebarMenuItem>
             <div className="flex align-middle items-center w-full">
               <button
+                onClick={logOut}
                 className={
                   state === "collapsed"
                     ? "hidden"

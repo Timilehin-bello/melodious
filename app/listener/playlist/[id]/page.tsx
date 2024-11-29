@@ -1,3 +1,4 @@
+"use client";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,13 +12,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Ellipsis, Play } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
+import { useParams } from "next/navigation";
 import React from "react";
 
 const Playlist = () => {
+  const { id } = useParams();
   return (
     <div className="m-4">
-      <div className="flex flex-wrap items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-center md:justify-start justify-center text-white">
+      <div className="flex flex-wrap items-center gap-8 bg-main-content-gradient bg-cover bg-center from-slate-400 to-lime-50 rounded-md  px-6 py-2 sm:px-4  sm:justify-center md:justify-start justify-center text-white">
         <div className="h-[236px] w-[251px] rounded-md bg-white p-2">
           <Image
             src="/images/artist.svg"
@@ -28,22 +30,17 @@ const Playlist = () => {
           />
         </div>
         <div>
+          <h3>Playlist #{id}</h3>
           <h2 className="text-2xl lg:text-7xl md:text-5xl sm:text-3xl md:text-left sm:text-center text-center font-bold mb-2">
-            Your Playlist
+            Playlist {id}
           </h2>
-          <div className="flex flex-wrap gap-4 px-4">
+          <p className="text-gray-500 text-sm mt-2">Description of Playlist</p>
+          <div className="flex flex-wrap gap-4 mt-2">
             <div className="flex gap-2">
-              <Image
-                src="/images/artist.svg"
-                width={12}
-                height={12}
-                alt="artist"
-                className="rounded-full"
-              />
-              <p>Raza</p>
+              <p>381,280 likes</p>
             </div>
             <p>
-              <span className="font-bold">10 songs,</span> 24 min 38 sec
+              <span className="font-bold"> 252 songs,</span> about 10hrs
             </p>
           </div>
         </div>
@@ -99,10 +96,7 @@ const Playlist = () => {
             <p></p>
           </div>
 
-          <Link
-            href={`playlist/${1}`}
-            className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer"
-          >
+          <div className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer">
             <div className="flex gap-6 py-2 items-center">
               <p className="ml-2 font-semibold group-hover:hidden">{1}</p>
               <Play className="h-4 w-4 ml-2 hidden group-hover:block" />
@@ -121,7 +115,7 @@ const Playlist = () => {
             <div className="flex">
               <Ellipsis size={24} />
             </div>
-          </Link>
+          </div>
           <div className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer">
             <div className="flex gap-6 py-2 items-center">
               <p className="ml-2 font-semibold group-hover:hidden">{1}</p>
