@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Ellipsis, Play } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Playlist = () => {
@@ -98,7 +99,10 @@ const Playlist = () => {
             <p></p>
           </div>
 
-          <div className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer">
+          <Link
+            href={`playlist/${1}`}
+            className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer"
+          >
             <div className="flex gap-6 py-2 items-center">
               <p className="ml-2 font-semibold group-hover:hidden">{1}</p>
               <Play className="h-4 w-4 ml-2 hidden group-hover:block" />
@@ -117,7 +121,7 @@ const Playlist = () => {
             <div className="flex">
               <Ellipsis size={24} />
             </div>
-          </div>
+          </Link>
           <div className="mt-5 flex justify-between items-center align-middle w-full sm:w-[500px] md:w-[726px] py-1 px-4 group text-white hover:bg-[#950944] hover:rounded-md hover:cursor-pointer">
             <div className="flex gap-6 py-2 items-center">
               <p className="ml-2 font-semibold group-hover:hidden">{1}</p>
