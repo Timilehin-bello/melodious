@@ -1,15 +1,10 @@
 "use client";
 import {
-  Calendar,
   ChartNoAxesColumn,
   Home,
-  Inbox,
-  LayoutDashboard,
   LayoutGrid,
   ListCheck,
   LogOut,
-  Search,
-  Settings,
 } from "lucide-react";
 
 import {

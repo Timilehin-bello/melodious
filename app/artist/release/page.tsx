@@ -1,8 +1,7 @@
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Music2, Play } from "lucide-react";
+import { Music2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 
 const Release = () => {
