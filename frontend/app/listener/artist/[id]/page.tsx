@@ -1,24 +1,7 @@
 "use client";
 import ArtistTabs from "@/components/ArtistTabs";
-import SearchInput from "@/components/SearchInput";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import {
-  BadgeCheck,
-  Check,
-  ChevronRight,
-  Ellipsis,
-  Headphones,
-  Play,
-} from "lucide-react";
+
+import { BadgeCheck, Check, ChevronRight, Headphones } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React from "react";

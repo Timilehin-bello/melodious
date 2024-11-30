@@ -1,5 +1,4 @@
 import GenreItem from "@/components/GenreItem";
-import { Clock } from "lucide-react";
 
 const Genres = () => {
   const genres = [
