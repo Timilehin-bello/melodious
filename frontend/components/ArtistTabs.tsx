@@ -4,14 +4,7 @@ import {
   TabsList2,
   TabsTrigger2,
 } from "@/components/ui/tabs2";
-import {
-  Clock,
-  Ellipsis,
-  HeadphonesIcon,
-  Heart,
-  ListMusic,
-  Play,
-} from "lucide-react";
+import { Ellipsis, ListMusic, Play } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 

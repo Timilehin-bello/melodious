@@ -7,7 +7,6 @@ import { useParams } from "next/navigation";
 import React from "react";
 
 const Artist = () => {
-  const { id } = useParams();
   const genres = [
     {
       name: "All",
