@@ -1,7 +1,7 @@
 import { EllipsisVertical, Play } from "lucide-react";
 import Image from "next/image";
 
-const page = () => {
+const Explore = () => {
   return (
     <div className="bg-black/15 mt-[-60px] pt-[65px] pb-[60px]">
       <div className="m-4 px-6">
@@ -326,4 +326,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Explore;

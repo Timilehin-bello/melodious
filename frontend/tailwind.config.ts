@@ -10,6 +10,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
+        "artist-background": 'url("/images/background_artist.svg")',
         "sidebar-gradient":
           'linear-gradient(-90.24deg, rgba(81, 55, 108, 0.43), rgba(126, 57, 240, 0.45)), url("/images/sidebar_background.svg")',
         "main-content-gradient":

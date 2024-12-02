@@ -10,6 +10,7 @@ import {
   CarouselApi,
 } from "@/components/ui/carousel";
 import Image from "next/image";
+import Link from "next/link";
 
 export function PopularArtistCarousel() {
   const [carouselApi, setCarouselApi] = React.useState<CarouselApi | null>(
@@ -73,32 +74,34 @@ export function PopularArtistCarousel() {
         <CarouselContent>
           {popularArtists.map((_, index) => (
             <CarouselItem key={index} className="cursor-pointer">
-              <div className="p-1">
-                <Card>
-                  <CardContent className="flex aspect-square p-0 items-center justify-center">
-                    {/* <span className="text-4xl font-semibold">{index + 1}</span> */}
-                    {/* <div className="relative w-full h-full rounded-md"> */}
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={_.imageUrl}
-                        alt={_.artistName}
-                        fill
-                        objectFit="cover"
-                        objectPosition="center"
-                        className="object-cover p-1 rounded-md"
-                      />
+              <Link href={`/listener/artist/${index + 1}`}>
+                <div className="p-1">
+                  <Card>
+                    <CardContent className="flex aspect-square p-0 items-center justify-center">
+                      {/* <span className="text-4xl font-semibold">{index + 1}</span> */}
+                      {/* <div className="relative w-full h-full rounded-md"> */}
+                      <div className="relative w-full h-full">
+                        <Image
+                          src={_.imageUrl}
+                          alt={_.artistName}
+                          fill
+                          objectFit="cover"
+                          objectPosition="center"
+                          className="object-cover p-1 rounded-md"
+                        />
 
-                      <div className="absolute bottom-0 flex flex-col justify-center items-center text-center  backdrop-blur-0 bg-gray-900/25 p-4 w-full text-gray-200 h-20">
-                        <h3 className="font-bold text-md">{_.artistName}</h3>
-                        <p className="font-semibold text-sm">
-                          {_.shortDescription}
-                        </p>
+                        <div className="absolute bottom-0 flex flex-col justify-center items-center text-center  backdrop-blur-0 bg-gray-900/25 p-4 w-full text-gray-200 h-20">
+                          <h3 className="font-bold text-md">{_.artistName}</h3>
+                          <p className="font-semibold text-sm">
+                            {_.shortDescription}
+                          </p>
+                        </div>
+                        {/* </div> */}
                       </div>
-                      {/* </div> */}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </Link>
             </CarouselItem>
           ))}
         </CarouselContent>

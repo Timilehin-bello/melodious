@@ -5,6 +5,7 @@ import { PopularArtistCarousel } from "@/components/PopularArtistCarousel";
 import RecentItem from "@/components/RecentItem";
 import TrendingSoundItem from "@/components/TrendingSoundItem";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   const data = [
@@ -345,9 +346,12 @@ export default function Page() {
         <div className="mt-10">
           <div className="flex justify-between text-white mb-4 px-2">
             <h2 className="font-bold text-2xl">Genre</h2>
-            <p className="hover:text-white text-gray-300 transition-all">
+            <Link
+              href={`/listener/genres`}
+              className="hover:text-white text-gray-300 transition-all"
+            >
               See All
-            </p>
+            </Link>
           </div>
           <div className=" pt-2">
             <GenreItem genres={genres} playSong={playSong} />

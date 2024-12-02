@@ -6,9 +6,10 @@ import React from "react";
 interface GenreProps {
   genres: any;
   playSong?: () => void;
+  showHeader?: boolean;
 }
 
-const GenreItem: React.FC<GenreProps> = ({ genres, playSong }) => {
+const GenreItem: React.FC<GenreProps> = ({ genres, playSong, showHeader }) => {
   return (
     <Tabs defaultValue={genres[0].name} className="w-full">
       <TabsList className="flex space-x-6">
@@ -18,6 +19,18 @@ const GenreItem: React.FC<GenreProps> = ({ genres, playSong }) => {
           </TabsTrigger>
         ))}
       </TabsList>
+
+      {showHeader ? (
+        <div className="bg-gray-950 flex items-center justify-around text-white w-full gap-4 py-4 mt-6">
+          <p># Title</p>
+          <p>Album</p>
+          <p>Date Added</p>
+          <Clock size={16} className="border-gray-500" />
+          <div></div>
+        </div>
+      ) : (
+        ""
+      )}
       {genres.map((genre: any) => (
         <TabsContent key={genre.name} value={genre.name}>
           <div className="p-4 ">
