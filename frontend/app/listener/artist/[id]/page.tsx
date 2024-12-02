@@ -3,7 +3,6 @@ import ArtistTabs from "@/components/ArtistTabs";
 
 import { BadgeCheck, Check, ChevronRight, Headphones } from "lucide-react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
 import React from "react";
 
 const Artist = () => {
