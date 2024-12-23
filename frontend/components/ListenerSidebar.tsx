@@ -18,6 +18,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import usePlayer from "@/hooks/usePlayer";
+import { twMerge } from "tailwind-merge";
 
 // Menu items.
 const items = [
@@ -51,12 +53,16 @@ const items = [
 export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
+  const player = usePlayer();
   const router = useRouter();
   const logOut = () => {
     router.push("/");
   };
   return (
-    <Sidebar collapsible="icon" className="sidebar">
+    <Sidebar
+      collapsible="icon"
+      className={twMerge(`sidebar`, player.activeId && "h-[calc(100%-80px)]")}
+    >
       <SidebarContent className="bg-sidebar-gradient text-white bg-cover bg-center border-0">
         <SidebarGroup>
           <SidebarHeader>
@@ -116,7 +122,7 @@ export function ListenerSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-[#950944] text-white">
+      {/* <SidebarFooter className="bg-[#950944] text-white">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex align-middle items-center w-full">
@@ -142,7 +148,7 @@ export function ListenerSidebar() {
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

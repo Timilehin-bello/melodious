@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { SidebarTrigger } from "./ui/sidebar";
 import { Separator } from "./ui/separator";
@@ -11,8 +12,15 @@ import {
 } from "./ui/breadcrumb";
 import { ConnectButton } from "thirdweb/react";
 import { client } from "@/lib/client";
+import { useActiveAccount } from "thirdweb/react";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useActiveWallet } from "thirdweb/react";
 
 const Header = () => {
+  const activeAccount = useActiveAccount();
+  const status = useActiveWalletConnectionStatus();
+  const activeWallet = useActiveWallet();
+
   return (
     <header className="sticky top-0 z-10  flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
       <div className="flex justify-between align-middle w-full">
