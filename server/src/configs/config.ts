@@ -53,7 +53,7 @@ export const config = {
 
   thirdweb: {
     secretKey: envVars.THIRDWEB_SECRET_KEY,
-    clientDomain: envVars.CLIENT_DOMAIN,
+    clientDomain: envVars.THIRDWEB_CLIENT_DOMAIN,
   },
 
   logConfig: {

@@ -32,7 +32,7 @@ model Listener {
   favorites        UserFavorite[]
   streamingHistory StreamingHistory[]
   follows          Follow[]
-  user             User?              @relation(fields: [userId], references: [id])
+  user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int?               @unique
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
@@ -44,7 +44,7 @@ model Artist {
   tracks         Track[]
   followers      Follow[]
   listeningTimes ListeningTime[]
-  user           User?           @relation(fields: [userId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         Int?            @unique
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -66,7 +66,7 @@ model Track {
   id         Int    @id @default(autoincrement())
   title      String
   listenTime Int?
-  artist     Artist @relation(fields: [artistId], references: [id])
+  artist     Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
   artistId   Int
 
   streamingHistory StreamingHistory[]
@@ -94,7 +94,7 @@ model UserFavorite {
   id           Int       @id @default(autoincrement())
   favoriteType String    @default("TRACK")
   itemId       String
-  listener     Listener? @relation(fields: [listenerId], references: [id])
+  listener     Listener? @relation(fields: [listenerId], references: [id], onDelete: Cascade)
   listenerId   Int?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -106,8 +106,8 @@ model Follow {
   followingArtistId Int
   followedAt        DateTime @default(now())
 
-  followingArtist Artist    @relation(fields: [followingArtistId], references: [id])
-  follower        Listener? @relation(fields: [followerId], references: [id])
+  followingArtist Artist    @relation(fields: [followingArtistId], references: [id], onDelete: Cascade)
+  follower        Listener? @relation(fields: [followerId], references: [id], onDelete: Cascade)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -120,8 +120,8 @@ model StreamingHistory {
   trackId    Int
   streamedAt DateTime @default(now())
 
-  track      Track     @relation(fields: [trackId], references: [id])
-  listener   Listener? @relation(fields: [listenerId], references: [id])
+  track      Track     @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  listener   Listener? @relation(fields: [listenerId], references: [id], onDelete: Cascade)
   listenerId Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

@@ -3,7 +3,7 @@ import { Track } from "./track.model";
 import { Json } from "../interfaces";
 
 class Artist {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   totalListeningTime: number;
   userId: number;

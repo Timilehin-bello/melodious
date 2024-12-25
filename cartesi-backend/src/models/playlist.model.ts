@@ -2,7 +2,7 @@ import { create } from "domain";
 import { Track } from "./track.model";
 
 class Playlist {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   title: string;
   imageUrl: string;

@@ -30,7 +30,7 @@ const genarateThirdwebAuth = async (
 };
 
 const generateToken = (
-  userId: string,
+  userId: number,
   expires: moment.Moment,
   type: string,
   secret = config.jwt.secret
@@ -41,6 +41,8 @@ const generateToken = (
     exp: expires.unix(),
     type,
   };
+
+  console.log("payload", payload);
 
   return jwt.sign(payload, secret);
 };
@@ -91,8 +93,8 @@ const generateAuthTokens = async (
     "minutes"
   );
 
-  const expirationTimeSeconds = accessTokenExpires.diff(moment(), "seconds");
-  console.log("expirationTimeSeconds", expirationTimeSeconds);
+  // const expirationTimeSeconds = accessTokenExpires.diff(moment(), "seconds");
+  // console.log("expirationTimeSeconds", expirationTimeSeconds);
 
   const accessToken = generateToken(
     user.id,
@@ -135,23 +137,43 @@ const generateThirdwebAuthTokens = async (
   payload: VerifyLoginPayloadParams
 ) => {
   const verifiedPayload = await thirdwebAuth.verifyPayload(payload);
+  const accessTokenExpires = moment().add(
+    config.jwt.accessExpirationMinutes,
+    "minutes"
+  );
 
   if (verifiedPayload.valid) {
     const accessToken = await thirdwebAuth.generateJWT({
       payload: verifiedPayload.payload,
     });
     const user = await userService.getUserByUniqueValue({
-      walletAddress: payload.payload.address,
+      walletAddress: payload.payload.address.toLowerCase(),
     });
 
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
 
-    const tokens = generateAuthTokens(user);
+    const tokens = await generateAuthTokens(user);
+    await saveToken({
+      token: accessToken,
+      type: tokenTypes.THIRDWEB,
+      userId: user.id,
+      expires: accessTokenExpires.toDate(),
+    });
+    // console.log("tokens", tokens);
 
-    return { user, ...tokens, thirdwebAuthToken: accessToken };
+    return {
+      user,
+      tokens: {
+        token: {
+          ...tokens,
+          thirdWebToken: { accessToken, expires: accessTokenExpires.toDate() },
+        },
+      },
+    };
   }
+
   return false;
 
   // await saveToken({

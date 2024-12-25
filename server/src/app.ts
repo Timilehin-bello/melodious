@@ -19,15 +19,23 @@ app.use(helmet());
 // parse json request body
 app.use(express.json());
 
+// parse urlencoded request body
+app.use(express.urlencoded({ extended: true }));
+
 if (config.env !== "test") {
   app.use(morgan.successHandler);
   app.use(morgan.errorHandler);
 }
 
-app.use(express.json());
-
 // enable cors
-app.use(cors());
+app.use(
+  cors({
+    origin: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${
+      process.env.CLIENT_DOMAIN ?? "localhost:5173"
+    }`,
+    credentials: true,
+  })
+);
 app.options("*", cors());
 
 app.enable("trust proxy");

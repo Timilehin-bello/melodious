@@ -5,13 +5,7 @@ import { add } from "date-fns";
 const register = {
   body: Joi.object().keys({
     walletAddress: Joi.string().required().custom(ethAddress),
-    name: Joi.string().required(),
-    displayName: Joi.string().required(),
-    username: Joi.string()
-      .required()
-      .pattern(/^[a-zA-Z0-9_.-]+$/),
-    profileImage: Joi.string(),
-    country: Joi.string(),
+
     userType: Joi.object()
       .valid("LISTENER", "ARTIST")
       //  .keys({
@@ -57,4 +51,16 @@ const login = {
   }),
 };
 
-export { register, loginRequest, login };
+const logout = {
+  body: Joi.object().keys({
+    refreshToken: Joi.string().required(),
+  }),
+};
+
+const isLoggedIn = {
+  body: Joi.object().keys({
+    accessToken: Joi.string(),
+  }),
+};
+
+export { register, loginRequest, login, logout, isLoggedIn };

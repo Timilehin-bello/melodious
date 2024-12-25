@@ -6,13 +6,11 @@ import { prisma } from ".";
 
 const createUser = async (
   userBody: Omit<Prisma.UserCreateInput, "userType"> & {
-    userType: { LISTENER: string; ARTIST: string };
-    chainId?: string;
+    userType: string;
   }
 ): Promise<any> => {
   try {
-    const { name, displayName, walletAddress, username, userType, ...rest } =
-      userBody;
+    const { walletAddress, userType, ...rest } = userBody;
 
     if (await getUserByUniqueValue({ walletAddress })) {
       throw new ApiError(
@@ -21,23 +19,17 @@ const createUser = async (
       );
     }
 
-    if (await getUserByUniqueValue({ username })) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Username already taken");
-    }
-
     // Create the user transactionally
     return await prisma.$transaction(async (tx) => {
-      console.log("userType", userType);
-      if (userType.LISTENER === "LISTENER") {
+      console.log("userBody", userBody);
+
+      if (userType === "LISTENER") {
         console.log("test---");
+
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            name,
-            displayName,
             walletAddress,
-            username: username.toLowerCase(),
-            ...rest,
           },
         });
         console.log("userInfo", userInfo);
@@ -49,15 +41,11 @@ const createUser = async (
         });
 
         return userInfo;
-      } else if (userType.ARTIST === "ARTIST") {
+      } else if (userType === "ARTIST") {
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            name,
-            displayName,
             walletAddress,
-            username: username.toLowerCase(),
-            ...rest,
           },
         });
 
@@ -136,7 +124,7 @@ const getUserInfo = async (
   return prisma.user.findFirst({ where, include });
 };
 
-const updateLastLogin = async (userId: string) => {
+const updateLastLogin = async (userId: number) => {
   return prisma.user.update({
     where: { id: userId },
     data: { lastLogin: moment().toISOString() },
@@ -144,7 +132,7 @@ const updateLastLogin = async (userId: string) => {
 };
 
 const updateUserById = async (
-  userId: string,
+  userId: number,
   updateBody: Prisma.UserCreateInput
 ): Promise<any> => {
   try {
@@ -153,13 +141,6 @@ const updateUserById = async (
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
     const { walletAddress, ...rest } = updateBody;
-    if (
-      await getUserByUniqueValue({
-        username: updateBody.username,
-      })
-    ) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Username already taken");
-    }
 
     return prisma.user.update({ where: { id: userId }, data: { ...rest } });
   } catch (error) {
@@ -167,7 +148,7 @@ const updateUserById = async (
   }
 };
 
-const deleteUserById = async (userId: string): Promise<User> => {
+const deleteUserById = async (userId: number): Promise<User> => {
   const user = await getUserByUniqueValue({ id: userId });
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
