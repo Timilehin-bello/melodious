@@ -6,8 +6,27 @@ import RecentItem from "@/components/RecentItem";
 import TrendingSoundItem from "@/components/TrendingSoundItem";
 import Image from "next/image";
 import Link from "next/link";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useConnectModal } from "thirdweb/react";
+import { client } from "@/lib/client";
+import useOnPlay from "@/hooks/useOnPlay";
+import { twMerge } from "tailwind-merge";
+import usePlayer from "@/hooks/usePlayer";
 
 export default function Page() {
+  const songs = [
+    {
+      id: "1",
+      user_id: "string",
+      artist: "string",
+      title: "string",
+      song_path: "/audio/song1.mp3",
+      image_path: "/images/artist.svg",
+    },
+  ];
+  const { connect } = useConnectModal();
+  const onPlay = useOnPlay(songs);
+  const status = useActiveWalletConnectionStatus();
   const data = [
     {
       songTitle: "Song Title 1",
@@ -276,18 +295,31 @@ export default function Page() {
     },
   ];
 
-  const playSong = () => {
-    alert("Song Played");
+  const playSong = async (id: string) => {
+    if (status === "disconnected") {
+      await connect({ client, size: "compact" }); // opens the connect modal
+    }
+    // alert("Play Song ");
+    onPlay(id);
   };
 
-  const likeSong = () => {
+  const likeSong = async () => {
+    if (status === "disconnected") {
+      await connect({ client, size: "compact" }); // opens the connect modal
+    }
+
     alert("Like Song ");
   };
-
+  const player = usePlayer();
   return (
-    <div className="grid md:grid-cols-4 mt-[-65px] w-full">
+    <div
+      className={twMerge(
+        `grid md:grid-cols-4 mt-[-65px] w-full h-full`,
+        player.activeId && "h-[calc(100%-85px)] pb-[75px]"
+      )}
+    >
       {/* First column (75% width on medium screens and above)  */}
-      <div className="md:col-span-3  px-4 pt-[80px]">
+      <div className="md:col-span-3  px-4 pt-[80px] ">
         <h2 className="text-white font-bold text-3xl mb-4">
           Good Morning Guest!
         </h2>
@@ -334,7 +366,7 @@ export default function Page() {
                 imageUrl={album.imageUrl}
                 songTitle={album.songTitle}
                 songDetails={album.songDetails}
-                playSong={playSong}
+                playSong={(id: string) => playSong(id)}
                 likeSong={likeSong}
               />
             ))}
@@ -354,13 +386,13 @@ export default function Page() {
             </Link>
           </div>
           <div className=" pt-2">
-            <GenreItem genres={genres} playSong={playSong} />
+            <GenreItem genres={genres} />
           </div>
         </div>
         {/* End of Genre */}
       </div>
       {/* Second column (25% width on medium screens and above) */}
-      <div className="md:col-span-1  p-4 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center">
+      <div className="relative md:col-span-1  px-4 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center ">
         {/* <p>Content for the second column</p> */}
         <div>
           <div className="flex justify-between mb-3 px-2">

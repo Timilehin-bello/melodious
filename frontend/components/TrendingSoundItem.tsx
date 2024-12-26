@@ -1,13 +1,14 @@
 import Image from "next/image";
 import { Card, CardContent } from "./ui/card";
 import { HeartIcon, PlayCircle } from "lucide-react";
+import PlayButton from "./PlayButton";
 
 interface TrendingSoundProps {
   imageUrl: string;
   songTitle: string;
   songDetails: string;
   likeSong?: () => void;
-  playSong?: () => void;
+  playSong: (id: string) => void;
 }
 
 const TrendingSoundItem: React.FC<TrendingSoundProps> = ({
@@ -17,6 +18,14 @@ const TrendingSoundItem: React.FC<TrendingSoundProps> = ({
   likeSong,
   playSong,
 }) => {
+  const song = {
+    id: "1",
+    user_id: "string",
+    artist: "string",
+    title: "string",
+    song_path: "/audio/song1.mp3",
+    image_path: "/images/artist.svg",
+  };
   return (
     <div className="p-1 group cursor-pointer">
       <Card>
@@ -43,10 +52,11 @@ const TrendingSoundItem: React.FC<TrendingSoundProps> = ({
                 <p className="text-sm">{songDetails}</p>
               </div>
               <div>
-                <PlayCircle
-                  size={34}
+                <PlayButton
                   onClick={playSong}
-                  className="hidden group-hover:block"
+                  data={song}
+
+                  // className="hidden group-hover:block"
                 />
               </div>
             </div>
