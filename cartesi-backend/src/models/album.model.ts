@@ -1,7 +1,7 @@
 import { Track } from "./track.model";
 
 class Album {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   title: string;
   artistId: number;

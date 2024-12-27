@@ -7,7 +7,6 @@ import { roleRights } from "../configs/roles";
 const verifyCallback =
   (req: any, resolve: any, reject: any, requiredRights: string[]) =>
   async (err: any, user: any, info: any) => {
-    // console.log(err);
     if (err || info || !user) {
       return reject(
         new ApiError(httpStatus.UNAUTHORIZED, "Please authenticate")

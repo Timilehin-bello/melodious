@@ -2,7 +2,7 @@ import { PaymentMethod, SubscriptionLevel } from "../configs/enum";
 import { Listener } from "./listener.model";
 
 class Subscription {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   listener: Listener;
   listenerId: number;

@@ -9,15 +9,27 @@ import { authValidation } from "../validations";
 const router: Router = express.Router();
 
 router
+  .route("/register")
+  .post(validate(authValidation.register), authController.register);
+
+router
   .route("/login/request")
-  .post(validate(authValidation.loginRequest), authController.loginRequest);
+  .get(validate(authValidation.loginRequest), authController.loginRequest);
 
 router
   .route("/login")
   .post(validate(authValidation.login), authController.login);
 
 router
-  .route("/register")
-  .post(validate(authValidation.register), authController.register);
+  .route("/isLoggedIn")
+  .get(validate(authValidation.isLoggedIn), authController.isLoggedIn);
+
+router
+  .route("/logout")
+  .post(validate(authValidation.logout), authController.logout);
+
+// router
+//   .route("/refresh")
+//   .post(validate(authValidation.refreshTokens), authController.refreshTokens);
 
 export default router;

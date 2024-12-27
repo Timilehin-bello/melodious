@@ -31,3 +31,9 @@ export const paymentMethod = {
   CTSI: "CTSI",
   MELO: "MELO",
 };
+
+export const paymentStatus = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  FAILED: "FAILED",
+};

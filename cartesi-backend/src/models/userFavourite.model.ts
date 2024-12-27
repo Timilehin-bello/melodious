@@ -2,7 +2,7 @@ import { FavouriteType } from "../configs/enum";
 import { Listener } from "./listener.model";
 
 class UserFavorites {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   favoriteType: FavouriteType;
   itemId: number;

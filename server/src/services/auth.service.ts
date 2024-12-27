@@ -3,42 +3,9 @@ import { User } from "@prisma/client";
 import ApiError from "../utils/ApiError";
 import { userService, tokenService, prisma } from ".";
 import { tokenTypes } from "../configs/enums";
+import { thirdwebAuth } from "../configs/thirdwebClient";
 
-// const loginUserWithEmailAndPassword = async (
-//   email: string,
-//   password: string
-// ): Promise<any> => {
-//   const isEmailTaken = await userService.isEmailTaken(email);
-
-//   if (!isEmailTaken) {
-//     throw new ApiError(
-//       httpStatus.BAD_REQUEST,
-//       "User not found with this email, please register"
-//     );
-//   }
-
-//   const user = await userService.getUserByEmail(
-//     { email },
-//     {
-//       role: true,
-//       clientProfile: true,
-//       designerProfile: true,
-//     }
-//   );
-
-//   if (!user.isEmailVerified) {
-//     throw new ApiError(httpStatus.UNAUTHORIZED, "Please verify your email");
-//   }
-
-//   if (!user || !(await bcrypt.compare(password, user.password))) {
-//     throw new ApiError(httpStatus.UNAUTHORIZED, "Incorrect email or password");
-//   }
-//   await userService.updateLastLogin(user.id);
-
-//   return user;
-// };
-
-const logout = async (refreshToken: string): Promise<void> => {
+const logout = async (refreshToken: string): Promise<boolean> => {
   const refreshTokenDoc = await prisma.token.findFirst({
     where: {
       token: refreshToken,
@@ -46,10 +13,22 @@ const logout = async (refreshToken: string): Promise<void> => {
       blacklisted: false,
     },
   });
+
   if (!refreshTokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, "Not found");
   }
-  await prisma.token.delete({ where: { id: refreshTokenDoc.id } });
+
+  const deleteTokenDoc = await prisma.token.deleteMany({
+    where: {
+      userId: refreshTokenDoc?.userId,
+    },
+  });
+
+  if (!deleteTokenDoc) {
+    throw new ApiError(httpStatus.NOT_FOUND, "Not found");
+  }
+  // await prisma.token.delete({ where: { id: refreshTokenDoc.id } });
+  return true;
 };
 
 const refreshAuth = async (refreshToken: string): Promise<Object> => {
@@ -62,7 +41,7 @@ const refreshAuth = async (refreshToken: string): Promise<Object> => {
       id: refreshTokenDoc.userId,
     });
     if (!user) {
-      throw new Error();
+      throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
     await prisma.token.delete({ where: { id: refreshTokenDoc.id } });
     return tokenService.generateAuthTokens(user);
@@ -71,8 +50,28 @@ const refreshAuth = async (refreshToken: string): Promise<Object> => {
   }
 };
 
-export {
-  //  loginUserWithEmailAndPassword,
-  logout,
-  refreshAuth,
+const isLoggedIn = async (accessToken: string) => {
+  try {
+    console.log("accessToken", accessToken);
+    const thirdwebTokenDoc = await tokenService.verifyToken(
+      accessToken,
+      tokenTypes.THIRDWEB
+    );
+
+    if (!thirdwebTokenDoc) {
+      return false;
+    }
+
+    const authResult = await thirdwebAuth.verifyJWT({
+      jwt: thirdwebTokenDoc.token,
+    });
+
+    if (!authResult.valid) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {}
 };
+
+export { logout, refreshAuth, isLoggedIn };

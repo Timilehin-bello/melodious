@@ -7,27 +7,32 @@ import ApiError from "../utils/ApiError";
 import { Prisma } from "@prisma/client";
 import { VerifyLoginPayloadParams } from "thirdweb/auth";
 
+/**
+ * Handles the registration request by creating a new user and generating a Thirdweb authentication payload.
+ *
+ * @route POST /v1/auth/register
+ * @access Public
+ * @param req The request object containing the user data to be registered.
+ * @param res The response object.
+ */
 const register = catchAsync(async (req: Request, res: Response) => {
   // Create a new user using the user service
+
+  const { chainId, ...rest } = req.body;
   const userBody: Omit<Prisma.UserCreateInput, "userType"> & {
-    userType: { LISTENER: string; ARTIST: string };
-    chainId?: string;
-  } = req.body;
+    userType: string;
+  } = rest;
 
   const user = await userService.createUser(userBody);
-
-  console.log("user", user);
 
   if (!user) {
     throw new ApiError(httpStatus.BAD_REQUEST, "User not created");
   }
 
   // Generate authentication tokens for the user
-  // const tokens = await tokenService.generateAuthTokens(user);
-
   const genarateAuthToken = await tokenService.genarateThirdwebAuth(
     userBody.walletAddress,
-    userBody.chainId
+    req.body.chainId
   );
 
   // Set the status code to 201 (Created) and send the user and tokens as the response
@@ -41,50 +46,86 @@ const register = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+/**
+ * Handles the login request by generating a Thirdweb authentication payload.
+ *
+ * @route GET /v1/auth/login/request
+ * @access Public
+ * @param req The request object containing query parameters for wallet address and chain ID.
+ * @param res The response object.
+ */
 const loginRequest = catchAsync(async (req: Request, res: Response) => {
+  // Destructure walletAddress and chainId from the request query
   const { walletAddress: walletAddressQuery, chainId: chainIdQuery } =
     req.query;
+
+  // Ensure the walletAddress is a string, fallback to a default value if not
   const walletAddress =
     typeof walletAddressQuery === "string" ? walletAddressQuery : "string";
+
+  // Ensure the chainId is a string, fallback to undefined if not
   const chainId = typeof chainIdQuery === "string" ? chainIdQuery : undefined;
 
-  const user = await userService.getUserByUniqueValue({ walletAddress });
+  // Retrieve the user by wallet address from the user service
+  const user = await userService.getUserByUniqueValue({
+    walletAddress: walletAddress.toLowerCase(),
+  });
 
+  // If the user is not found, throw a 'User not found' error
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }
 
+  // Generate a Thirdweb authentication token using the wallet address and chain ID
   const genarateAuthToken = await tokenService.genarateThirdwebAuth(
     walletAddress,
     chainId
   );
 
+  // Respond with the generated authentication payload
   res
     .status(httpStatus.OK)
     .send({ status: "success", data: { payload: genarateAuthToken } });
 });
 
+/**
+ * Logs in a user with a verified thirdweb payload.
+ *
+ * @route POST /v1/auth/login
+ * @access Public
+ * @param req The request object.
+ * @param res The response object.
+ */
 const login = catchAsync(async (req: Request, res: Response) => {
-  //   // Extract email and password from request body
-  //   const { email, password } = req.body;
   const payload: VerifyLoginPayloadParams = req.body;
-  //   // Login user with the provided email and password
-  //   const user = await authService.loginUserWithEmailAndPassword(email, password);
 
-  //   // Generate authentication tokens for the logged in user
   const tokens = await tokenService.generateThirdwebAuthTokens(payload);
 
-  // Send user response and tokens to the client
-  res.send({
+  res.status(httpStatus.OK).send({
     status: "success",
     message: "User logged in successfully",
     data: { ...tokens },
   });
 });
 
-const logout = catchAsync(async (req: Request, res: Response) => {
+/**
+ * Logs out a user by invalidating their refresh token.
+ *
+ * @route POST /v1/auth/logout
+ * @access Public
+ * @param req The request object.
+ * @param res The response object.
+ */
+const logout = catchAsync(async (req: any, res: Response) => {
+  const refreshToken = req.body.refreshToken;
+
   // Call the logout function from the authService
-  await authService.logout(req.body.refreshToken);
+  const logout = await authService.logout(refreshToken);
+
+  if (!logout) {
+    throw new ApiError(httpStatus.BAD_REQUEST, "Failed to logout");
+  }
+
   // Send a "No Content" response
   res
     .status(httpStatus.OK)
@@ -109,4 +150,37 @@ const refreshTokens = catchAsync(async (req: Request, res: Response) => {
     .send({ status: "success", message: "Tokens refreshed", data: tokens });
 });
 
-export { register, loginRequest, login, logout, refreshTokens };
+/**
+ * Checks if the user is logged in.
+ *
+ * @route POST /v1/auth/isLoggedIn
+ * @access Public
+ * @param req The request object.
+ * @param res The response object.
+ */
+const isLoggedIn = catchAsync(async (req: any, res: Response) => {
+  // Call the `isLoggedIn` function from the `authService` module
+  const isUserLoggedIn = await authService.isLoggedIn(req.body.accessToken);
+
+  // if (!isUserLoggedIn) {
+  //   // If the user is not logged in, throw an error
+  //   throw new ApiError(httpStatus.UNAUTHORIZED, "User not logged in");
+  // }
+
+  // If the user is logged in, send a success response
+  res.status(httpStatus.OK).send({
+    status: "success",
+    message: "User is logged in",
+    data: { isLoggedIn: isUserLoggedIn ? true : false },
+  });
+});
+
+export {
+  register,
+  loginRequest,
+  login,
+  logout,
+  refreshTokens,
+  isLoggedIn,
+  // , getUsers
+};

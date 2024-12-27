@@ -2,7 +2,7 @@ import { Album } from "./album.model";
 import { Track } from "./track.model";
 
 class Genre {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   name: string;
   imageUrl: string;

@@ -1,2 +1,3 @@
 import * as authController from "./auth.controller";
-export { authController };
+import * as transactionsController from "./transaction.controller";
+export { authController, transactionsController };
