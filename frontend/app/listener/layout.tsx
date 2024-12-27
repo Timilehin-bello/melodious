@@ -9,6 +9,7 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { MusicPlayerProvider } from "@/contexts/MusicPlayerContext";
 // import Player from "@/components/MusicPlayer/Player";
 import MusicPlayer from "@/components/MusicPlayer";
+import { MelodiousProvider } from "@/context";
 
 export const metadata: Metadata = {
   title: "Listener",
@@ -23,17 +24,19 @@ export default function ListenerLayout({
   return (
     <div>
       <ThirdwebProvider>
-        <MusicPlayerProvider>
-          <SidebarProvider>
-            <ListenerSidebar />
-            <SidebarInset className="bg-main-content-gradient bg-cover bg-center">
-              <Header />
-              <main>{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
-          {/* <Player /> */}
-          <MusicPlayer />
-        </MusicPlayerProvider>
+        <MelodiousProvider>
+          <MusicPlayerProvider>
+            <SidebarProvider>
+              <ListenerSidebar />
+              <SidebarInset className="bg-main-content-gradient bg-cover bg-center">
+                <Header />
+                <main>{children}</main>
+              </SidebarInset>
+            </SidebarProvider>
+            {/* <Player /> */}
+            <MusicPlayer />
+          </MusicPlayerProvider>
+        </MelodiousProvider>
       </ThirdwebProvider>
     </div>
   );

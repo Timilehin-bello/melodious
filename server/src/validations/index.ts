@@ -1,2 +1,3 @@
 import * as authValidation from "./auth.validation";
-export { authValidation };
+import * as transactionValidation from "./transaction.validation";
+export { authValidation, transactionValidation };
