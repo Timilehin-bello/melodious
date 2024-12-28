@@ -17,14 +17,14 @@ const accessTokenExpires = moment().add(
 const expirationTimeSeconds = accessTokenExpires.diff(moment(), "seconds");
 
 export const thirdwebAuth = createAuth({
-  domain: process.env.CLIENT_DOMAIN!,
+  domain: config.thirdweb.clientDomain!,
   client: thirdwebClient,
 
   login: {
     statement: "Login to your account",
     version: "1.0",
     resources: [],
-    uri: process.env.CLIENT_DOMAIN!,
+    uri: config.thirdweb.clientDomain!,
   },
 
   jwt: {

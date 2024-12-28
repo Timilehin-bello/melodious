@@ -3,7 +3,7 @@ import { SubscriptionLevel } from "../configs/enum";
 import { Playlist } from "./playlist.model";
 
 class Listener {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   subscriptionLevel: SubscriptionLevel;
   playlists: Playlist[];

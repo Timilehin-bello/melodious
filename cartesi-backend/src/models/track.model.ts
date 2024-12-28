@@ -1,7 +1,7 @@
 import { Playlist } from "./playlist.model";
 
 class Track {
-  static nextId = 0;
+  static nextId = 1;
   id: number;
   title: string;
   imageUrl: string;

@@ -7,7 +7,7 @@ const wallet = new Wallet(new Map());
 const router = new Router(wallet);
 
 class User {
-  static nextId = 0;
+  static nextId = 1;
   // private static ids = new Set<number>();
   id: number;
   name: string;

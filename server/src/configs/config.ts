@@ -7,6 +7,14 @@ const envVarsSchema = Joi.object()
       .valid("development", "production", "local", "test")
       .required(),
     PORT: Joi.number().default(3000),
+    RPC_URL: Joi.string().required().description("RPC URL"),
+    PRIVATE_KEY: Joi.string()
+      .required()
+      .description("Private key for signing tx"),
+    RELAYER_ADDRESS: Joi.string().required().description("Relayer address"),
+
+    INPUTBOX_ADDRESS: Joi.string().required().description("Inpubox address"),
+    DAPP_ADDRESS: Joi.string().required().description("Dapp address"),
 
     JWT_SECRET: Joi.string().required().description("JWT secret key"),
     JWT_ACCESS_EXPIRATION_MINUTES: Joi.number()
@@ -43,6 +51,12 @@ export const config = {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
 
+  rpcUrl: envVars.RPC_URL,
+  privateKey: envVars.PRIVATE_KEY,
+  relayerAddress: envVars.RELAYER_ADDRESS,
+  inputboxAddress: envVars.INPUTBOX_ADDRESS,
+  dappAddress: envVars.DAPP_ADDRESS,
+
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
@@ -53,7 +67,7 @@ export const config = {
 
   thirdweb: {
     secretKey: envVars.THIRDWEB_SECRET_KEY,
-    clientDomain: envVars.CLIENT_DOMAIN,
+    clientDomain: envVars.THIRDWEB_CLIENT_DOMAIN,
   },
 
   logConfig: {
