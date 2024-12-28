@@ -142,7 +142,6 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("forwarding transaction to relayer........");
     try {
       const endpoint = process.env.NEXT_PUBLIC_SERVER_ENDPOINT;
-      // const response = await axios.post('https://nebula-relayer.fly.dev/transactions', data, {
       const response = await axios.post(`${endpoint}/transactions`, data, {
         headers: {
           "Content-Type": "application/json",
