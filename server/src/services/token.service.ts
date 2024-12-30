@@ -55,31 +55,41 @@ const saveToken = async (
   });
 };
 
-const verifyToken = async (token: string, type: string): Promise<Token> => {
+const verifyToken = async (token: string): Promise<Token> => {
   //   let payload: any = false;
   //   if (type === TokenType.REFRESH) {
   //     payload = jwt.verify(token, config.jwt.secret);
-  //   }
 
-  const payload: any = jwt.verify(token, config.jwt.secret);
+  try {
+    const payload: any = jwt.verify(token, config.jwt.secret);
 
-  const tokenDoc = await prisma.token.findFirst({
-    where: {
-      token,
-      userId: payload.sub,
-      //  ...(payload.sub && { userId: payload.sub }),
-      type,
-      expires: {
-        gt: formatISO(new Date()),
+    console.log("verifyToken payload", payload);
+
+    console.log("verifyToken token", token);
+
+    const tokenDoc = await prisma.token.findFirst({
+      where: {
+        token,
+        userId: payload.sub,
+        //  ...(payload.sub && { userId: payload.sub }),
+        type: payload.type,
+        expires: {
+          gt: formatISO(new Date()),
+        },
       },
-    },
-  });
+    });
 
-  if (!tokenDoc) {
-    throw new Error("Token not found or expired");
+    console.log("tokenDoc", tokenDoc);
+
+    if (!tokenDoc) {
+      throw new Error("Token not found or expired");
+    }
+
+    return tokenDoc;
+  } catch (error) {
+    throw error;
   }
-
-  return tokenDoc;
+  //   }
 };
 
 const generateAuthTokens = async (
@@ -119,6 +129,13 @@ const generateAuthTokens = async (
     expires: refreshTokenExpires.toDate(),
   });
 
+  await saveToken({
+    token: accessToken,
+    type: tokenTypes.ACCESS,
+    userId: user.id,
+    expires: accessTokenExpires.toDate(),
+  });
+
   const tokens = {
     access: {
       token: accessToken,
@@ -142,10 +159,14 @@ const generateThirdwebAuthTokens = async (
     "minutes"
   );
 
+  console.log("verifiedPayload", verifiedPayload);
+
   if (verifiedPayload.valid) {
     const accessToken = await thirdwebAuth.generateJWT({
       payload: verifiedPayload.payload,
     });
+
+    console.log("accessToken thirdweb", accessToken);
     const user = await userService.getUserByUniqueValue({
       walletAddress: payload.payload.address.toLowerCase(),
     });
@@ -155,6 +176,7 @@ const generateThirdwebAuthTokens = async (
     }
 
     const tokens = await generateAuthTokens(user);
+
     await saveToken({
       token: accessToken,
       type: tokenTypes.THIRDWEB,

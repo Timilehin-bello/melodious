@@ -60,6 +60,7 @@ const logout = {
 const isLoggedIn = {
   query: Joi.object().keys({
     accessToken: Joi.string().required(),
+    thirdwebToken: Joi.string().required(),
   }),
 };
 
