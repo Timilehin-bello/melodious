@@ -160,7 +160,8 @@ const refreshTokens = catchAsync(async (req: Request, res: Response) => {
  */
 const isLoggedIn = catchAsync(async (req: any, res: Response) => {
   // Call the `isLoggedIn` function from the `authService` module
-  const isUserLoggedIn = await authService.isLoggedIn(req.body.accessToken);
+  console.log("req.query.accessToken", req.query.accessToken);
+  const isUserLoggedIn = await authService.isLoggedIn(req.query.accessToken);
 
   // if (!isUserLoggedIn) {
   //   // If the user is not logged in, throw an error

@@ -14,7 +14,7 @@ const register = {
       //  })
       .required(),
     chainId: Joi.string()
-      .valid("1", "137", "43114", "11155111")
+      .valid("1", "137", "43114", "31337", "11155111")
       .required()
       .custom(ethAddress),
   }),
@@ -24,7 +24,7 @@ const loginRequest = {
   query: Joi.object().keys({
     walletAddress: Joi.string().required(),
     chainId: Joi.string()
-      .valid("1", "137", "43114", "11155111")
+      .valid("1", "137", "43114", "31337", "11155111")
       .required()
       .custom(ethAddress),
   }),
@@ -58,8 +58,8 @@ const logout = {
 };
 
 const isLoggedIn = {
-  body: Joi.object().keys({
-    accessToken: Joi.string(),
+  query: Joi.object().keys({
+    accessToken: Joi.string().required(),
   }),
 };
 

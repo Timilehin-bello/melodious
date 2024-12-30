@@ -2,8 +2,9 @@
 
 import axios from "axios";
 import { ethers } from "ethers";
+import { Web3Provider } from "@ethersproject/providers";
 import React from "react";
-import { createContext, useContext, ReactNode } from "react";
+import { useContext } from "react";
 
 declare global {
   interface Window {
@@ -109,8 +110,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!window?.ethereum)
         throw new Error("No crypto wallet found. Please install it.");
 
-      await window.ethereum.send("eth_requestAccounts");
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new Web3Provider(window.ethereum);
+      // const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signature = await signer.signMessage(JSON.stringify(message));
       const address = await signer.getAddress();
