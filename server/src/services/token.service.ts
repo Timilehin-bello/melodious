@@ -190,7 +190,7 @@ const generateThirdwebAuthTokens = async (
       tokens: {
         token: {
           ...tokens,
-          thirdWebToken: {
+          thirdWeb: {
             token: accessToken,
             expires: accessTokenExpires.toDate(),
           },
