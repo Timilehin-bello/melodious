@@ -176,7 +176,9 @@ const isLoggedIn = catchAsync(async (req: any, res: Response) => {
   // If the user is logged in, send a success response
   res.status(httpStatus.OK).send({
     status: "success",
-    message: "User is logged in",
+    message: `User is ${
+      isUserLoggedIn ? "logged in successfully" : "not logged in"
+    }`,
     data: { isLoggedIn: isUserLoggedIn ? true : false },
   });
 });
