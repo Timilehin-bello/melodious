@@ -92,6 +92,12 @@ const loginRequest = catchAsync(async (req: any, res: any) => {
     .send({ status: "success", data: { payload: genarateAuthToken } });
 });
 
+const test = catchAsync(async (req: Request, res: Response) => {
+  console.log("req.user", req.user);
+
+  res.status(httpStatus.OK).send({ status: "success" });
+});
+
 /**
  * Logs in a user with a verified thirdweb payload.
  *
@@ -104,10 +110,13 @@ const login = catchAsync(async (req: Request, res: Response) => {
   const payload: VerifyLoginPayloadParams = req.body;
 
   const tokens = await tokenService.generateThirdwebAuthTokens(payload);
+  console.log("tokens", tokens);
 
   res.status(httpStatus.OK).send({
-    status: "success",
-    message: "User logged in successfully",
+    status: ` ${tokens ? "success" : "error"}`,
+    message: ` ${
+      tokens ? "User logged in successfully" : "User not logged in"
+    }`,
     data: { ...tokens },
   });
 });
@@ -121,10 +130,11 @@ const login = catchAsync(async (req: Request, res: Response) => {
  * @param res The response object.
  */
 const logout = catchAsync(async (req: any, res: Response) => {
-  const refreshToken = req.body.refreshToken;
+  console.log("req.body", req.body);
+  const accessToken = req.body.accessToken;
 
   // Call the logout function from the authService
-  const logout = await authService.logout(refreshToken);
+  const logout = await authService.logout(accessToken);
 
   if (!logout) {
     throw new ApiError(httpStatus.BAD_REQUEST, "Failed to logout");
@@ -179,7 +189,7 @@ const isLoggedIn = catchAsync(async (req: any, res: Response) => {
 
   // If the user is logged in, send a success response
   res.status(httpStatus.OK).send({
-    status: "success",
+    status: `${isUserLoggedIn ? "success" : "error"}`,
     message: `User is ${
       isUserLoggedIn ? "logged in successfully" : "not logged in"
     }`,
@@ -194,5 +204,6 @@ export {
   logout,
   refreshTokens,
   isLoggedIn,
+  test,
   // , getUsers
 };

@@ -10,7 +10,7 @@ const createUser = async (
   }
 ): Promise<any> => {
   try {
-    const { walletAddress, userType, ...rest } = userBody;
+    const { walletAddress, userType } = userBody;
 
     if (
       await getUserByUniqueValue({ walletAddress: walletAddress.toLowerCase() })
@@ -33,6 +33,10 @@ const createUser = async (
           data: {
             walletAddress: walletAddress.toLowerCase(),
           },
+          include: {
+            listener: true,
+            artist: true,
+          },
         });
         console.log("userInfo", userInfo);
         // Create the client associated with the  user
@@ -48,6 +52,10 @@ const createUser = async (
         const userInfo = await tx.user.create({
           data: {
             walletAddress: walletAddress.toLowerCase(),
+          },
+          include: {
+            listener: true,
+            artist: true,
           },
         });
 
