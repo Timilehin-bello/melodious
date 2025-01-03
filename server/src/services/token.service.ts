@@ -171,6 +171,9 @@ const generateThirdwebAuthTokens = async (
       walletAddress: payload.payload.address.toLowerCase(),
     });
 
+    console.log("payload", payload.payload);
+    console.log("user", user);
+
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }

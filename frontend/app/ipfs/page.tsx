@@ -1,20 +1,22 @@
 "use client";
 
 import DropZone from "@/components/DropZone/DropZone";
-import { useMelodiousContext } from "@/context";
-import Image from "next/image";
+import { useMelodiousContext } from "@/contexts/melodious";
 import React, { useEffect, useState } from "react";
 
 const Page = () => {
   const [imageUrl, setImageUrl] = useState("");
 
-  const { uploadToIPFS, createUser } = useMelodiousContext();
+  const { uploadToIPFS } = useMelodiousContext();
 
   useEffect(() => {
-    const user = createUser();
-    console.log("User created with transaction hash:", user);
+    // const user = createUser();
+    // console.log("User created with transaction hash:", user);
     console.log(imageUrl);
-  }, [imageUrl, createUser]);
+  }, [
+    imageUrl,
+    // createUser
+  ]);
   return (
     <div>
       <div className="w-full">

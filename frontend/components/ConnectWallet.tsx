@@ -25,46 +25,78 @@ const ConnectWallet = () => {
           getLoginPayload: async (params: {
             address: string;
           }): Promise<LoginPayload> => {
-            console.log("chainId", params);
-            return get({
-              url:
-                process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login/request",
-              params: {
-                walletAddress: params.address,
-                chainId: 31337,
-              },
-            });
+            localStorage.setItem("walletAddress", params.address);
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=31337`
+            );
+
+            if (!response.ok) {
+              // throw new Error(`HTTP error! status: ${response.status}`);
+              console.error("Error fetching login payload:", response);
+            }
+
+            const request = await response.json();
+            console.log("getLoginPayload", request);
+            if (request.status === "error") {
+              router.push("/auth/register");
+            }
+            return request.data.payload;
           },
           /**
            * 	`doLogin` performs any logic necessary to log the user in using the signed payload.
            * 	In this case, this means sending the payload to the server for it to set a JWT cookie for the user.
            */
           doLogin: async (params: VerifyLoginPayloadParams) => {
-            await post({
+            const response = await post({
               url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login",
               params,
             });
+            console.log("token", response.data["tokens"]["token"].access.token);
+
+            localStorage.setItem(
+              "accessToken",
+              response.data["tokens"]["token"].access.token
+            );
+            localStorage.setItem(
+              "thirdwebToken",
+              response.data["tokens"]["token"].thirdWeb.token
+            );
+
+            return response;
           },
           /**
            * 	`isLoggedIn` returns true or false to signal if the user is logged in.
            * 	Here, this is done by calling the server to check if the user has a valid JWT cookie set.
            */
           isLoggedIn: async () => {
-            // const response =
+            const accessToken = localStorage.getItem("accessToken");
+            const thirdwebToken = localStorage.getItem("thirdwebToken");
+            // const response = await get({
+            //   url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
+            //   params: {
+            //     accessToken: accessToken,
+            //     // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTczNTU3MTQ2OSwiZXhwIjoxNzM1NjU3ODY5LCJ0eXBlIjoiQUNDRVNTIn0.XhYfK1P2hIR5zyrdNCCDeVLMZ1RCiy0hYulA46fIS0U",
+            //     thirdwebToken: thirdwebToken,
+            //     // "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIweDI3ODUyMzMyMzRlNzg4MEE1ZTNiM2ZDNTU3NEFhZjVCMTJEN2M2OGYiLCJzdWIiOiIweGYzOUZkNmU1MWFhZDg4RjZGNGNlNmFCODgyNzI3OWNmZkZiOTIyNjYiLCJhdWQiOiJsb2NhbGhvc3Q6NTE3MyIsImV4cCI6MTczNTY1Nzg2OCwibmJmIjoxNzM1NTcwODY1LCJpYXQiOjE3MzU1NzE0NjksImp0aSI6IjB4Zjk0YThiNzM2NmFiMTJjOGE1MzlmMjkyYjVjYzg3ZWJiZjZkMmU4ODM0MDJmNTc5M2YxYzcxYzU2OGM3N2NkZCIsImN0eCI6e319.MHgwMDFiNzA0ZDFhNWY2NDNiYmYyMzI1YWM2YjY2MjJjYjliNmUyNTU2MmZhYjgyNDFjZTdiYzQ4N2UzYWZmMzExMmJiNzcxNDJiNTg1NzllMGExM2IyYmUwN2I0MTUyMDZmZGUzYTU5NjBkYzBlNTRiMzFmNTczNzM1MmMxNWQxNzFj",
+            //   },
+            // });
+
+            // console.log("isLoggedIn", response);
+
+            // if (response === false) {
+            //   router.push("/register");
+            // } else {
+            //   return response;
+            // }
             return await get({
               url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
               params: {
-                accessToken:
-                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTczNTU3MTQ2OSwiZXhwIjoxNzM1NjU3ODY5LCJ0eXBlIjoiQUNDRVNTIn0.XhYfK1P2hIR5zyrdNCCDeVLMZ1RCiy0hYulA46fIS0U",
-                thirdwebToken:
-                  "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIweDI3ODUyMzMyMzRlNzg4MEE1ZTNiM2ZDNTU3NEFhZjVCMTJEN2M2OGYiLCJzdWIiOiIweGYzOUZkNmU1MWFhZDg4RjZGNGNlNmFCODgyNzI3OWNmZkZiOTIyNjYiLCJhdWQiOiJsb2NhbGhvc3Q6NTE3MyIsImV4cCI6MTczNTY1Nzg2OCwibmJmIjoxNzM1NTcwODY1LCJpYXQiOjE3MzU1NzE0NjksImp0aSI6IjB4Zjk0YThiNzM2NmFiMTJjOGE1MzlmMjkyYjVjYzg3ZWJiZjZkMmU4ODM0MDJmNTc5M2YxYzcxYzU2OGM3N2NkZCIsImN0eCI6e319.MHgwMDFiNzA0ZDFhNWY2NDNiYmYyMzI1YWM2YjY2MjJjYjliNmUyNTU2MmZhYjgyNDFjZTdiYzQ4N2UzYWZmMzExMmJiNzcxNDJiNTg1NzllMGExM2IyYmUwN2I0MTUyMDZmZGUzYTU5NjBkYzBlNTRiMzFmNTczNzM1MmMxNWQxNzFj",
+                accessToken: accessToken,
+                // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTczNTU3MTQ2OSwiZXhwIjoxNzM1NjU3ODY5LCJ0eXBlIjoiQUNDRVNTIn0.XhYfK1P2hIR5zyrdNCCDeVLMZ1RCiy0hYulA46fIS0U",
+                thirdwebToken: thirdwebToken,
+                // "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIweDI3ODUyMzMyMzRlNzg4MEE1ZTNiM2ZDNTU3NEFhZjVCMTJEN2M2OGYiLCJzdWIiOiIweGYzOUZkNmU1MWFhZDg4RjZGNGNlNmFCODgyNzI3OWNmZkZiOTIyNjYiLCJhdWQiOiJsb2NhbGhvc3Q6NTE3MyIsImV4cCI6MTczNTY1Nzg2OCwibmJmIjoxNzM1NTcwODY1LCJpYXQiOjE3MzU1NzE0NjksImp0aSI6IjB4Zjk0YThiNzM2NmFiMTJjOGE1MzlmMjkyYjVjYzg3ZWJiZjZkMmU4ODM0MDJmNTc5M2YxYzcxYzU2OGM3N2NkZCIsImN0eCI6e319.MHgwMDFiNzA0ZDFhNWY2NDNiYmYyMzI1YWM2YjY2MjJjYjliNmUyNTU2MmZhYjgyNDFjZTdiYzQ4N2UzYWZmMzExMmJiNzcxNDJiNTg1NzllMGExM2IyYmUwN2I0MTUyMDZmZGUzYTU5NjBkYzBlNTRiMzFmNTczNzM1MmMxNWQxNzFj",
               },
             });
-            // console.log("response", response);
-            // if (response.data["isLoggedIn"] === false) {
-            //   router.push("/signup");
-            // }
-            // return response;
           },
           /**
            * 	`doLogout` performs any logic necessary to log the user out.

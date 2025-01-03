@@ -1,4 +1,6 @@
 "use client";
+import ConnectButtonAuth from "@/components/ConnectButtonAuth";
+import ConnectWallet from "@/components/ConnectWallet";
 import { AlignJustify, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,7 +21,7 @@ export default function Home() {
             alt="melodious logo"
             className="p-0 m-0"
           />
-          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap">
+          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap z-10">
             <nav className="space-x-14 text-white">
               <Link href="">Home</Link>
               <Link href="">About Us</Link>
@@ -27,10 +29,10 @@ export default function Home() {
               <Link href="">FAQs</Link>
               <Link href="">FAQs</Link>
             </nav>
-
-            <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+            {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
               Connect Wallet
-            </button>
+            </button> */}
+            <ConnectWallet />
           </div>
 
           <button
@@ -85,9 +87,10 @@ export default function Home() {
                 </Link>
               </nav>
 
-              <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+              {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
                 Connect Wallet
-              </button>
+              </button> */}
+              <ConnectWallet />
             </div>
           )}
         </div>

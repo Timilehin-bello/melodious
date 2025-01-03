@@ -54,7 +54,7 @@ const register = catchAsync(async (req: Request, res: Response) => {
  * @param req The request object containing query parameters for wallet address and chain ID.
  * @param res The response object.
  */
-const loginRequest = catchAsync(async (req: Request, res: Response) => {
+const loginRequest = catchAsync(async (req: any, res: any) => {
   // Destructure walletAddress and chainId from the request query
   const { walletAddress: walletAddressQuery, chainId: chainIdQuery } =
     req.query;
@@ -73,7 +73,11 @@ const loginRequest = catchAsync(async (req: Request, res: Response) => {
 
   // If the user is not found, throw a 'User not found' error
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    // throw new ApiError(httpStatus.NOT_FOUND, "User not found");
+    return res.status(httpStatus.NOT_FOUND).json({
+      status: "error",
+      message: "User not found",
+    });
   }
 
   // Generate a Thirdweb authentication token using the wallet address and chain ID
@@ -83,7 +87,7 @@ const loginRequest = catchAsync(async (req: Request, res: Response) => {
   );
 
   // Respond with the generated authentication payload
-  res
+  return res
     .status(httpStatus.OK)
     .send({ status: "success", data: { payload: genarateAuthToken } });
 });

@@ -10,7 +10,7 @@ import "./../globals.css";
 import { Input } from "@/components/ui/input";
 import { Bell, ChevronDown, Search } from "lucide-react";
 import Image from "next/image";
-import { MelodiousProvider } from "@/context";
+import { MelodiousProvider } from "@/contexts/melodious";
 
 export const metadata: Metadata = {
   title: "Artist | Melodious Music Streaming Platform ",
