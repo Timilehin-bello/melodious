@@ -10,9 +10,11 @@ const createUser = async (
   }
 ): Promise<any> => {
   try {
-    const { walletAddress, userType, ...rest } = userBody;
+    const { walletAddress, userType } = userBody;
 
-    if (await getUserByUniqueValue({ walletAddress })) {
+    if (
+      await getUserByUniqueValue({ walletAddress: walletAddress.toLowerCase() })
+    ) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         "User with wallet address already taken"
@@ -29,7 +31,11 @@ const createUser = async (
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            walletAddress,
+            walletAddress: walletAddress.toLowerCase(),
+          },
+          include: {
+            listener: true,
+            artist: true,
           },
         });
         console.log("userInfo", userInfo);
@@ -45,7 +51,11 @@ const createUser = async (
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            walletAddress,
+            walletAddress: walletAddress.toLowerCase(),
+          },
+          include: {
+            listener: true,
+            artist: true,
           },
         });
 

@@ -20,7 +20,10 @@ const jwtVerify = async (
 
     // console.log("payload", payload);
 
-    const user = await userService.getUserByUniqueValue({ id: payload.sub });
+    const user = await userService.getUserByUniqueValue(
+      { id: payload.sub },
+      { listener: true, artist: true }
+    );
     if (!user) {
       return done(null, false);
     }

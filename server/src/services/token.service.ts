@@ -167,9 +167,15 @@ const generateThirdwebAuthTokens = async (
     });
 
     console.log("accessToken thirdweb", accessToken);
-    const user = await userService.getUserByUniqueValue({
-      walletAddress: payload.payload.address.toLowerCase(),
-    });
+    const user = await userService.getUserByUniqueValue(
+      {
+        walletAddress: payload.payload.address.toLowerCase(),
+      },
+      {
+        listener: true,
+        artist: true,
+      }
+    );
 
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
