@@ -1,50 +1,39 @@
 "use client";
 import ConnectWallet from "@/components/ConnectWallet";
-import redirectIfUserIsLoggedIn from "@/lib/redirectUser";
 import { AlignJustify, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 
+import { useRouter } from "next/navigation";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useMelodiousContext } from "@/contexts/melodious";
+
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
+  const { userData } = useMelodiousContext();
   const router = useRouter();
+  const [redirect, setRedirect] = useState(false);
 
-  // const redirectIfUserIsLoggedIn = async () => {
-  //   let data = (await localStorage.getItem("xx-mu")) as any | null;
-  //   data = await JSON.parse(data);
-  //   const artist = data ? data.user.artist : null;
-  //   const listener = data ? data.user.listener : null;
+  useEffect(() => {
+    console.log("userData", userData);
+    if (userData !== null) {
+      setRedirect(true);
+    }
+  }, [userData]);
 
-  //   if (artist !== null) {
-  //     router.push("/artist/dashboard");
-  //   } else if (listener !== null) {
-  //     router.push("/listener/dashboard");
-  //   }
-  // };
-
-  // const useInterval = (callback: any, delay: any) => {
-  //   const [savedCallback, setSavedCallback] = useState(callback);
-
-  //   useEffect(() => {
-  //     const id = setTimeout(savedCallback, delay);
-
-  //     return () => {
-  //       clearTimeout(id);
-  //     };
-  //   }, [delay, savedCallback]);
-
-  //   useEffect(() => {
-  //     setSavedCallback(callback);
-  //   }, [callback]);
-  // };
-
-  // useInterval(() => {
-  //   redirectIfUserIsLoggedIn();
-  // }, 1000);
-
+  useEffect(() => {
+    console.log("redirect", redirect);
+    if (redirect && userData) {
+      if (userData.listener) {
+        router.push("/listener/dashboard");
+      }
+      if (userData.artist) {
+        router.push("/artist/dashboard");
+      }
+    }
+  }, [redirect, userData, router]);
   return (
     <>
       <section className="bg-[url('/images/landing/background1.svg')] bg-cover bg-center h-[700px] px-10 py-6">

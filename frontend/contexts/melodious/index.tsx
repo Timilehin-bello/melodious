@@ -3,7 +3,7 @@
 import axios from "axios";
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useContext } from "react";
 
 declare global {
@@ -11,11 +11,20 @@ declare global {
     ethereum: any;
   }
 }
+interface User {
+  artist?: boolean;
+  listener?: boolean;
+  [key: string]: any;
+}
 
 interface IMelodiousContext {
   uploadToIPFS: (file: File) => Promise<string>;
   signMessages: (message: any) => Promise<any>;
   createUser: (user: ICreateUser) => Promise<any>;
+  userData: User | null;
+  setUserData: React.Dispatch<React.SetStateAction<User | null>>;
+  isLoggedIn: boolean;
+  setIsLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 interface ICreateUser {
@@ -42,11 +51,37 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
   createUser: async (user: ICreateUser) => {
     return "";
   },
+  userData: null,
+  setUserData: () => {},
+  isLoggedIn: false,
+  setIsLoggedIn: () => {},
 });
 
 export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [userData, setUserData] = useState<User | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const data = localStorage.getItem("xx-mu");
+      if (data) {
+        const parsedData = JSON.parse(data);
+        setUserData(parsedData.user);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Initial check
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, []);
+
   const uploadToIPFS = async (file: File): Promise<string> => {
     try {
       console.log("Uploading file to IPFS...", file);
@@ -181,7 +216,15 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <MelodiousContext.Provider
-      value={{ uploadToIPFS, signMessages, createUser }}
+      value={{
+        uploadToIPFS,
+        signMessages,
+        createUser,
+        userData,
+        setUserData,
+        isLoggedIn,
+        setIsLoggedIn,
+      }}
     >
       {children}
     </MelodiousContext.Provider>

@@ -42,8 +42,8 @@ const Header = () => {
 
         <div className="pr-14 mt-2">
           {/* Connect Wallet */}
-          {/* <ConnectWallet /> */}
-          <ConnectButtonAuth />
+          <ConnectWallet />
+          {/* <ConnectButtonAuth /> */}
         </div>
       </div>
     </header>

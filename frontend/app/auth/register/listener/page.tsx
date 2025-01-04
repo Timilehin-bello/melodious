@@ -24,9 +24,7 @@ import {
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
-import { useConnect } from "thirdweb/react";
-import { createWallet } from "thirdweb/wallets";
-import { client } from "@/lib/client";
+import { useActiveAccount, useConnect } from "thirdweb/react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -44,9 +42,9 @@ const formSchema = z.object({
 });
 
 const RegisterListener = () => {
-  const { connect, isConnecting, error } = useConnect();
   const { createUser } = useMelodiousContext();
   const router = useRouter();
+  const activeAccount = useActiveAccount();
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -61,9 +59,9 @@ const RegisterListener = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const walletAddress = localStorage.getItem("walletAddress");
+    const walletAddress = activeAccount?.address;
     const chainId = "31337";
-    console.log(walletAddress);
+    console.log("walletAddress", walletAddress);
     const response = await post({
       url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/register",
       body: {
