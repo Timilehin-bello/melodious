@@ -25,7 +25,6 @@ const ConnectWallet = () => {
           getLoginPayload: async (params: {
             address: string;
           }): Promise<LoginPayload> => {
-            localStorage.setItem("walletAddress", params.address);
             const response = await fetch(
               `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=31337`
             );
@@ -51,16 +50,8 @@ const ConnectWallet = () => {
               url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login",
               params,
             });
-            console.log("token", response.data["tokens"]["token"].access.token);
 
-            localStorage.setItem(
-              "accessToken",
-              response.data["tokens"]["token"].access.token
-            );
-            localStorage.setItem(
-              "thirdwebToken",
-              response.data["tokens"]["token"].thirdWeb.token
-            );
+            localStorage.setItem("xx-mu", JSON.stringify(response.data));
 
             return response;
           },
@@ -69,32 +60,16 @@ const ConnectWallet = () => {
            * 	Here, this is done by calling the server to check if the user has a valid JWT cookie set.
            */
           isLoggedIn: async () => {
-            const accessToken = localStorage.getItem("accessToken");
-            const thirdwebToken = localStorage.getItem("thirdwebToken");
-            // const response = await get({
-            //   url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
-            //   params: {
-            //     accessToken: accessToken,
-            //     // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTczNTU3MTQ2OSwiZXhwIjoxNzM1NjU3ODY5LCJ0eXBlIjoiQUNDRVNTIn0.XhYfK1P2hIR5zyrdNCCDeVLMZ1RCiy0hYulA46fIS0U",
-            //     thirdwebToken: thirdwebToken,
-            //     // "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIweDI3ODUyMzMyMzRlNzg4MEE1ZTNiM2ZDNTU3NEFhZjVCMTJEN2M2OGYiLCJzdWIiOiIweGYzOUZkNmU1MWFhZDg4RjZGNGNlNmFCODgyNzI3OWNmZkZiOTIyNjYiLCJhdWQiOiJsb2NhbGhvc3Q6NTE3MyIsImV4cCI6MTczNTY1Nzg2OCwibmJmIjoxNzM1NTcwODY1LCJpYXQiOjE3MzU1NzE0NjksImp0aSI6IjB4Zjk0YThiNzM2NmFiMTJjOGE1MzlmMjkyYjVjYzg3ZWJiZjZkMmU4ODM0MDJmNTc5M2YxYzcxYzU2OGM3N2NkZCIsImN0eCI6e319.MHgwMDFiNzA0ZDFhNWY2NDNiYmYyMzI1YWM2YjY2MjJjYjliNmUyNTU2MmZhYjgyNDFjZTdiYzQ4N2UzYWZmMzExMmJiNzcxNDJiNTg1NzllMGExM2IyYmUwN2I0MTUyMDZmZGUzYTU5NjBkYzBlNTRiMzFmNTczNzM1MmMxNWQxNzFj",
-            //   },
-            // });
+            let data = localStorage.getItem("xx-mu") as any | null;
+            data = JSON.parse(data);
+            const accessToken = data["tokens"]["token"].access.token;
+            const thirdwebToken = data["tokens"]["token"].thirdWeb.token;
 
-            // console.log("isLoggedIn", response);
-
-            // if (response === false) {
-            //   router.push("/register");
-            // } else {
-            //   return response;
-            // }
             return await get({
               url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
               params: {
                 accessToken: accessToken,
-                // "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTczNTU3MTQ2OSwiZXhwIjoxNzM1NjU3ODY5LCJ0eXBlIjoiQUNDRVNTIn0.XhYfK1P2hIR5zyrdNCCDeVLMZ1RCiy0hYulA46fIS0U",
                 thirdwebToken: thirdwebToken,
-                // "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIweDI3ODUyMzMyMzRlNzg4MEE1ZTNiM2ZDNTU3NEFhZjVCMTJEN2M2OGYiLCJzdWIiOiIweGYzOUZkNmU1MWFhZDg4RjZGNGNlNmFCODgyNzI3OWNmZkZiOTIyNjYiLCJhdWQiOiJsb2NhbGhvc3Q6NTE3MyIsImV4cCI6MTczNTY1Nzg2OCwibmJmIjoxNzM1NTcwODY1LCJpYXQiOjE3MzU1NzE0NjksImp0aSI6IjB4Zjk0YThiNzM2NmFiMTJjOGE1MzlmMjkyYjVjYzg3ZWJiZjZkMmU4ODM0MDJmNTc5M2YxYzcxYzU2OGM3N2NkZCIsImN0eCI6e319.MHgwMDFiNzA0ZDFhNWY2NDNiYmYyMzI1YWM2YjY2MjJjYjliNmUyNTU2MmZhYjgyNDFjZTdiYzQ4N2UzYWZmMzExMmJiNzcxNDJiNTg1NzllMGExM2IyYmUwN2I0MTUyMDZmZGUzYTU5NjBkYzBlNTRiMzFmNTczNzM1MmMxNWQxNzFj",
               },
             });
           },
@@ -103,8 +78,23 @@ const ConnectWallet = () => {
            * 	In this case, this means sending a request to the server to clear the JWT cookie.
            */
           doLogout: async () => {
-            await post({
-              url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/logout",
+            let data = localStorage.getItem("xx-mu") as any | null;
+            data = JSON.parse(data) ?? null;
+            await fetch(
+              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/logout",
+              {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  accessToken: data["tokens"]["token"].access.token,
+                }),
+              }
+            ).then(() => {
+              localStorage.removeItem("xx-mu");
+              router.push("/");
             });
           },
         }}

@@ -1,14 +1,49 @@
 "use client";
-import ConnectButtonAuth from "@/components/ConnectButtonAuth";
 import ConnectWallet from "@/components/ConnectWallet";
+import redirectIfUserIsLoggedIn from "@/lib/redirectUser";
 import { AlignJustify, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
+  const router = useRouter();
+
+  // const redirectIfUserIsLoggedIn = async () => {
+  //   let data = (await localStorage.getItem("xx-mu")) as any | null;
+  //   data = await JSON.parse(data);
+  //   const artist = data ? data.user.artist : null;
+  //   const listener = data ? data.user.listener : null;
+
+  //   if (artist !== null) {
+  //     router.push("/artist/dashboard");
+  //   } else if (listener !== null) {
+  //     router.push("/listener/dashboard");
+  //   }
+  // };
+
+  // const useInterval = (callback: any, delay: any) => {
+  //   const [savedCallback, setSavedCallback] = useState(callback);
+
+  //   useEffect(() => {
+  //     const id = setTimeout(savedCallback, delay);
+
+  //     return () => {
+  //       clearTimeout(id);
+  //     };
+  //   }, [delay, savedCallback]);
+
+  //   useEffect(() => {
+  //     setSavedCallback(callback);
+  //   }, [callback]);
+  // };
+
+  // useInterval(() => {
+  //   redirectIfUserIsLoggedIn();
+  // }, 1000);
 
   return (
     <>

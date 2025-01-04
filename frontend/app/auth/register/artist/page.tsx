@@ -25,7 +25,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { useActiveAccount } from "thirdweb/react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -58,7 +58,7 @@ const formSchema = z.object({
 const RegisterArtist = () => {
   const { createUser } = useMelodiousContext();
   const router = useRouter();
-  const toast = useToast();
+  const activeAccount = useActiveAccount();
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,9 +79,10 @@ const RegisterArtist = () => {
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
-    const walletAddress = localStorage.getItem("walletAddress");
+    // const walletAddress = secureStorage.get("walletAddress");
+    const walletAddress = activeAccount?.address;
     const chainId = "31337";
-    console.log(walletAddress);
+    // console.log(walletAddress);
     const response = await post({
       url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/register",
       body: {
