@@ -110,7 +110,7 @@ const RegisterArtist = () => {
           facebook: values.socialMediaLinks.facebook,
         },
       }).then((user) => {
-        router.push("/artist/dashboard");
+        router.push("/auth/login");
         console.log("User created with transaction hash:", user);
       });
     }

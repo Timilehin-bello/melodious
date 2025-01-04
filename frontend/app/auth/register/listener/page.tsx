@@ -81,8 +81,10 @@ const RegisterListener = () => {
         userType: "LISTENER",
         country: values.country,
       }).then((user) => {
-        router.push("/listener/dashboard");
-        console.log("User created with transaction hash:", user);
+        // router.push("/auth/login");
+        window.location.href = "/auth/login";
+
+        // console.log("User created with transaction hash:", user);
       });
     }
     // console.log(values);

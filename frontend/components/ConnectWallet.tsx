@@ -5,10 +5,36 @@ import { LoginPayload, VerifyLoginPayloadParams } from "thirdweb/auth";
 import { get, post } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
+import { useEffect, useState } from "react";
+
+interface User {
+  artist?: boolean;
+  listener?: boolean;
+  [key: string]: any;
+}
 
 const ConnectWallet = () => {
   const router = useRouter();
-  const activeAccount = useActiveAccount();
+  const [userData, setUserData] = useState<User | null>(null);
+
+  const [successfulLogin, setSuccessfulLogin] = useState(false);
+
+  useEffect(() => {
+    if (successfulLogin && userData) {
+      if (userData.listener === null) {
+        router.push("/artist/dashboard");
+      } else if (userData.listener !== null) {
+        router.push("/listener/dashboard");
+      } else if (userData.artist === null) {
+        router.push("/listener/dashboard");
+      } else if (userData.artist !== null) {
+        router.push("/artist/dashboard");
+      } else {
+        router.push("/");
+      }
+    }
+    console.log("successfulLogin", successfulLogin);
+  }, [successfulLogin]);
   return (
     <div>
       <ConnectButton
@@ -35,7 +61,7 @@ const ConnectWallet = () => {
             }
 
             const request = await response.json();
-            console.log("getLoginPayload", request);
+            // console.log("getLoginPayload", request);
             if (request.status === "error") {
               router.push("/auth/register");
             }
@@ -65,13 +91,19 @@ const ConnectWallet = () => {
             const accessToken = data["tokens"]["token"].access.token;
             const thirdwebToken = data["tokens"]["token"].thirdWeb.token;
 
-            return await get({
+            const response = await get({
               url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
               params: {
                 accessToken: accessToken,
                 thirdwebToken: thirdwebToken,
               },
             });
+            setUserData(data.user);
+            console.log("isLoggedIn", response);
+            setSuccessfulLogin(response);
+
+            console.log("successfulLogin", successfulLogin);
+            return response;
           },
           /**
            * 	`doLogout` performs any logic necessary to log the user out.
@@ -94,7 +126,8 @@ const ConnectWallet = () => {
               }
             ).then(() => {
               localStorage.removeItem("xx-mu");
-              router.push("/");
+              // router.push("/");
+              window.location.href = "/";
             });
           },
         }}

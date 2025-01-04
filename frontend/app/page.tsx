@@ -12,28 +12,28 @@ import { useMelodiousContext } from "@/contexts/melodious";
 
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
-  const { userData } = useMelodiousContext();
-  const router = useRouter();
-  const [redirect, setRedirect] = useState(false);
+  // const { userData } = useMelodiousContext();
+  // const router = useRouter();
+  // const [redirect, setRedirect] = useState(false);
 
-  useEffect(() => {
-    console.log("userData", userData);
-    if (userData !== null) {
-      setRedirect(true);
-    }
-  }, [userData]);
+  // useEffect(() => {
+  //   console.log("userData", userData);
+  //   if (userData !== null) {
+  //     setRedirect(true);
+  //   }
+  // }, [userData]);
 
-  useEffect(() => {
-    console.log("redirect", redirect);
-    if (redirect && userData) {
-      if (userData.listener) {
-        router.push("/listener/dashboard");
-      }
-      if (userData.artist) {
-        router.push("/artist/dashboard");
-      }
-    }
-  }, [redirect, userData, router]);
+  // useEffect(() => {
+  //   console.log("redirect", redirect);
+  //   if (redirect && userData) {
+  //     if (userData.listener) {
+  //       router.push("/listener/dashboard");
+  //     }
+  //     if (userData.artist) {
+  //       router.push("/artist/dashboard");
+  //     }
+  //   }
+  // }, [redirect, userData, router]);
   return (
     <>
       <section className="bg-[url('/images/landing/background1.svg')] bg-cover bg-center h-[700px] px-10 py-6">
