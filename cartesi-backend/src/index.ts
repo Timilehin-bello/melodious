@@ -151,7 +151,7 @@ async function handle_advance(data: any) {
       console.log(
         `The original message sender: ${data.metadata.msg_sender} has been updated to: ${payloadObj.args.signer}`
       );
-      data.metadata.msg_sender = payloadObj.args.signer;
+      data.metadata.msg_sender = payloadObj.args.signer.toLowerCase();
     }
 
     let msg_sender: string = data.metadata.msg_sender;
