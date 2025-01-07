@@ -177,6 +177,9 @@ const generateThirdwebAuthTokens = async (
       }
     );
 
+    console.log("payload", payload.payload);
+    console.log("user", user);
+
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }

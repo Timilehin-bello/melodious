@@ -9,7 +9,7 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { MusicPlayerProvider } from "@/contexts/MusicPlayerContext";
 // import Player from "@/components/MusicPlayer/Player";
 import MusicPlayer from "@/components/MusicPlayer";
-import { MelodiousProvider } from "@/context";
+import { MelodiousProvider } from "@/contexts/melodious";
 
 export const metadata: Metadata = {
   title: "Listener",

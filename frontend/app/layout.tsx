@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { MelodiousProvider } from "@/context";
+import { MelodiousProvider } from "@/contexts/melodious";
+import { ThirdwebProvider } from "thirdweb/react";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,13 +28,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <MelodiousProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
-        >
-          <main>{children}</main>
-        </body>
-      </MelodiousProvider>
+      <ThirdwebProvider>
+        <MelodiousProvider>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
+          >
+            <main>{children}</main>
+            <Toaster />
+          </body>
+        </MelodiousProvider>
+      </ThirdwebProvider>
     </html>
   );
 }

@@ -13,7 +13,7 @@ interface User {
   [key: string]: any;
 }
 
-const ConnectWallet = () => {
+const ConnectButtonAuth = () => {
   const router = useRouter();
   const [userData, setUserData] = useState<User | null>(null);
 
@@ -40,8 +40,8 @@ const ConnectWallet = () => {
       <ConnectButton
         client={client}
         connectButton={{
-          label: "Connect Wallet",
-          className: "connect-button",
+          label: "Sign in",
+          // className: "connect-button",
         }}
         auth={{
           /**
@@ -136,4 +136,4 @@ const ConnectWallet = () => {
   );
 };
 
-export default ConnectWallet;
+export default ConnectButtonAuth;

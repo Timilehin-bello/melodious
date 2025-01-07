@@ -13,7 +13,8 @@ import {
 import { useActiveAccount } from "thirdweb/react";
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useActiveWallet } from "thirdweb/react";
-import ConnectWallet from "@/components/ConnectWallet"
+import ConnectWallet from "@/components/ConnectWallet";
+import ConnectButtonAuth from "./ConnectButtonAuth";
 
 const Header = () => {
   const activeAccount = useActiveAccount();
@@ -42,7 +43,7 @@ const Header = () => {
         <div className="pr-14 mt-2">
           {/* Connect Wallet */}
           <ConnectWallet />
-         
+          {/* <ConnectButtonAuth /> */}
         </div>
       </div>
     </header>

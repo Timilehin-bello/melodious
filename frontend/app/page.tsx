@@ -1,13 +1,39 @@
 "use client";
+import ConnectWallet from "@/components/ConnectWallet";
 import { AlignJustify, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useRouter } from "next/navigation";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useMelodiousContext } from "@/contexts/melodious";
 
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
+  // const { userData } = useMelodiousContext();
+  // const router = useRouter();
+  // const [redirect, setRedirect] = useState(false);
 
+  // useEffect(() => {
+  //   console.log("userData", userData);
+  //   if (userData !== null) {
+  //     setRedirect(true);
+  //   }
+  // }, [userData]);
+
+  // useEffect(() => {
+  //   console.log("redirect", redirect);
+  //   if (redirect && userData) {
+  //     if (userData.listener) {
+  //       router.push("/listener/dashboard");
+  //     }
+  //     if (userData.artist) {
+  //       router.push("/artist/dashboard");
+  //     }
+  //   }
+  // }, [redirect, userData, router]);
   return (
     <>
       <section className="bg-[url('/images/landing/background1.svg')] bg-cover bg-center h-[700px] px-10 py-6">
@@ -19,7 +45,7 @@ export default function Home() {
             alt="melodious logo"
             className="p-0 m-0"
           />
-          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap">
+          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap z-10">
             <nav className="space-x-14 text-white">
               <Link href="">Home</Link>
               <Link href="">About Us</Link>
@@ -27,10 +53,10 @@ export default function Home() {
               <Link href="">FAQs</Link>
               <Link href="">FAQs</Link>
             </nav>
-
-            <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+            {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
               Connect Wallet
-            </button>
+            </button> */}
+            <ConnectWallet />
           </div>
 
           <button
@@ -85,9 +111,10 @@ export default function Home() {
                 </Link>
               </nav>
 
-              <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+              {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
                 Connect Wallet
-              </button>
+              </button> */}
+              <ConnectWallet />
             </div>
           )}
         </div>
