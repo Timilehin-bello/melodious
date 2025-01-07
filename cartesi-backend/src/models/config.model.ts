@@ -10,6 +10,7 @@ class Config {
   poolPercentage: number;
   feePercentage: number;
   serverAddress: string;
+  relayerAddress: string;
   dappContractAddress: string;
   melodiousNftAddress: string;
   lastVaultBalanceDistributed: number;
@@ -22,6 +23,7 @@ class Config {
     poolPercentage: number,
     feePercentage: number,
     serverAddress: string,
+    relayerAddress: string,
     dappContractAddress: string,
     melodiousNftAddress: string,
     vaultBalance: number = 0,
@@ -32,6 +34,7 @@ class Config {
       ...adminWalletAddresses,
       cartesiTokenContractAddress,
       serverAddress,
+      relayerAddress,
       dappContractAddress,
       melodiousNftAddress,
     ];
@@ -52,6 +55,7 @@ class Config {
     this.poolPercentage = poolPercentage;
     this.feePercentage = feePercentage;
     this.serverAddress = serverAddress;
+    this.relayerAddress = relayerAddress;
     this.dappContractAddress = dappContractAddress;
     this.melodiousNftAddress = melodiousNftAddress;
   }

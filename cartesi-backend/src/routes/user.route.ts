@@ -15,11 +15,22 @@ class CreateUserRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
+      console.log("msg_sender in create user route is", this.msg_sender);
+      console.log(
+        "Executing Create User request",
+        JSON.stringify(this.request_args)
+      );
+
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
       return this.user.create({
-        walletAddress: this.msg_sender,
+        walletAddress: signer,
         createdAt: new Date(request.metadata.timestamp * 1000),
         updatedAt: new Date(request.metadata.timestamp * 1000),
-        ...this.request_args,
+        ...request_payload,
       });
     } catch (error) {
       const error_msg = `Failed to create user ${error}`;
@@ -42,10 +53,15 @@ class UpdateUserRoute extends AdvanceRoute {
     this._parse_request(request);
     try {
       console.log("Executing Update User request");
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
       return this.user.updateUser({
-        walletAddress: this.msg_sender,
+        walletAddress: signer,
         timestamp: request.metadata.timestamp,
-        ...this.request_args,
+        ...request_payload,
       });
     } catch (error) {
       const error_msg = `Failed to update message ${error}`;
