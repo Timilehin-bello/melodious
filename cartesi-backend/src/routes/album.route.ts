@@ -15,12 +15,14 @@ class CreateAlbumRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
+      const { signer, ...request_payload } = this.request_args;
+
       const album = this.album.createAlbum({
-        walletAddress: this.msg_sender,
+        walletAddress: signer,
         createdAt: new Date(request.metadata.timestamp * 1000),
         updatedAt: new Date(request.metadata.timestamp * 1000),
         releaseDate: new Date(request.metadata.timestamp * 1000),
-        ...this.request_args,
+        ...request_payload,
       }) as Notice | Error_out;
 
       return album;
@@ -44,11 +46,13 @@ class UpdateAlbumRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
+      const { signer, ...request_payload } = this.request_args;
+
       console.log("Executing Update album request");
       return this.album.updateAlbum({
-        walletAddress: this.msg_sender,
+        walletAddress: signer,
         updatedAt: new Date(request.metadata.timestamp * 1000),
-        ...this.request_args,
+        ...request_payload,
       });
     } catch (error) {
       const error_msg = `Failed to update message ${error}`;
@@ -69,6 +73,7 @@ class DeleteAlbumRoute extends AdvanceRoute {
   }
   public execute = (request: any) => {
     this._parse_request(request);
+
     try {
       return this.album.deleteAlbum(parseInt(this.request_args.albumId));
     } catch (error) {

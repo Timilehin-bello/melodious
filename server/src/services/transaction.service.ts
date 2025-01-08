@@ -8,6 +8,8 @@ const addTransactionRequest = async (payload: IPayload) => {
   try {
     const signer = await verifyTransaction(payload);
 
+    console.log("verify Transaction", JSON.stringify(signer));
+
     if (signer !== payload.signer) {
       throw new ApiError(httpStatus.BAD_REQUEST, "Invalid signature");
     }
@@ -62,7 +64,11 @@ const submitTransaction = async (tx: any) => {
 
     const cleanedPayload = JSON.parse(tx.data);
 
-    console.log(`Tx is: ${JSON.stringify(cleanedPayload)}`);
+    console.log(`Tx is cleaned: ${JSON.stringify(cleanedPayload)}`);
+
+    const parsedObject = JSON.parse(JSON.stringify(tx));
+
+    cleanedPayload.args.signer = parsedObject.signer;
 
     const txHex = await objectToHex(cleanedPayload);
     console.log(`Hex representation is: ${txHex}`);

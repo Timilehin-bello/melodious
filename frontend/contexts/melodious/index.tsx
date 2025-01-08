@@ -140,7 +140,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(userPayload);
-      console.log(`Transaction hash is: ${txhash}`);
+      console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
       console.error("Error creating user:", error);
@@ -229,6 +229,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       console.log("Signing message...", message);
       const { address, signature } = await signMessage({ data: message });
+      console.log(`Address is: ${address}`);
       const finalPayload = createMessage(message, address, signature);
       const realSigner = await ethers.utils.verifyMessage(
         finalPayload.message,
@@ -252,6 +253,9 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("No crypto wallet found. Please install it.");
 
       const provider = new Web3Provider(window.ethereum);
+
+      await provider.send("eth_requestAccounts", []);
+
       // const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signature = await signer.signMessage(JSON.stringify(message));

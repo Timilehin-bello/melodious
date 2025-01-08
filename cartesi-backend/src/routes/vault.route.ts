@@ -14,11 +14,17 @@ class DepositVaultRoute extends AdvanceRoute {
   }
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
       console.log("Executing deposit vault request", this.request_args.amount);
       const vault = this.vault.depositToVault({
-        walletAddress: this.msg_sender,
-        amount: this.request_args.amount,
+        walletAddress: signer,
+        amount: request_payload.amount,
       });
 
       return vault;
@@ -41,14 +47,20 @@ class WithdrawalArtistVaultRoute extends AdvanceRoute {
   }
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
       console.log(
         "Executing artist withdrawal vault request",
-        this.request_args.amount
+        request_payload.amount
       );
       const vault = this.vault.withdraw({
-        walletAddress: this.msg_sender,
-        amount: this.request_args.amount,
+        walletAddress: signer,
+        amount: request_payload.amount,
       });
 
       return vault;

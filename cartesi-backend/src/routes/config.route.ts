@@ -16,17 +16,16 @@ class CreateConfigRoute extends AdvanceRoute {
     this._parse_request(request);
     try {
       console.log("Executing create config request");
+      const {
+        signer,
+        vaultBalance,
+        lastVaultBalanceDistributed,
+        feeBalance,
+        ...request_payload
+      } = this.request_args;
+
       const config = this.config.createConfig({
-        adminWalletAddresses: this.request_args.adminWalletAddresses,
-        cartesiTokenContractAddress:
-          this.request_args.cartesiTokenContractAddress,
-        vaultContractAddress: this.request_args.vaultContractAddress,
-        artistPercentage: this.request_args.artistPercentage,
-        poolPercentage: this.request_args.poolPercentage,
-        feePercentage: this.request_args.feePercentage,
-        serverAddress: this.request_args.serverAddress,
-        dappContractAddress: this.request_args.dappContractAddress,
-        melodiousNftAddress: this.request_args.melodiousNftAddress,
+        ...request_payload,
         vaultBalance: 0,
         lastVaultBalanceDistributed: 0,
         feeBalance: 0,

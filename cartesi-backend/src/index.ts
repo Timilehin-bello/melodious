@@ -143,9 +143,20 @@ async function handle_advance(data: any) {
   console.log("Received advance request data " + JSON.stringify(data));
   try {
     const payload = data.payload;
-    const msg_sender: string = data.metadata.msg_sender;
-    console.log("msg sender is", msg_sender.toLowerCase());
     const payloadStr = hexToString(payload);
+
+    const payloadObj = JSON.parse(payloadStr);
+
+    if (payloadObj.args.signer) {
+      console.log(
+        `The original message sender: ${data.metadata.msg_sender} has been updated to: ${payloadObj.args.signer}`
+      );
+      data.metadata.msg_sender = payloadObj.args.signer.toLowerCase();
+    }
+
+    let msg_sender: string = data.metadata.msg_sender;
+
+    console.log("msg sender is", msg_sender.toLowerCase());
 
     if (
       msg_sender.toLowerCase() ===
