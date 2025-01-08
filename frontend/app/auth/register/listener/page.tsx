@@ -24,7 +24,7 @@ import {
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
-import { useActiveAccount, useConnect } from "thirdweb/react";
+import { useActiveAccount } from "thirdweb/react";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -84,7 +84,7 @@ const RegisterListener = () => {
         // router.push("/auth/login");
         window.location.href = "/auth/login";
 
-        // console.log("User created with transaction hash:", user);
+        console.log("User created with transaction hash:", user);
       });
     }
     // console.log(values);

@@ -59,13 +59,13 @@ export default function ArtistLayout({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Image
+                    {/* <Image
                       src="/images/artist_avatar.png"
                       width={50}
                       height={54}
                       alt="country flag"
                       className="rounded-full p-1 border-1 border-gray-400"
-                    />
+                    /> */}
 
                     {/* <div className="flex flex-col items-center text-xs text-white mr-2"> */}
                     {/* <p className="mb-1">Money Ray</p>

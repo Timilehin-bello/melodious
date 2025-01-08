@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 
 const Login = () => {
   useEffect(() => {
+    
     localStorage.clear();
   }, []);
   return (

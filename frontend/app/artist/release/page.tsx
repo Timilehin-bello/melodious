@@ -1,7 +1,13 @@
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Music2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React from "react";
 
 const Release = () => {
@@ -39,23 +45,87 @@ const Release = () => {
             </p>
           </div>
 
-          <button className="bg-gray-700 px-2 mr-8 rounded-md text-sm text-white">
-            Create Release
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="bg-gray-700 px-2 mr-8 rounded-md text-sm text-white">
+                Create Release
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[110px]">
+              <div className="grid gap-4">
+                <Link
+                  href="/artist/release/single"
+                  className="hover:text-[#950944]"
+                >
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      Single
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  href="/artist/release/album"
+                  className="hover:text-[#950944]"
+                >
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      Album
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex flex-wrap gap-4 items-center">
           <SearchInput />
 
           <Button className=" bg-[#D1E1E11C] h-[45px]">Singles</Button>
           <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
+          <Link href="/artist/genre/create" className="hover:text-[#950944]">
+            <div className="grid gap-2">
+              <div className="grid grid-cols-3 items-center gap-4">
+                Create Genre
+              </div>
+            </div>
+          </Link>
         </div>
         <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
           <Music2 size={54} className="mb-4" />
 
           <p className="font-bold">You have not released anything yet</p>
-          <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
-            Create Release
-          </button>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
+                Create Release
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-40">
+              <div className="grid gap-4">
+                <Link
+                  href="/artist/release/single"
+                  className="hover:text-[#950944]"
+                >
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      Single
+                    </div>
+                  </div>
+                </Link>
+                <Link
+                  href="/artist/release/album"
+                  className="hover:text-[#950944]"
+                >
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 items-center gap-4">
+                      Album
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            </PopoverContent>
+          </Popover>
           <div></div>
         </div>
       </div>
