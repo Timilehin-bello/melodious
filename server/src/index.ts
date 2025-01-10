@@ -2,11 +2,28 @@ import app from "./app";
 import http from "http";
 import { config } from "./configs/config";
 import logger from "./configs/logger";
+import { rootSocket } from "./configs/rootSocket";
+import { scheduleCronJobs } from ".//cronJob";
+import { Server } from "socket.io";
 
-let server: any;
+declare global {
+  var io: Server;
+}
 
-const createServer = http.createServer(app);
-server = createServer.listen(config.port, () => {
+// scheduleCronJobs();
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: { origin: "*" },
+  path: "/v1/socket.io",
+});
+
+globalThis.io = io;
+
+rootSocket(io);
+
+server.listen(config.port, () => {
   logger.info(`Listening to port ${config.port}`);
 });
 

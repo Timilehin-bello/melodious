@@ -37,6 +37,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.options("*", cors());
 
 app.enable("trust proxy");

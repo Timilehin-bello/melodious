@@ -14,40 +14,230 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-
-  walletAddress String    @unique
+  id            Int           @id @default(autoincrement())
+  walletAddress String        @unique
   token         Token[]
   listener      Listener?
   artist        Artist?
-  lastLogin     DateTime? // not available on Cartesi
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  lastLogin     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userMetrics   UserMetrics?
+  deviceInfo    String? // Stores device and browser information
+  geoLocation   GeoLocation[]
 }
 
 model Listener {
-  id                Int    @id @default(autoincrement())
-  subscriptionLevel String @default("FREE")
-
-  favorites        UserFavorite[]
-  streamingHistory StreamingHistory[]
-  follows          Follow[]
-  user             User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           Int?               @unique
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  id                Int                @id @default(autoincrement())
+  subscriptionLevel String             @default("FREE")
+  favorites         UserFavorite[]
+  streamingHistory  StreamingHistory[]
+  follows           Follow[]
+  user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            Int?               @unique
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  listenerMetrics   ListenerMetrics?
+  playlists         Playlist[]
+  recommendations   Recommendation[]
+  listeningSession  ListeningSession[]
 }
 
 model Artist {
-  id Int @id @default(autoincrement())
-
+  id             Int               @id @default(autoincrement())
   tracks         Track[]
   followers      Follow[]
   listeningTimes ListeningTime[]
-  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId         Int?            @unique
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  user           User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int?              @unique
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  artistMetrics  ArtistMetrics?
+  genres         ArtistGenre[]
+  analytics      ArtistAnalytics[]
+}
+
+model Track {
+  id               Int                @id @default(autoincrement())
+  title            String
+  listenTime       Int                @default(0)
+  artist           Artist             @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  artistId         Int
+  streamingHistory StreamingHistory[]
+  listeningTimes   ListeningTime[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  trackMetrics     TrackMetrics?
+  duration         Int // Track duration in seconds
+  genres           TrackGenre[]
+  playlists        PlaylistTrack[]
+  analytics        TrackAnalytics[]
+}
+
+model ListeningSession {
+  id             Int       @id @default(autoincrement())
+  listener       Listener  @relation(fields: [listenerId], references: [id])
+  listenerId     Int
+  startTime      DateTime  @default(now())
+  endTime        DateTime?
+  totalDuration  Int       @default(0)
+  pauseCount     Int       @default(0)
+  bufferingTime  Int       @default(0)
+  skipCount      Int       @default(0)
+  deviceInfo     String
+  completionRate Float?
+  quality        String? // Audio quality level
+  networkMetrics String? // Network performance data
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model TrackMetrics {
+  id                    Int      @id @default(autoincrement())
+  track                 Track    @relation(fields: [trackId], references: [id])
+  trackId               Int      @unique
+  totalPlays            Int      @default(0)
+  uniqueListeners       Int      @default(0)
+  averageCompletionRate Float    @default(0)
+  skipRate              Float    @default(0)
+  bufferingRate         Float    @default(0)
+  popularityScore       Float    @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ArtistMetrics {
+  id              Int      @id @default(autoincrement())
+  artist          Artist   @relation(fields: [artistId], references: [id])
+  artistId        Int      @unique
+  totalPlays      Int      @default(0)
+  uniqueListeners Int      @default(0)
+  followerCount   Int      @default(0)
+  engagementRate  Float    @default(0)
+  popularityScore Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ListenerMetrics {
+  id                 Int      @id @default(autoincrement())
+  listener           Listener @relation(fields: [listenerId], references: [id])
+  listenerId         Int      @unique
+  totalListeningTime Int      @default(0)
+  favoriteGenres     String? // Array of genre preferences
+  listeningPatterns  String? // Time-based listening patterns
+  engagementScore    Float    @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model UserMetrics {
+  id           Int       @id @default(autoincrement())
+  user         User      @relation(fields: [userId], references: [id])
+  userId       Int       @unique
+  lastActive   DateTime?
+  sessionCount Int       @default(0)
+  deviceTypes  String? // Array of used devices
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model TrackAnalytics {
+  id          Int      @id @default(autoincrement())
+  track       Track    @relation(fields: [trackId], references: [id])
+  trackId     Int
+  date        DateTime @default(now())
+  plays       Int      @default(0)
+  uniquePlays Int      @default(0)
+  skipCount   Int      @default(0)
+  completions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([trackId, date])
+}
+
+model ArtistAnalytics {
+  id              Int      @id @default(autoincrement())
+  artist          Artist   @relation(fields: [artistId], references: [id])
+  artistId        Int
+  date            DateTime @default(now())
+  plays           Int      @default(0)
+  uniqueListeners Int      @default(0)
+  followers       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([artistId, date])
+}
+
+model Recommendation {
+  id         Int      @id @default(autoincrement())
+  listener   Listener @relation(fields: [listenerId], references: [id])
+  listenerId Int
+  trackId    Int
+  score      Float
+  type       String // e.g., "similar_listeners", "genre_based", "trending"
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model GeoLocation {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  country   String
+  region    String?
+  city      String?
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Playlist {
+  id         Int             @id @default(autoincrement())
+  name       String
+  listener   Listener        @relation(fields: [listenerId], references: [id])
+  listenerId Int
+  tracks     PlaylistTrack[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model PlaylistTrack {
+  id         Int      @id @default(autoincrement())
+  playlist   Playlist @relation(fields: [playlistId], references: [id])
+  playlistId Int
+  track      Track    @relation(fields: [trackId], references: [id])
+  trackId    Int
+  order      Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([playlistId, trackId])
+}
+
+model ArtistGenre {
+  id        Int      @id @default(autoincrement())
+  artist    Artist   @relation(fields: [artistId], references: [id])
+  artistId  Int
+  genre     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([artistId, genre])
+}
+
+model TrackGenre {
+  id        Int      @id @default(autoincrement())
+  track     Track    @relation(fields: [trackId], references: [id])
+  trackId   Int
+  genre     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([trackId, genre])
 }
 
 model Token {
@@ -60,19 +250,6 @@ model Token {
   blacklisted Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-}
-
-model Track {
-  id         Int    @id @default(autoincrement())
-  title      String
-  listenTime Int?
-  artist     Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
-  artistId   Int
-
-  streamingHistory StreamingHistory[]
-  listeningTimes   ListeningTime[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
 }
 
 model ListeningTime {
