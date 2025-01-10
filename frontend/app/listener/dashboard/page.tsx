@@ -12,48 +12,92 @@ import { client } from "@/lib/client";
 import useOnPlay from "@/hooks/useOnPlay";
 import { twMerge } from "tailwind-merge";
 import usePlayer from "@/hooks/usePlayer";
+import { useEffect, useState } from "react";
+import fetchMethod from "@/lib/readState";
 
 export default function Page() {
-  const songs = [
-    {
-      id: "1",
-      user_id: "string",
-      artist: "string",
-      title: "string",
-      song_path: "/audio/song1.mp3",
-      image_path: "/images/artist.svg",
-    },
-  ];
+  const [tracks, setTracks] = useState<any[]>([]);
+  // const songs = [
+  //   {
+  //     id: "1",
+  //     user_id: "string",
+  //     artist: "string",
+  //     title: "string",
+  //     song_path: "/audio/song1.mp3",
+  //     image_path: "/images/artist.svg",
+  //   },
+  // ];
+
+  const fetchTracks = async () => {
+    try {
+      const trackList: any[] = await fetchMethod("get_tracks");
+      if (Array.isArray(trackList)) {
+        const transformed = trackList.map((track) => {
+          return {
+            id: track.id,
+            user_id: "string",
+            artist: "Artist",
+            title: track.title,
+            song_path: track.audioUrl,
+            image_path: track.imageUrl,
+          };
+        });
+        setTimeout(() => {
+          setTracks(transformed);
+          // setLoading(false);
+        }, 3000);
+      } else {
+        console.log("Fetched data is not an array");
+        // setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      // setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchTracks();
+  }, []);
+
   const { connect } = useConnectModal();
-  const onPlay = useOnPlay(songs);
+  const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
-  const data = [
-    {
-      songTitle: "Song Title 1",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 2",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 3",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-    },
-    {
-      songTitle: "Song Title 4",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 1",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-    },
-  ];
+  // const data = [
+  //   {
+  //     songTitle: "Song Title 1",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //   },
+  //   {
+  //     songTitle: "Song Title 2",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //   },
+  //   {
+  //     songTitle: "Song Title 3",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/woman-with-headphone-front.png",
+  //   },
+  //   {
+  //     songTitle: "Song Title 4",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //   },
+  //   {
+  //     songTitle: "Song Title 1",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/woman-with-headphone-front.png",
+  //   },
+  // ];
+
+  const transoformedData = tracks.map((track) => {
+    return {
+      id: track.id,
+      songTitle: track.title,
+      imageUrl: track.image_path,
+      songDetails: "289 songs, 5hr 10 min",
+    };
+  });
 
   const genres = [
     {
@@ -296,6 +340,7 @@ export default function Page() {
   ];
 
   const playSong = async (id: string) => {
+    console.log("id", id);
     if (status === "disconnected") {
       await connect({ client, size: "compact" }); // opens the connect modal
     }
@@ -360,13 +405,13 @@ export default function Page() {
             </p>
           </div>
           <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {data.slice(0, 4).map((album, index) => (
+            {transoformedData.slice(0, 4).map((album, index) => (
               <TrendingSoundItem
                 key={index}
                 imageUrl={album.imageUrl}
                 songTitle={album.songTitle}
                 songDetails={album.songDetails}
-                playSong={(id: string) => playSong(id)}
+                playSong={(id: string) => playSong(album.id)}
                 likeSong={likeSong}
               />
             ))}

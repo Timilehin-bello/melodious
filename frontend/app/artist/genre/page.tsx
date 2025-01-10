@@ -1,4 +1,5 @@
 "use client";
+import BlockLoader from "@/components/BlockLoader";
 import {
   Table,
   TableBody,
@@ -9,86 +10,97 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, { useEffect } from "react";
+import fetchMethod from "@/lib/readState";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
+
+type Genre = {
+  id: number;
+  name: string;
+  description: string;
+  imageUrl: string;
+};
 
 const Genres = () => {
-  useEffect(() => {}, []);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const invoices = [
-    {
-      invoice: "INV001",
-      paymentStatus: "Paid",
-      totalAmount: "$250.00",
-      paymentMethod: "Credit Card",
-    },
-    {
-      invoice: "INV002",
-      paymentStatus: "Pending",
-      totalAmount: "$150.00",
-      paymentMethod: "PayPal",
-    },
-    {
-      invoice: "INV003",
-      paymentStatus: "Unpaid",
-      totalAmount: "$350.00",
-      paymentMethod: "Bank Transfer",
-    },
-    {
-      invoice: "INV004",
-      paymentStatus: "Paid",
-      totalAmount: "$450.00",
-      paymentMethod: "Credit Card",
-    },
-    {
-      invoice: "INV005",
-      paymentStatus: "Paid",
-      totalAmount: "$550.00",
-      paymentMethod: "PayPal",
-    },
-    {
-      invoice: "INV006",
-      paymentStatus: "Pending",
-      totalAmount: "$200.00",
-      paymentMethod: "Bank Transfer",
-    },
-    {
-      invoice: "INV007",
-      paymentStatus: "Unpaid",
-      totalAmount: "$300.00",
-      paymentMethod: "Credit Card",
-    },
-  ];
+  const fetchGenre = async () => {
+    try {
+      setLoading(true);
+      const genreList: Genre[] = await fetchMethod("get_genres");
+      if (Array.isArray(genreList)) {
+        setTimeout(() => {
+          setGenres(genreList);
+          setLoading(false);
+        }, 3000);
+      } else {
+        console.log("Fetched data is not an array");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchGenre();
+    // console.log("genre", genres);
+  }, []);
+
+  if (loading) {
+    return <BlockLoader message="Loading Genres" />;
+  }
 
   return (
-    <div>
+    <div className="text-white mt-8 p-4">
+      <div className="flex justify-between mb-14">
+        <h2>Genre</h2>
+        <Link
+          href="/artist/genre/create"
+          className="bg-[#D1E1E11C] text-white p-2 rounded-md"
+        >
+          Create
+        </Link>
+      </div>
       <Table>
-        <TableCaption>A list of your recent invoices.</TableCaption>
+        {/* <TableCaption>A list of your recent invoices.</TableCaption> */}
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Invoice</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Method</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="w-[100px]">Name</TableHead>
+            <TableHead>Description</TableHead>
+            <TableHead>Image Url</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {invoices.map((invoice) => (
-            <TableRow key={invoice.invoice}>
-              <TableCell className="font-medium">{invoice.invoice}</TableCell>
-              <TableCell>{invoice.paymentStatus}</TableCell>
-              <TableCell>{invoice.paymentMethod}</TableCell>
-              <TableCell className="text-right">
-                {invoice.totalAmount}
-              </TableCell>
+          {genres.length !== 0 ? (
+            genres.map((genre) => (
+              <TableRow key={genre.id}>
+                <TableCell className="font-medium">{genre.name}</TableCell>
+                <TableCell>{genre.description}</TableCell>
+                <TableCell>
+                  {
+                    <Link href={genre.imageUrl} target="_blank">
+                      {genre.imageUrl}
+                    </Link>
+                  }
+                </TableCell>
+                <TableCell>
+                  <Link
+                    href={`/artist/genre/${genre.id}`}
+                    className="bg-gray-400 p-2 rounded-md"
+                  >
+                    Edit
+                  </Link>
+                </TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={3}>No records found</TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell colSpan={3}>Total</TableCell>
-            <TableCell className="text-right">$2,500.00</TableCell>
-          </TableRow>
-        </TableFooter>
       </Table>
     </div>
   );

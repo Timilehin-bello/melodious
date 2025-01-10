@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,8 +29,12 @@ import { useMelodiousContext } from "@/contexts/melodious";
 import { extractDuration } from "@/lib/extractDuration";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import fetchMethod from "@/lib/readState";
+import BlockLoader from "./BlockLoader";
 
 const SingleRelease = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [genreList, setGenreList] = useState<any[]>([]);
   const { uploadToIPFS, createSingleTrack } = useMelodiousContext();
 
   const router = useRouter();
@@ -109,12 +113,14 @@ const SingleRelease = () => {
     async (acceptedFiles: File[]) => {
       // Handle the files here
       if (acceptedFiles.length === 0) throw new Error("No file selected");
-
+      setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
-      const durationOfSong = await extractDuration(acceptedFiles[0]);
-
-      form.setValue("audioUrl", ipfsHash);
-      form.setValue("duration", durationOfSong);
+      if (ipfsHash) {
+        const durationOfSong = await extractDuration(acceptedFiles[0]);
+        form.setValue("audioUrl", ipfsHash);
+        form.setValue("duration", durationOfSong);
+        setLoading(false);
+      }
     },
     [uploadToIPFS]
   );
@@ -124,12 +130,42 @@ const SingleRelease = () => {
       // Handle the files here
 
       if (acceptedFiles.length === 0) throw new Error("No file selected");
-
+      setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
-      form.setValue("imageUrl", ipfsHash);
+      if (ipfsHash) {
+        form.setValue("imageUrl", ipfsHash);
+        setLoading(false);
+      }
     },
     [uploadToIPFS]
   );
+
+  const fetchTracks = async () => {
+    try {
+      setLoading(true);
+      const genreList: any[] = await fetchMethod("get_genres");
+      console.log("genreList", genreList);
+      if (Array.isArray(genreList)) {
+        setTimeout(() => {
+          setGenreList(genreList);
+          setLoading(false);
+        }, 3000);
+      } else {
+        console.log("Fetched data is not an array");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchTracks();
+  }, []);
+
+  if (loading) {
+    return <BlockLoader message="Uploading File" />;
+  }
 
   return (
     <div>
@@ -166,9 +202,15 @@ const SingleRelease = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="1">Hip Hop</SelectItem>
+                      {genreList &&
+                        genreList.map((genre, index) => (
+                          <SelectItem key={index} value={genre.id}>
+                            {genre.name}
+                          </SelectItem>
+                        ))}
+                      {/* <SelectItem value="1">Hip Hop</SelectItem>
                       <SelectItem value="2">Blues </SelectItem>
-                      <SelectItem value="3">Country</SelectItem>
+                      <SelectItem value="3">Country</SelectItem> */}
                     </SelectContent>
                   </Select>
                 </FormControl>

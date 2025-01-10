@@ -1,16 +1,52 @@
+"use client";
+import BlockLoader from "@/components/BlockLoader";
 import SearchInput from "@/components/SearchInput";
+import SongList from "@/components/SongList";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import fetchMethod from "@/lib/readState";
 import { Music2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const Release = () => {
+  const [tracks, setTracks] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(false);
+
+  const fetchTracks = async () => {
+    try {
+      setLoading(true);
+      const trackList: any[] = await fetchMethod("get_tracks");
+      console.log("tracklist", trackList);
+      if (Array.isArray(trackList)) {
+        setTimeout(() => {
+          setTracks(trackList);
+          setLoading(false);
+        }, 3000);
+        console.log("tracks", tracks);
+      } else {
+        console.log("Fetched data is not an array");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchTracks();
+  }, []);
+
+  if (loading) {
+    return <BlockLoader message="Loading songs" />;
+  }
+
   return (
     <div className="m-4">
       <div className="w-full flex flex-wrap  items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
@@ -82,52 +118,57 @@ const Release = () => {
 
           <Button className=" bg-[#D1E1E11C] h-[45px]">Singles</Button>
           <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
-          <Link href="/artist/genre/create" className="hover:text-[#950944]">
-            <div className="grid gap-2">
-              <div className="grid grid-cols-3 items-center gap-4">
-                Create Genre
-              </div>
-            </div>
-          </Link>
+          <Button>
+            <Link
+              href="/artist/genre"
+              className="bg-[#D1E1E11C] rounded-md p-2 hover:text-[#950944] text-white"
+            >
+              Genre
+            </Link>
+          </Button>
         </div>
-        <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
-          <Music2 size={54} className="mb-4" />
+        {tracks.length !== 0 ? (
+          <SongList songList={tracks} />
+        ) : (
+          <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
+            <Music2 size={54} className="mb-4" />
 
-          <p className="font-bold">You have not released anything yet</p>
+            <p className="font-bold">You have not released anything yet</p>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
-                Create Release
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-40">
-              <div className="grid gap-4">
-                <Link
-                  href="/artist/release/single"
-                  className="hover:text-[#950944]"
-                >
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-3 items-center gap-4">
-                      Single
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
+                  Create Release
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-40">
+                <div className="grid gap-4">
+                  <Link
+                    href="/artist/release/single"
+                    className="hover:text-[#950944]"
+                  >
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-3 items-center gap-4">
+                        Single
+                      </div>
                     </div>
-                  </div>
-                </Link>
-                <Link
-                  href="/artist/release/album"
-                  className="hover:text-[#950944]"
-                >
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-3 items-center gap-4">
-                      Album
+                  </Link>
+                  <Link
+                    href="/artist/release/album"
+                    className="hover:text-[#950944]"
+                  >
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-3 items-center gap-4">
+                        Album
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
-            </PopoverContent>
-          </Popover>
-          <div></div>
-        </div>
+                  </Link>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <div></div>
+          </div>
+        )}
       </div>
     </div>
   );

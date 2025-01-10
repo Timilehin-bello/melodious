@@ -59,7 +59,7 @@ const ConnectWallet = () => {
               // throw new Error(`HTTP error! status: ${response.status}`);
               console.error("Error fetching login payload:", response);
             }
-            localStorage.setItem('walletAddress', params.address)
+            localStorage.setItem("walletAddress", params.address);
             const request = await response.json();
             // console.log("getLoginPayload", request);
             if (request.status === "error") {
@@ -125,7 +125,7 @@ const ConnectWallet = () => {
                 }),
               }
             ).then(() => {
-              localStorage.removeItem("xx-mu");
+              localStorage.clear();
               // router.push("/");
               window.location.href = "/";
             });

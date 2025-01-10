@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { z } from "zod";
@@ -18,8 +18,11 @@ import FileInputWithDragDrop from "@/components/FileInputwithDragandDrop";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
+import BlockLoader from "@/components/BlockLoader";
 
 const CreateGenre = () => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingRequest, setLoadingRequest] = useState<boolean>(false);
   const { uploadToIPFS, createGenre } = useMelodiousContext();
   const router = useRouter();
 
@@ -47,6 +50,7 @@ const CreateGenre = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoadingRequest(true);
     const result = await createGenre(values);
 
     if (result) {
@@ -54,8 +58,11 @@ const CreateGenre = () => {
         title: "Successfully created track song",
         description: "Create new track seamlessly",
       });
+      setTimeout(() => {
+        setLoadingRequest(false);
+        router.push("/artist/genre");
+      }, 3000);
     }
-    router.push("/artist/genre");
   }
 
   const onDropImage = useCallback(
@@ -63,12 +70,19 @@ const CreateGenre = () => {
       // Handle the files here
 
       if (acceptedFiles.length === 0) throw new Error("No file selected");
-
+      setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
-      form.setValue("imageUrl", ipfsHash);
+      if (ipfsHash) {
+        form.setValue("imageUrl", ipfsHash);
+        setLoading(false);
+      }
     },
     [uploadToIPFS]
   );
+
+  if (loading) {
+    return <BlockLoader message="Uploading file" />;
+  }
   return (
     <div className="p-4 text-white">
       <h1>Create Genre</h1>
