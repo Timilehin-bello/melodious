@@ -10,6 +10,7 @@ import httpStatus from "http-status";
 import { errorConverter, errorHandler } from "./middlewares/error";
 import logger from "./configs/logger";
 import { jwtStrategy } from "./configs/passport";
+import redisClient from "./configs/redisClient";
 
 const app = express();
 
@@ -45,6 +46,15 @@ app.enable("trust proxy");
 // jwt authentication
 app.use(passport.initialize());
 passport.use("jwt", jwtStrategy);
+
+// Testing
+app.get("/v1/healthchecker", async (_, res: Response) => {
+  const message = await redisClient.get("try");
+  res.status(200).json({
+    status: "success",
+    message,
+  });
+});
 
 app.get("/", (req: any, res: any) => {
   logger.info(`${req.ip} hit healthcheck route`);

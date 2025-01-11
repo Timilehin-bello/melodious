@@ -3,14 +3,27 @@ import http from "http";
 import { config } from "./configs/config";
 import logger from "./configs/logger";
 import { rootSocket } from "./configs/rootSocket";
-import { scheduleCronJobs } from ".//cronJob";
+import { scheduleCronJobs } from "./cronJob";
 import { Server } from "socket.io";
-
-declare global {
-  var io: Server;
-}
+import redisClient from "./configs/redisClient";
+import { TrackListeningService } from "./services/trackListening.service";
+import { prisma } from "./services";
+import Redis from "ioredis";
 
 // scheduleCronJobs();
+redisClient.on("connect", () => {
+  logger.info(`Redis connected ${config.redis.host}:${config.redis.port}`);
+  redisClient.set("try", "Hello Welcome to Redis Client");
+});
+
+redisClient.on("disconnect", () => {
+  logger.info(`Redis disconnected ${config.redis.host}:${config.redis.port}`);
+});
+
+redisClient.on("error", (err) => {
+  logger.error("redis error", err);
+  redisClient.quit();
+});
 
 const server = http.createServer(app);
 
@@ -20,7 +33,8 @@ const io = new Server(server, {
 });
 
 globalThis.io = io;
-
+const redis = new Redis();
+new TrackListeningService(io, prisma, redis);
 rootSocket(io);
 
 server.listen(config.port, () => {
@@ -39,7 +53,7 @@ const exitHandler = (): void => {
 };
 
 const unexpectedErrorHandler = (error: Error): void => {
-  logger.error(error);
+  logger.error(" Unexpected Error", error);
   exitHandler();
 };
 
@@ -47,8 +61,9 @@ process.on("uncaughtException", unexpectedErrorHandler);
 process.on("unhandledRejection", unexpectedErrorHandler);
 
 process.on("SIGTERM", (): void => {
-  logger.info("SIGTERM received");
-  if (server) {
-    server.close();
-  }
+  logger.info("SIGTERM signal received: closing HTTP server");
+  exitHandler();
+  // if (server) {
+  //   server.close();
+  // }
 });

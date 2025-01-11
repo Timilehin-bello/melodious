@@ -32,6 +32,7 @@
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "http-status": "^1.7.4",
+    "ioredis": "^5.4.2",
     "joi": "^17.13.3",
     "mailgen": "^2.0.28",
     "morgan": "^1.10.0",

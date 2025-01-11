@@ -35,12 +35,14 @@ model Listener {
   follows           Follow[]
   user              User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            Int?               @unique
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
   listenerMetrics   ListenerMetrics?
   playlists         Playlist[]
   recommendations   Recommendation[]
   listeningSession  ListeningSession[]
+  playbackQuality   PlaybackQuality[]
+  playbackSession   PlaybackSession[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 model Artist {
@@ -50,11 +52,11 @@ model Artist {
   listeningTimes ListeningTime[]
   user           User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId         Int?              @unique
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
   artistMetrics  ArtistMetrics?
   genres         ArtistGenre[]
   analytics      ArtistAnalytics[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 }
 
 model Track {
@@ -65,13 +67,15 @@ model Track {
   artistId         Int
   streamingHistory StreamingHistory[]
   listeningTimes   ListeningTime[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
   trackMetrics     TrackMetrics?
   duration         Int // Track duration in seconds
   genres           TrackGenre[]
   playlists        PlaylistTrack[]
   analytics        TrackAnalytics[]
+  playbackQuality  PlaybackQuality[]
+  playbackSession  PlaybackSession[]
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 }
 
 model ListeningSession {
@@ -294,12 +298,52 @@ model Follow {
 model StreamingHistory {
   id Int @id @default(autoincrement())
 
+  bufferingTime  DateTime
+  skipCount      Int
+  completionRate Int
+
   trackId    Int
   streamedAt DateTime @default(now())
+  deviceInfo String
 
   track      Track     @relation(fields: [trackId], references: [id], onDelete: Cascade)
   listener   Listener? @relation(fields: [listenerId], references: [id], onDelete: Cascade)
   listenerId Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+}
+
+// Add these models to your schema.prisma
+
+model PlaybackQuality {
+  id                Int      @id @default(autoincrement())
+  trackId           Int
+  listenerId        Int
+  bufferingEvents   Int
+  averageBufferSize Float
+  networkQuality    String
+  timestamp         DateTime
+  track             Track    @relation(fields: [trackId], references: [id])
+  listener          Listener @relation(fields: [listenerId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([trackId, timestamp])
+  @@index([listenerId, timestamp])
+}
+
+model PlaybackSession {
+  id         Int       @id @default(autoincrement())
+  trackId    Int
+  listenerId Int
+  startTime  DateTime
+  endTime    DateTime?
+  deviceInfo String
+  track      Track     @relation(fields: [trackId], references: [id])
+  listener   Listener  @relation(fields: [listenerId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([trackId, startTime])
+  @@index([listenerId, startTime])
 }
