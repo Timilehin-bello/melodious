@@ -122,11 +122,86 @@ export class TrackListeningService {
         }
       );
 
-      socket.on("disconnect", () => {
-        console.log(` disconnected: ${socket.id}`);
-        this.handleDisconnect(socket.id);
+      socket.on("stopPlaying", () => {
+        console.log("stopPlaying");
+        this.handleStopPlaying(socket.id);
+      });
+
+      socket.on("skipTrack", () => {
+        console.log("skipTrack");
+        this.handleSkipTrack(socket.id);
+      });
+
+      // Update disconnect handler
+      socket.on("disconnect", async () => {
+        console.log(`Client disconnected: ${socket.id}`);
+        await this.handleStopPlaying(socket.id);
+        this.activeSessions.delete(socket.id);
       });
     });
+  }
+
+  private async handleSkipTrack(socketId: string): Promise<void> {
+    const session = this.activeSessions.get(socketId);
+    if (!session) return;
+
+    // Increment skip count
+    session.skipCount += 1;
+
+    // Record the current session before stopping
+    await this.handleStopPlaying(socketId);
+  }
+
+  private async handleStopPlaying(socketId: string): Promise<void> {
+    const session = this.activeSessions.get(socketId);
+    if (!session) return;
+
+    // Calculate final stats before cleanup
+    const now = Date.now();
+    const totalDuration = now - session.startTime;
+    const effectiveListenTime =
+      totalDuration - session.totalPauseDuration - session.totalBufferingTime;
+
+    try {
+      const getListener = await this.getListener(session);
+      if (!getListener) return;
+
+      // Final update to listening time
+      await this.updateListeningTime(socketId);
+
+      // Record final streaming history
+      await this.prisma.streamingHistory.create({
+        data: {
+          trackId: session.trackId,
+          listenerId: getListener.id,
+          streamedAt: new Date(session.startTime),
+          deviceInfo: JSON.stringify(session.deviceInfo),
+          bufferingTime: new Date(session.totalBufferingTime),
+          skipCount: session.skipCount,
+          completionRate: session.currentPosition / (session.duration || 1),
+          // endTime: new Date(),  // Add end time
+          // totalDuration: Math.floor(effectiveListenTime / 1000), // Convert to seconds
+        },
+      });
+
+      // Update playback metrics one final time
+      await this.calculatePlaybackMetrics(session.trackId);
+
+      // Clean up
+      this.clearUpdateInterval(socketId);
+
+      // Clear Redis cache for this session
+      await this.redis.del(`track:${session.trackId}:lastListen`);
+
+      console.log("Successfully cleaned up session:", {
+        trackId: session.trackId,
+        totalDuration: Math.floor(effectiveListenTime / 1000),
+        skipCount: session.skipCount,
+        completionRate: session.currentPosition / (session.duration || 1),
+      });
+    } catch (error) {
+      console.error("Error in handleStopPlaying:", error);
+    }
   }
 
   private handleBufferUpdate(socketId: string, bufferSize: number): void {
