@@ -9,6 +9,7 @@ import redisClient from "./configs/redisClient";
 import { TrackListeningService } from "./services/trackListening.service";
 import { prisma } from "./services";
 import Redis from "ioredis";
+import socketAuth from "./middlewares/socketAuth";
 
 // scheduleCronJobs();
 redisClient.on("connect", () => {
@@ -34,6 +35,25 @@ const io = new Server(server, {
 
 globalThis.io = io;
 const redis = new Redis();
+
+// Middleware to verify JWT token
+// io.use((socket, next) => {
+//   const token = socket.handshake.auth.token;
+
+//   if (!token) {
+//     return next(new Error('Authentication token required'));
+//   }
+
+//   try {
+//     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+//     socket.data.user = decoded;
+//     next();
+//   } catch (err) {
+//     next(new Error('Invalid token'));
+//   }
+// });
+io.use(socketAuth());
+
 new TrackListeningService(io, prisma, redis);
 rootSocket(io);
 

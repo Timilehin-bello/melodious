@@ -6,7 +6,7 @@ import { Redis } from "ioredis";
 // types.ts
 
 interface TrackSession {
-  userId: number;
+  listenerId: number;
   trackId: number;
   artistId: number;
   startTime: number;
@@ -52,6 +52,7 @@ export class TrackListeningService {
   private io: Server;
   private redis: Redis;
   private activeSessions: Map<string, TrackSession>;
+  private listenerSessions: Map<number, string>;
   private readonly UPDATE_INTERVAL = 5000; // 5 seconds for periodic updates
   private readonly BUFFER_THRESHOLD = 500; // ms threshold for buffer updates
   private updateIntervals: Map<string, NodeJS.Timeout>;
@@ -63,6 +64,7 @@ export class TrackListeningService {
     this.io = io;
     this.redis = redis;
     this.activeSessions = new Map();
+    this.listenerSessions = new Map();
     this.updateIntervals = new Map();
     this.setupSocketHandlers();
     this.startHealthCheck();
@@ -75,22 +77,48 @@ export class TrackListeningService {
       socket.on(
         "startPlaying",
         async (data: {
-          userId: number;
+          listenerId?: number;
           trackId: number;
           artistId: number;
           deviceInfo: DeviceInfo;
           duration: number;
         }) => {
           console.log("startPlaying", data);
-          await this.handleStartPlaying(socket.id, data);
+
+          if (typeof data === "string") {
+            try {
+              data = JSON.parse(data);
+              data.listenerId = socket.user.listener?.id;
+            } catch (error) {
+              console.error("Error parsing data:", error);
+              return;
+            }
+          }
+
+          if (!data.listenerId) return console.log("no listenerId");
+
+          if (data.listenerId) {
+            await this.handleStartPlaying(
+              socket.id,
+              data as {
+                listenerId: number;
+                trackId: number;
+                artistId: number;
+                deviceInfo: DeviceInfo;
+                duration: number;
+              }
+            );
+          }
         }
       );
 
       socket.on("updatePosition", (position: number) => {
+        console.log("updatePosition", position);
         this.handleUpdatePosition(socket.id, position);
       });
 
       socket.on("updateBuffer", (bufferSize: number) => {
+        console.log("updateBuffer", bufferSize);
         this.handleBufferUpdate(socket.id, bufferSize);
       });
 
@@ -156,6 +184,9 @@ export class TrackListeningService {
     const session = this.activeSessions.get(socketId);
     if (!session) return;
 
+    // Remove listener session mapping
+    this.listenerSessions.delete(session.listenerId);
+
     // Calculate final stats before cleanup
     const now = Date.now();
     const totalDuration = now - session.startTime;
@@ -163,8 +194,8 @@ export class TrackListeningService {
       totalDuration - session.totalPauseDuration - session.totalBufferingTime;
 
     try {
-      const getListener = await this.getListener(session);
-      if (!getListener) return;
+      // const getListener = await this.getListener(session);
+      // if (!getListener) return;
 
       // Final update to listening time
       await this.updateListeningTime(socketId);
@@ -173,7 +204,7 @@ export class TrackListeningService {
       await this.prisma.streamingHistory.create({
         data: {
           trackId: session.trackId,
-          listenerId: getListener.id,
+          listenerId: session.listenerId,
           streamedAt: new Date(session.startTime),
           deviceInfo: JSON.stringify(session.deviceInfo),
           bufferingTime: new Date(session.totalBufferingTime),
@@ -247,9 +278,6 @@ export class TrackListeningService {
       timestamp: Date.now(),
     };
 
-    const getListener = await this.getListener(session);
-    if (!getListener) return;
-
     console.log("session.trackId", session.trackId);
 
     console.log("metrics.averageBufferSize", metrics.averageBufferSize);
@@ -257,7 +285,7 @@ export class TrackListeningService {
     await this.prisma.playbackQuality.create({
       data: {
         trackId: session.trackId,
-        listenerId: getListener.id,
+        listenerId: session.listenerId,
         bufferingEvents: metrics.bufferingEvents,
         averageBufferSize: metrics.averageBufferSize,
         networkQuality: metrics.networkQuality,
@@ -297,13 +325,27 @@ export class TrackListeningService {
   private async handleStartPlaying(
     socketId: string,
     data: {
-      userId: number;
+      listenerId: number;
       trackId: number;
       artistId: number;
       deviceInfo: DeviceInfo;
       duration: number;
     }
   ): Promise<void> {
+    // Check if listener already has an active session
+    const existingSocketId = this.listenerSessions.get(data.listenerId);
+    if (existingSocketId) {
+      const existingSession = this.activeSessions.get(existingSocketId);
+      if (existingSession) {
+        // Emit error to the new connection
+        this.io.to(socketId).emit("playbackError", {
+          message: "Another device is currently playing",
+          code: "ALREADY_PLAYING",
+        });
+        return;
+      }
+    }
+
     const now = Date.now();
     const session: TrackSession = {
       ...data,
@@ -323,42 +365,43 @@ export class TrackListeningService {
     };
     console.log("session", session["trackId"]);
     console.log("socketId", socketId);
+
+    // Store the session and update listener mapping
     this.activeSessions.set(socketId, session);
+    this.listenerSessions.set(data.listenerId, socketId);
     this.startPeriodicUpdate(socketId);
-
-    const getListener = await this.getListener(session);
-
-    if (!getListener) {
-      console.log("Listener not found");
-      return;
-    }
 
     // Create initial playback session record
     await this.prisma.playbackSession.create({
       data: {
         trackId: session.trackId,
-        // listenerId: session.userId,
-        listenerId: getListener.id,
+        listenerId: session.listenerId,
         deviceInfo: JSON.stringify(session.deviceInfo),
         startTime: new Date(session.startTime),
       },
     });
   }
 
-  private async getListener(
-    session: TrackSession
-  ): Promise<Prisma.ListenerGetPayload<{ include: { user: true } }> | null> {
-    return await this.prisma.listener.findFirst({
-      where: {
-        userId: session.userId,
-      },
-      include: {
-        user: true,
-      },
-    });
-  }
+  // private async getListener(
+  //   session: TrackSession
+  // ): Promise<Prisma.ListenerGetPayload<{ include: { user: true } }> | null> {
+  //   return await this.prisma.listener.findFirst({
+  //     where: {
+  //       userId: session.userId,
+  //     },
+  //     include: {
+  //       user: true,
+  //     },
+  //   });
+  // }
 
   private async handleDisconnect(socketId: string): Promise<void> {
+    const session = this.activeSessions.get(socketId);
+    if (session) {
+      // Clean up listener session mapping
+      this.listenerSessions.delete(session.listenerId);
+    }
+
     await this.updateListeningTime(socketId);
     this.clearUpdateInterval(socketId);
     this.activeSessions.delete(socketId);
@@ -452,9 +495,6 @@ export class TrackListeningService {
 
     if (listeningTime >= this.MINIMUM_VALID_LISTEN_TIME) {
       try {
-        const getListener = await this.getListener(session);
-        if (!getListener) return;
-
         await this.prisma.$transaction([
           // Update Track listening time
           this.prisma.track.update({
@@ -484,7 +524,7 @@ export class TrackListeningService {
           this.prisma.streamingHistory.create({
             data: {
               trackId: session.trackId,
-              listenerId: getListener.id,
+              listenerId: session.listenerId,
               streamedAt: new Date(),
               deviceInfo: JSON.stringify(session.deviceInfo),
               bufferingTime: session.totalBufferingTime

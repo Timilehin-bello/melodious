@@ -7,13 +7,17 @@ import { roleRights } from "../configs/roles";
 const verifyCallback =
   (socket: Socket, resolve: any, reject: any, requiredRights: string[]) =>
   async (err: any, user: any, info: any) => {
+    // console.log("err", err, "info", info, "user", user);
+
     if (err || info || !user) {
       return reject(
         new ApiError(httpStatus.UNAUTHORIZED, "Please authenticate")
       );
     }
 
-    socket.data.user = user;
+    // console.log("socket.data.user", user);
+
+    socket.user = user;
 
     if (requiredRights.length) {
       const userRights: any = roleRights.get(user.role);
@@ -31,7 +35,10 @@ const verifyCallback =
 const socketAuth =
   (...requiredRights: string[]) =>
   async (socket: Socket, next: (err?: Error) => void) => {
-    const token = socket.handshake.auth.token || socket.handshake.query.token;
+    const token =
+      socket.handshake.auth.token ||
+      socket.handshake.headers?.token ||
+      socket.handshake.query.token;
 
     if (!token) {
       return next(new ApiError(httpStatus.UNAUTHORIZED, "Please authenticate"));
