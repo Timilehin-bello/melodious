@@ -261,29 +261,6 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Karaoke",
-      songs: [
-        {
-          title: "Song 22",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 23",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 24",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
   ];
 
   const recentlyPlayed = [
