@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+     <title>Socket.IO Test</title>
+     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+     <script>
+          const socket = io('http://localhost:8088', {
+               path: '/v1/socket.io'
+          });
+
+          socket.on('connect', () => {
+               console.log('Finally Connected! ');
+          });
+
+          socket.on('connect_error', (error) => {
+               console.log('Connection error:', error);
+          });
+     </script>
+</head>
+
+<body>
+     Check console for connection status
+</body>
+
+</html>

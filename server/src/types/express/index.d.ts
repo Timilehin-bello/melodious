@@ -1,7 +1,14 @@
-import { User } from "@prisma/client";
+import { User, Prisma } from "@prisma/client";
 
 declare namespace Express {
   interface Request {
-    user?: User;
+    user?: Prisma.UserGetPayload<{
+      include: {
+        artist: true;
+        listener: true;
+        tokens: true;
+        userMetrics: true;
+      };
+    }>;
   }
 }
