@@ -18,9 +18,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import usePlayer from "@/hooks/usePlayer";
+// import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
-
+import { usePlayer } from "@/contexts/melodious/PlayerContext";
 // Menu items.
 const items = [
   {
@@ -53,15 +53,14 @@ const items = [
 export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
-  const player = usePlayer();
+  // const player = usePlayer();
   const router = useRouter();
-  const logOut = () => {
-    router.push("/");
-  };
+
+  const { currentTrack } = usePlayer();
   return (
     <Sidebar
       collapsible="icon"
-      className={twMerge(`sidebar`, player.activeId && "h-[calc(100%-80px)]")}
+      className={twMerge(`sidebar`, currentTrack && "h-[calc(100%-90px)]")}
     >
       <SidebarContent className="bg-sidebar-gradient text-white bg-cover bg-center border-0">
         <SidebarGroup>

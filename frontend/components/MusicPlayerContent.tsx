@@ -22,6 +22,8 @@ import Slider from "./Slider";
 import LikeButton from "./LikeButton";
 import MediaItem from "./MediaItem";
 import Seekbar from "./Seekbar";
+import { useMelodiousContext } from "@/contexts/melodious";
+import { DeviceInfo, getDeviceInfo } from "@/lib/getDeviceInfo";
 
 export interface Song {
   id: string;
@@ -45,6 +47,15 @@ interface PlayerContentProps {
   songUrl: string;
 }
 
+type StartPlayingPayload = {
+  trackId: number;
+  artistId: number;
+  deviceInfo: DeviceInfo;
+  duration: number;
+};
+
+type NetworkQualityPayload = "good" | "poor" | "unstable";
+
 const MusicPlayerContent = ({
   volume,
   setVolume,
@@ -64,14 +75,75 @@ const MusicPlayerContent = ({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [songDuration, setSongDuration] = useState("");
   const [playedDuration, setPlayedDuration] = useState("");
+  const { playing, setPlaying } = useMelodiousContext();
+  // const { sendEvent } = useMelodiousContext();
+  const [position, setPosition] = useState(0);
+  const [bufferSize, setBufferSize] = useState(0);
+  const [networkQuality, setNetworkQuality] =
+    useState<NetworkQualityPayload>("good");
+
+  const { socket, isConnected, connect, setConditionFulfilled } =
+    useMelodiousContext();
+
+  // Set up socket event listeners
+  // useEffect(() => {
+  //   // Example: Only allow socket in chat route
+  //   setConditionFulfilled(true);
+
+  //   let data = localStorage.getItem("xx-mu") as any;
+  //   //     console.log("token gotten", JSON.parse(data));
+
+  //   data = JSON.parse(data) ?? null;
+  //   const url = "http://localhost:8088";
+
+  //   // console.log("error", data);
+  //   const token = data ? data["tokens"]["token"].access.token : null;
+  //   // Example: Connect with token from storage
+  //   // const token = localStorage.getItem("authToken");
+  //   if (token) {
+  //     connect(token);
+  //   }
+
+  //   if (!socket) return;
+
+  //   // Handle incoming messages
+  //   const handleStartPlaying = () => {
+  //     const payload: StartPlayingPayload = {
+  //       trackId: 1,
+  //       artistId: 1,
+  //       deviceInfo: getDeviceInfo(),
+  //       duration: 180000,
+  //     };
+
+  //     // sendEvent({ event: "startPlaying", payload });
+  //   };
+
+  //   // Subscribe to events
+  //   socket.on("startPlaying", handlePlay);
+
+  //   // Cleanup subscriptions
+  //   return () => {
+  //     socket.off("startPlaying", handlePlay);
+
+  //     setConditionFulfilled(false);
+  //   };
+  // }, [socket]);
 
   const { onOpen } = usePlayerModal();
 
   const handlePlay = () => {
+    console.log("playing", playing);
     if (!isPlaying) {
       setIsPlaying(true);
+
+      setPlaying(true);
+
+      if (playing) {
+        console.log("is playing", playing);
+      }
     } else {
       setIsPlaying(false);
+      setPlaying(false);
     }
   };
 

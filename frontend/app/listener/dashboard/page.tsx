@@ -11,9 +11,13 @@ import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
 import useOnPlay from "@/hooks/useOnPlay";
 import { twMerge } from "tailwind-merge";
-import usePlayer from "@/hooks/usePlayer";
+// import usePlayer from "@/hooks/usePlayer";
 import { useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
+import { initializeSocket } from "@/lib/testSocket";
+import { useMelodiousContext } from "@/contexts/melodious";
+import { usePlayer } from "@/contexts/melodious/PlayerContext";
+import { object } from "zod";
 
 export default function Page() {
   const [tracks, setTracks] = useState<any[]>([]);
@@ -62,42 +66,54 @@ export default function Page() {
   const { connect } = useConnectModal();
   const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
-  // const data = [
-  //   {
-  //     songTitle: "Song Title 1",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //   },
-  //   {
-  //     songTitle: "Song Title 2",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //   },
-  //   {
-  //     songTitle: "Song Title 3",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/woman-with-headphone-front.png",
-  //   },
-  //   {
-  //     songTitle: "Song Title 4",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //   },
-  //   {
-  //     songTitle: "Song Title 1",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/woman-with-headphone-front.png",
-  //   },
-  // ];
+  const { setConditionFulfilled } = useMelodiousContext();
+  const { playTrack, playPlaylist } = usePlayer();
+  const data = [
+    {
+      id: 1,
+      title: "Song Title 1",
+      songDetails: "189 songs, 2hr 40min",
+      imageUrl: "/images/artist.svg",
+      audioUrl: "/audio/song1.mp3",
+    },
+    {
+      id: 2,
+      title: "Song Title 2",
+      songDetails: "189 songs, 2hr 40min",
+      imageUrl: "/images/artist.svg",
+      audioUrl: "/audio/song2.mp3",
+    },
+    {
+      id: 3,
+      title: "Song Title 3",
+      songDetails: "189 songs, 2hr 40min",
+      imageUrl: "/images/woman-with-headphone-front.png",
+      audioUrl: "/audio/song1.mp3",
+    },
+    {
+      id: 4,
+      title: "Song Title 4",
+      songDetails: "189 songs, 2hr 40min",
+      imageUrl: "/images/artist.svg",
+      audioUrl: "/audio/song3.mp3",
+    },
+    {
+      id: 5,
+      title: "Song Title 4",
+      songDetails: "189 songs, 2hr 40min",
+      imageUrl: "/images/woman-with-headphone-front.png",
+      audioUrl: "/audio/song1.mp3",
+    },
+  ];
 
-  const transoformedData = tracks.map((track) => {
-    return {
-      id: track.id,
-      songTitle: track.title,
-      imageUrl: track.image_path,
-      songDetails: "289 songs, 5hr 10 min",
-    };
-  });
+  // const transoformedData = tracks.map((track) => {
+  //   return {
+  //     id: track.id,
+  //     songTitle: track.title,
+  //     imageUrl: track.image_path,
+  //     songDetails: "289 songs, 5hr 10 min",
+  //   };
+  // });
 
   const genres = [
     {
@@ -123,29 +139,7 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Pop",
-      songs: [
-        {
-          title: "Song 4",
-          totalListen: "19,900,000",
-          duration: "3:30",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 5",
-          totalListen: "19,900,000",
-          duration: "4:00",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 6",
-          totalListen: "19,900,000",
-          duration: "3:50",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
+
     {
       name: "Jazz",
       songs: [
@@ -169,29 +163,7 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Country",
-      songs: [
-        {
-          title: "Song 10",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 11",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 12",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
+
     {
       name: "Raggae",
       songs: [
@@ -295,34 +267,24 @@ export default function Page() {
       duration: "2 mins",
     },
     {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
+      title: "Feel Something",
+      artistName: "Jaymes Young",
+      duration: "2 mins",
     },
   ];
 
-  const playSong = async (id: string) => {
-    console.log("id", id);
+  const playSong = async (song: any) => {
+    // console.log("id", id);
     if (status === "disconnected") {
       await connect({ client, size: "compact" }); // opens the connect modal
     }
     // alert("Play Song ");
-    onPlay(id);
+    // onPlay(id)
+
+    if (typeof song === "object") {
+      playTrack(song);
+    }
+    // playPlaylist(song);
   };
 
   const likeSong = async () => {
@@ -332,19 +294,58 @@ export default function Page() {
 
     alert("Like Song ");
   };
-  const player = usePlayer();
+  const { currentTrack } = usePlayer();
+
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    let data = localStorage.getItem("xx-mu") as any;
+    //     console.log("token gotten", JSON.parse(data));
+
+    data = JSON.parse(data) ?? null;
+
+    const token = data ? data["tokens"]["token"].access.token : null;
+
+    const socket = initializeSocket(token);
+
+    if (socket) {
+      setConditionFulfilled(true);
+      setIsConnected(true);
+
+      socket.on("startPlaying", () => {
+        console.log("Playing music");
+      });
+    }
+
+    // if (setConditionFulfilled) {
+
+    socket.on("startPlaying", () => {
+      console.log("Playing music");
+    });
+    // }
+    socket.on("connect", () => setIsConnected(true));
+    socket.on("disconnect", () => setIsConnected(false));
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isConnected]);
+
   return (
     <div
       className={twMerge(
-        `grid md:grid-cols-4 mt-[-65px] w-full h-full`,
-        player.activeId && "h-[calc(100%-85px)] pb-[75px]"
+        `relative grid gap-0 md:grid-cols-4 mt-[-65px] w-full h-full`,
+        currentTrack && "h-[calc(100%-40px)] pb-[90px]"
       )}
     >
       {/* First column (75% width on medium screens and above)  */}
-      <div className="md:col-span-3  px-4 pt-[80px] ">
+      <div className="md:col-span-3 px-4 pt-[80px] h-full">
         <h2 className="text-white font-bold text-3xl mb-4">
           Good Morning Guest!
         </h2>
+        <p className="text-white">
+          Status: {isConnected ? "Connected" : "Disconnected"}
+        </p>
         {/* Banner */}
         <div className="rounded-lg bg-cover bg-center bg-no-repeat bg-[url('/images/icons/banner.svg')] h-25  w-full">
           <div className="flex justify-between items-center">
@@ -382,13 +383,13 @@ export default function Page() {
             </p>
           </div>
           <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {transoformedData.slice(0, 4).map((album, index) => (
+            {data.slice(0, 4).map((album, index) => (
               <TrendingSoundItem
                 key={index}
                 imageUrl={album.imageUrl}
-                songTitle={album.songTitle}
+                songTitle={album.title}
                 songDetails={album.songDetails}
-                playSong={(id: string) => playSong(album.id)}
+                playSong={() => playSong(album)}
                 likeSong={likeSong}
               />
             ))}
@@ -407,14 +408,16 @@ export default function Page() {
               See All
             </Link>
           </div>
-          <div className=" pt-2">
+          <div className="pt-2">
             <GenreItem genres={genres} />
           </div>
         </div>
         {/* End of Genre */}
       </div>
       {/* Second column (25% width on medium screens and above) */}
-      <div className="relative md:col-span-1  px-4 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center ">
+      <div
+        className={`md:col-span-1 px-2 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center h-full pb-[20px]`}
+      >
         {/* <p>Content for the second column</p> */}
         <div>
           <div className="flex justify-between mb-3 px-2">

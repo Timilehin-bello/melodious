@@ -4,6 +4,8 @@ import "./globals.css";
 import { MelodiousProvider } from "@/contexts/melodious";
 import { ThirdwebProvider } from "thirdweb/react";
 import { Toaster } from "@/components/ui/toaster";
+import { PlayerProvider } from "@/contexts/melodious/PlayerContext";
+import MyPlayer from "@/components/MusicPlayer/MyPlayer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -30,12 +32,15 @@ export default function RootLayout({
     <html lang="en">
       <ThirdwebProvider>
         <MelodiousProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
-          >
-            <main>{children}</main>
-            <Toaster />
-          </body>
+          <PlayerProvider>
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
+            >
+              <main>{children}</main>
+              <Toaster />
+            </body>
+            {/* <MyPlayer /> */}
+          </PlayerProvider>
         </MelodiousProvider>
       </ThirdwebProvider>
     </html>

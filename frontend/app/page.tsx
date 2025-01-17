@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useMelodiousContext } from "@/contexts/melodious";
+import { getDeviceInfo } from "@/lib/getDeviceInfo";
+import { initializeSocket } from "@/lib/testSocket";
+import { error } from "console";
 
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
@@ -34,6 +37,96 @@ export default function Home() {
   //     }
   //   }
   // }, [redirect, userData, router]);
+
+  const { socket, isConnected, connect, setConditionFulfilled } =
+    useMelodiousContext();
+
+  // Set up socket event listeners
+  // useEffect(() => {
+  //   // Example: Only allow socket in chat route
+  //   setConditionFulfilled(true);
+
+  //   let data = localStorage.getItem("xx-mu") as any;
+  //   //     console.log("token gotten", JSON.parse(data));
+
+  //   data = JSON.parse(data) ?? null;
+
+  //   // console.log("error", data);
+  //   const token = data ? data["tokens"]["token"].access.token : null;
+  //   // Example: Connect with token from storage
+  //   // const token = localStorage.getItem("authToken");
+  //   if (token) {
+  //     connect(token);
+  //   }
+
+  //   if (!socket) return;
+
+  //   // Handle incoming messages
+  //   const handleStartPlaying = () => {
+  //     const payload: any = {
+  //       trackId: 1,
+  //       artistId: 1,
+  //       deviceInfo: getDeviceInfo(),
+  //       duration: 180000,
+  //     };
+
+  //     // sendEvent({ event: "startPlaying", payload });
+  //   };
+
+  //   // Subscribe to events
+  //   socket.on("startPlaying", handleStartPlaying);
+
+  //   // Cleanup subscriptions
+  //   return () => {
+  //     socket.off("startPlaying", handleStartPlaying);
+
+  //     setConditionFulfilled(false);
+  //   };
+  // }, [socket]);
+
+  useEffect(() => {
+    let data = localStorage.getItem("xx-mu") as any;
+    //     console.log("token gotten", JSON.parse(data));
+
+    data = JSON.parse(data) ?? null;
+
+    // console.log("error", data);
+    const token = data ? data["tokens"]["token"].access.token : null;
+    const socket = initializeSocket(token);
+
+    // Handle connection success
+    socket.on("connect", () => {
+      //  setStatus("Connected");
+      console.log("connected to socket successfully");
+      //  setStatusColor("green");
+    });
+
+    // Handle connection errors
+    socket.on("connect_error", (error) => {
+      console.log("error", error.message);
+      //  setStatus("Connection Error");
+      //  setStatusColor("red");
+    });
+
+    // Handle unauthorized errors (if sent by the server)
+    socket.on("unauthorized", (error) => {
+      //  setStatus("Authentication Failed");
+      console.log("Unauthorized socket", error.message);
+      //  setStatusColor("red");
+    });
+
+    // Handle disconnection
+    socket.on("disconnect", () => {
+      //  setStatus("Disconnected");
+      //  setStatusColor("orange");
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <>
       <section className="bg-[url('/images/landing/background1.svg')] bg-cover bg-center h-[700px] px-10 py-6">

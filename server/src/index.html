@@ -1,26 +1,56 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Socket.IO Test with Authentication</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+      // You can store your token in a variable or get it from localStorage
+      const authToken = "your-auth-token-here";
 
-<head>
-     <title>Socket.IO Test</title>
-     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-     <script>
-          const socket = io('http://localhost:8088', {
-               path: '/v1/socket.io'
-          });
+      // Initialize socket with auth options
+      const socket = io("http://localhost:8088", {
+        path: "/v1/socket.io",
+        auth: {
+          token:
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIsImlhdCI6MTczNzAyNjMyMywiZXhwIjoxNzM3MTEyNzIzLCJ0eXBlIjoiQUNDRVNTIn0.HyPyovB0Jf47P84YSZuIzjofv_tXc-4u_fZsN2WHrNA",
+        },
+        // Automatically try to reconnect if connection is lost
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
 
-          socket.on('connect', () => {
-               console.log('Finally Connected! ');
-          });
+      // Connection success handler
+      socket.on("connect", () => {
+        console.log("Successfully connected with authentication!");
+        document.getElementById("status").textContent = "Connected";
+        document.getElementById("status").style.color = "green";
+      });
 
-          socket.on('connect_error', (error) => {
-               console.log('Connection error:', error);
-          });
-     </script>
-</head>
+      // Connection error handler
+      socket.on("connect_error", (error) => {
+        console.log("Connection error:", error);
+        document.getElementById("status").textContent = "Connection Error";
+        document.getElementById("status").style.color = "red";
+      });
 
-<body>
-     Check console for connection status
-</body>
+      // Handle authentication errors
+      socket.on("unauthorized", (error) => {
+        console.log("Authentication failed:", error);
+        document.getElementById("status").textContent = "Authentication Failed";
+        document.getElementById("status").style.color = "red";
+      });
 
+      // Handle disconnection
+      socket.on("disconnect", (reason) => {
+        console.log("Disconnected:", reason);
+        document.getElementById("status").textContent = "Disconnected";
+        document.getElementById("status").style.color = "orange";
+      });
+    </script>
+  </head>
+  <body>
+    <h2>Socket.IO Connection Status</h2>
+    <p>Status: <span id="status">Connecting...</span></p>
+  </body>
 </html>
