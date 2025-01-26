@@ -16,6 +16,32 @@ interface IMelodiousContext {
   uploadToIPFS: (file: File) => Promise<string>;
   signMessages: (message: any) => Promise<any>;
   createUser: (user: ICreateUser) => Promise<any>;
+  createGenre: (genre: ICreateGenre) => Promise<any>;
+  createAlbum?: (album: ICreateAlbum) => Promise<any>;
+  createSingleTrack: (album: ICreateTrack) => Promise<any>;
+}
+
+interface ICreateAlbum {
+  title: string;
+  imageUrl: string;
+  genreId: number;
+  label: string;
+  isPublished: boolean;
+  tracks: Array<{
+    title: string;
+    imageUrl: string;
+    genreId: number;
+    audioUrl: string;
+    isrcCode: number;
+    duration: number;
+    isPublished: boolean;
+  }>;
+}
+
+interface ICreateGenre {
+  name: string;
+  description: string;
+  imageUrl: string;
 }
 
 interface ICreateUser {
@@ -32,6 +58,15 @@ interface ICreateUser {
   };
 }
 
+interface ICreateTrack {
+  title: string;
+  duration?: string;
+  genreId: number;
+  imageUrl: string;
+  audioUrl: string;
+  isrcCode: string;
+  isPublished: string;
+}
 export const MelodiousContext = React.createContext<IMelodiousContext>({
   uploadToIPFS: async (file: File) => {
     return "";
@@ -40,6 +75,15 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
     return "";
   },
   createUser: async (user: ICreateUser) => {
+    return "";
+  },
+  createGenre: async (genre: ICreateGenre) => {
+    return "";
+  },
+  createAlbum: async (songs: ICreateAlbum) => {
+    return "";
+  },
+  createSingleTrack: async (song: ICreateTrack) => {
     return "";
   },
 });
@@ -69,7 +113,6 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!subdomain) {
         throw new Error("PINATA_SUBDOMAIN is not defined");
       }
-
       return `${subdomain}/ipfs/${res.data.IpfsHash}`;
     } catch (error) {
       console.error("Error uploading to Pinata:", error);
@@ -103,6 +146,83 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error creating user:", error);
     }
   };
+
+  const createGenre = async ({
+    name,
+    imageUrl,
+    description,
+  }: ICreateGenre): Promise<any> => {
+    const genrePayload = {
+      method: "create_genre",
+      args: {
+        name: name,
+        imageUrl: imageUrl,
+        description: description,
+      },
+    };
+
+    try {
+      const txhash = await signMessages(genrePayload);
+      console.log(`Transaction hash is: ${txhash}`);
+      return txhash;
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
+
+  const createSingleTrack = async ({
+    title,
+    duration,
+    genreId,
+    imageUrl,
+    audioUrl,
+    isrcCode,
+    isPublished,
+  }: ICreateTrack): Promise<any> => {
+    const trackPayload = {
+      method: "create_track",
+      args: {
+        title: title,
+        duration: duration,
+        genreId: genreId,
+        imageUrl: imageUrl,
+        audioUrl: audioUrl,
+        isrcCode: isrcCode,
+        isPublished: isPublished,
+      },
+    };
+
+    try {
+      const txhash = await signMessages(trackPayload);
+      console.log(`Transaction hash is: ${txhash}`);
+      return txhash;
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
+
+  // const createAlbum = async ({
+  //   name,
+  //   imageUrl,
+  //   description,
+  // }: ICreateGenre): Promise<any> => {
+  //   const genrePayload = {
+  //     method: "create_genre",
+  //     args: {
+  //       name: name,
+  //       imageUrl: imageUrl,
+  //       description: description,
+  //     },
+  //   };
+
+  //   try {
+  //     const txhash = await signMessages(genrePayload);
+  //     console.log(`Transaction hash is: ${txhash}`);
+  //     return txhash;
+  //   } catch (error) {
+  //     console.error("Error creating user:", error);
+  //   }
+  // };
 
   const signMessages = async (message: any) => {
     console.log("signMessages", JSON.stringify(message));
@@ -189,6 +309,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         uploadToIPFS,
         signMessages,
         createUser,
+        createGenre,
+        createSingleTrack,
       }}
     >
       {children}

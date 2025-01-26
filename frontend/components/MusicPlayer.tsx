@@ -7,6 +7,7 @@ import usePlayer from "@/hooks/usePlayer";
 
 import PlayerContent from "./MusicPlayerContent";
 import useLoadSong from "@/hooks/useLoadSong";
+import useGetSongById from "@/hooks/useGetSongById";
 
 const MusicPlayer = () => {
   const [volume, setVolume] = useState(1);
@@ -15,15 +16,15 @@ const MusicPlayer = () => {
   const [oldVolume, setOldVolume] = useState(1);
 
   const player = usePlayer();
-  //   const { song } = useGetSongById(player.activeId);
-  const song = {
-    id: "1",
-    user_id: "string",
-    artist: "string",
-    title: "string",
-    song_path: "/audio/song1.mp3",
-    image_path: "/images/artist.svg",
-  };
+  const { song } = useGetSongById(player.activeId);
+  // const song = {
+  //   id: "1",
+  //   user_id: "string",
+  //   artist: "string",
+  //   title: "string",
+  //   song_path: "/audio/song1.mp3",
+  //   image_path: "/images/artist.svg",
+  // };
 
   const songUrl = useLoadSong(song!);
 

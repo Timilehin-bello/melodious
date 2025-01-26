@@ -1,11 +1,84 @@
+"use client";
+import MusicUpload from "@/components/MusicUpload";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
+import { useMelodiousContext } from "@/contexts/melodious";
 import { Ellipsis, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
+
+interface SongMetadata {
+  file: File;
+  title: string;
+  description: string;
+  genre: string;
+  image?: File;
+  duration?: string;
+}
 
 const MyMusic = () => {
+  const [uploadType, setUploadType] = useState<"single" | "album" | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState("");
+  const [songs, setSongs] = useState<SongMetadata[]>([]);
+  const [albumName, setAlbumName] = useState("");
+  const [singleSong, setSingleSong] = useState<File | null>(null);
+
+  const { uploadToIPFS } = useMelodiousContext();
+
+  const handleUpload = async () => {
+    setLoading(true);
+    setStatus("");
+    try {
+      if (uploadType === "album") {
+        if (!albumName) {
+          alert("Please provide an album name.");
+          return;
+        }
+        if (!songs.length) {
+          alert("Please upload at least one song.");
+          return;
+        }
+        const ipfsResults = await Promise.all(
+          songs.map(
+            async ({ file, title, description, genre, image, duration }) => {
+              const ipfsHash = await uploadToIPFS(file);
+              const imageHash = image ? await uploadToIPFS(image) : null;
+              return {
+                title,
+                description,
+                genre,
+                ipfsHash,
+                imageHash,
+                duration,
+              };
+            }
+          )
+        );
+        setStatus(
+          `Album '${albumName}' uploaded with songs: ${JSON.stringify(
+            ipfsResults,
+            null,
+            2
+          )}`
+        );
+      } else if (uploadType === "single") {
+        if (!singleSong) {
+          alert("Please upload a song.");
+          return;
+        }
+        const ipfsHash = await uploadToIPFS(singleSong);
+        setStatus(`Single song uploaded with hash: ${ipfsHash}`);
+      }
+    } catch (error) {
+      setStatus("Error during upload.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="m-4">
       <div className="w-full flex flex-wrap  items-center gap-8 bg-[url('/images/icons/banner.svg')] bg-cover bg-center rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
@@ -49,7 +122,6 @@ const MyMusic = () => {
         />
         {/* </div> */}
       </div>
-
       <div className="mt-10 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-4">
         <div className="mb-4">
           <h2 className="text-white font-bold text-md">My Music</h2>
@@ -60,8 +132,28 @@ const MyMusic = () => {
         <div className="flex flex-wrap gap-4 items-center">
           <SearchInput />
 
-          <Button className=" h-[45px]">Singles</Button>
-          <Button className=" h-[45px]">Sort By</Button>
+          <Button
+            onClick={() => {
+              setUploadType("single");
+              setModalOpen(true);
+            }}
+            className={`h-[45px] px-4 py-2 rounded-md text-white ${
+              uploadType === "single" ? "bg-blue-600" : "bg-blue-400"
+            } hover:bg-blue-500`}
+          >
+            Singles
+          </Button>
+          <Button
+            onClick={() => {
+              setUploadType("album");
+              setModalOpen(true);
+            }}
+            className={`h-[45px] px-4 py-2 rounded-md text-white ${
+              uploadType === "album" ? "bg-blue-600" : "bg-blue-400"
+            } hover:bg-blue-500`}
+          >
+            Album
+          </Button>
         </div>
         <div className="mt-12">
           <div className="bg-[#1C1C32] flex flex-wrap gap-32 px-6 py-4 w-full h-[52px] sm:w-[500px] md:w-[726px] lg:w-[726px] xl:w-[980px] 2xl:w-[1000px] text-muted">
@@ -239,6 +331,13 @@ const MyMusic = () => {
           <div></div>
         </div>
       </div>
+      <MusicUpload
+        modalOpen={modalOpen}
+        setModalOpen={() => setModalOpen(false)}
+        uploadType={uploadType}
+        handleUpload={handleUpload}
+      />
+      ]]]
     </div>
   );
 };

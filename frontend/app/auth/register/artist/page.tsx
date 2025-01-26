@@ -111,6 +111,7 @@ const RegisterArtist = () => {
         },
       }).then((user) => {
         // router.push("/auth/login");
+        localStorage.clear();
         window.location.href = "/auth/login";
         console.log("User created with transaction hash:", user);
       });
