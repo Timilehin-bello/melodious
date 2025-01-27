@@ -3,6 +3,10 @@ import { IPayload } from "../interfaces";
 import { config } from "../configs/config";
 import ApiError from "../utils/ApiError";
 import httpStatus from "http-status";
+import { prisma, userService } from ".";
+import { title } from "process";
+import { getUserByUniqueValue } from "./user.service";
+import { convertDurationToSeconds } from "../utils/helper";
 
 const addTransactionRequest = async (payload: IPayload) => {
   try {
@@ -52,7 +56,7 @@ const genarateTransaction = async (payload: IPayload) => {
   }
 };
 
-const submitTransaction = async (tx: any) => {
+const submitTransaction = async (tx: { data: string; signer: string }) => {
   const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
 
   try {
@@ -63,6 +67,8 @@ const submitTransaction = async (tx: any) => {
     ];
 
     const cleanedPayload = JSON.parse(tx.data);
+
+    console.log(`method is: ${cleanedPayload.method}`);
 
     console.log(`Tx is cleaned: ${JSON.stringify(cleanedPayload)}`);
 
@@ -77,11 +83,41 @@ const submitTransaction = async (tx: any) => {
 
     console.log(`contract is: ${contract.address}`);
 
-    const finalTx = contract.addInput(config.dappAddress, txHex);
+    const finalTx = await contract.addInput(config.dappAddress, txHex);
+    const isTxComplete = await finalTx.wait();
+    // console.log(`Transaction is complete: ${JSON.stringify(isTxComplete)}`);
 
-    // const receipt = await finalTx.wait();
+    console.log(`Transaction hash is: ${isTxComplete.transactionHash}`);
 
-    console.log(`Transaction receipt is:`, JSON.stringify(await finalTx));
+    if (cleanedPayload.method === "create_track") {
+      const durationToSecond = convertDurationToSeconds(
+        cleanedPayload.args.duration
+      );
+      console.log(`Duration in seconds is: ${durationToSecond}`);
+      const user = await userService.getUserByUniqueValue(
+        {
+          walletAddress: tx.signer.toLowerCase(),
+        },
+        { artist: true }
+      );
+
+      if (!user || !user.artist) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Artist not found");
+      }
+
+      if (!user || !user.artist) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Artist not found");
+      }
+      const createTrack = await prisma.track.create({
+        data: {
+          title: cleanedPayload.args.title,
+          artistId: user.artist.id,
+          duration: durationToSecond,
+        },
+      });
+
+      console.log(`Track is created: ${JSON.stringify(createTrack)}`);
+    }
 
     return true;
   } catch (error) {
