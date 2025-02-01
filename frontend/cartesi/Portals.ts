@@ -204,6 +204,7 @@ export const withdrawEther = async (
       };
       const data = JSON.stringify(input_obj);
       const payload = ethers.utils.toUtf8Bytes(data);
+      console.log("dappAddress", dappAddress);
       const tx = await rollups.inputContract.addInput(dappAddress, payload);
       const receipt = await tx.wait(1);
       return receipt;

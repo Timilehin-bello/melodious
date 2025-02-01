@@ -237,6 +237,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
                           if (!etherAmount)
                             return toast.error("Amount fields required!");
                           setLoadWithdrawEther(true);
+                          console.log("withdrawEther", dappAddress);
                           const res: any = await withdrawEther(
                             rollups,
                             provider,
