@@ -77,7 +77,7 @@ const MyPlayer: React.FC = () => {
     setDuration(state.loadedSeconds);
     setProgress((state.playedSeconds / state.loadedSeconds) * 100);
     // Your custom logic here, for example:
-    console.log(`Played: ${state.played * 100}%`);
+    // console.log(`Played: ${state.played * 100}%`);
   };
 
   const handleSeek = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -159,7 +159,7 @@ const MyPlayer: React.FC = () => {
           <div
             className="w-full h-1 -mt-3 bg-gray-200 rounded-full "
             ref={progressBarRef}
-            onClick={handleSeek}
+            // onClick={handleSeek}
           >
             <div
               className="h-full bg-[#950944] rounded-full"
@@ -357,8 +357,14 @@ const MyPlayer: React.FC = () => {
               playing={isPlaying}
               // playbackRate={playbackRate}
               volume={volume}
-              onPause={() => setIsPlaying(false)}
-              onPlay={() => setIsPlaying(true)}
+              onPause={() => {
+                handlePlaybackState("pause");
+                setIsPlaying(false);
+              }}
+              onPlay={() => {
+                handlePlaybackState("start");
+                setIsPlaying(true);
+              }}
               onEnded={() => {
                 nextTrack();
                 if (!repeat) {

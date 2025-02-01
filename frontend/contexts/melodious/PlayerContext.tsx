@@ -38,7 +38,10 @@ interface PlayerContextProps {
   emitBufferingStart: () => void;
   emitBufferingEnd: () => void;
   emitNetworkQualityUpdate: (quality: string) => void;
-  handlePlaybackState: (state: "pause" | "resume" | "stop" | "skip") => void;
+  // emitPlaybackState: (state: string) => void;
+  handlePlaybackState: (
+    state: "pause" | "resume" | "stop" | "skip" | "start"
+  ) => void;
 }
 
 const PlayerContext = createContext<PlayerContextProps | undefined>(undefined);
@@ -84,10 +87,12 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     if (socket && currentTrack) {
       socket.emit("startPlaying", {
         trackId: currentTrack.id,
-        artistId: currentTrack,
+        artistId: currentTrack.id,
         deviceInfo: getDeviceInfo(),
-        duration: currentTrack.duration * 1000, // in milliseconds
+        // duration: currentTrack.duration * 1000, // in milliseconds
+        duration: 20000, // in milliseconds
       });
+      toast.success("Music Player Started");
     }
 
     return () => {
@@ -95,38 +100,30 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         socket.emit("stopPlaying", {});
       }
     };
-  }, [currentTrack, socket]);
+  }, [currentTrack]);
 
-  const emitUpdateBuffer = (bufferSize: number) => {
-    socket?.emit("updateBuffer", bufferSize); // Buffer size in bytes
-  };
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout | null = null;
 
-  const emitPlaybackState = (state: "pause" | "resume" | "stop" | "skip") => {
-    socket?.emit(`${state}Playing`, {});
-  };
+  //   if (isPlaying && currentTrack) {
+  //     interval = setInterval(() => {
+  //       setProgress((prev) => {
+  //         const newProgress = prev + 1;
+  //         emitUpdatePosition(newProgress); // Emit progress in seconds
+  //         if (newProgress >= currentTrack.duration) {
+  //           clearInterval(interval!);
+  //           setIsPlaying(false); // Stop playback when track ends
+  //           handlePlaybackState("stop");
+  //         }
+  //         return newProgress;
+  //       });
+  //     }, 1000); // Update position every second
+  //   }
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    if (isPlaying && currentTrack) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = prev + 1;
-          emitUpdatePosition(newProgress); // Emit progress in seconds
-          if (newProgress >= currentTrack.duration) {
-            clearInterval(interval!);
-            setIsPlaying(false); // Stop playback when track ends
-            handlePlaybackState("stop");
-          }
-          return newProgress;
-        });
-      }, 1000); // Update position every second
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isPlaying, currentTrack]);
+  //   return () => {
+  //     if (interval) clearInterval(interval);
+  //   };
+  // }, [isPlaying, currentTrack]);
 
   const playTrack = useCallback((track: Track) => {
     localStorage.setItem("currentTrack", JSON.stringify(track));
@@ -202,7 +199,17 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     toast.success(`Now playing: ${quality}`);
   };
 
-  const handlePlaybackState = (state: "pause" | "resume" | "stop" | "skip") => {
+  const handlePlaybackState = (
+    state: "pause" | "resume" | "stop" | "skip" | "start"
+  ) => {
+    socket?.emit(`${state}Playing`, {});
+  };
+
+  const emitUpdateBuffer = (bufferSize: number) => {
+    socket?.emit("updateBuffer", bufferSize); // Buffer size in bytes
+  };
+
+  const emitPlaybackState = (state: "pause" | "resume" | "stop" | "skip") => {
     socket?.emit(`${state}Playing`, {});
   };
 
@@ -242,6 +249,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         emitBufferingEnd,
         emitNetworkQualityUpdate,
         handlePlaybackState,
+        // emitPlaybackState,
       }}
     >
       {children}

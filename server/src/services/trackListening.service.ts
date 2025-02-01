@@ -94,7 +94,7 @@ export class TrackListeningService {
               return;
             }
           }
-
+          data.listenerId = socket.user.listener?.id;
           if (!data.listenerId) return console.log("no listenerId");
 
           if (data.listenerId) {
