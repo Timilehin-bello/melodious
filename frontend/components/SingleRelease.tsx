@@ -105,7 +105,7 @@ const SingleRelease = () => {
         description: "Create new track seamlessly",
       });
 
-      router.push("/artist/release");
+      // router.push("/artist/release");
     }
   }
 

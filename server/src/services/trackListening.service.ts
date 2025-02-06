@@ -85,6 +85,8 @@ export class TrackListeningService {
         }) => {
           console.log("startPlaying", data);
 
+          console.log("socket.user", JSON.stringify(socket.user));
+
           if (typeof data === "string") {
             try {
               data = JSON.parse(data);
@@ -95,6 +97,10 @@ export class TrackListeningService {
             }
           }
           data.listenerId = socket.user.listener?.id;
+          console.log(`data is: ${data.listenerId}`);
+
+          console.log(`data is: ${JSON.stringify(data)}`);
+
           if (!data.listenerId) return console.log("no listenerId");
 
           if (data.listenerId) {

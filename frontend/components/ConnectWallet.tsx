@@ -6,6 +6,13 @@ import { get, post } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useEffect, useState } from "react";
+import { defineChain } from "thirdweb";
+
+export const localhostChain = defineChain({
+  id: 31337,
+  name: "localhost",
+  rpc: "http://127.0.0.1:8545",
+});
 
 interface User {
   artist?: boolean;
@@ -24,9 +31,9 @@ const ConnectWallet = () => {
       if (userData.listener === null) {
         router.push("/artist/dashboard");
       } else if (userData.listener !== null) {
-        router.push("/listener/dashboard");
+        // router.push("/listener/dashboard");
       } else if (userData.artist === null) {
-        router.push("/listener/dashboard");
+        // router.push("/listener/dashboard");
       } else if (userData.artist !== null) {
         router.push("/artist/dashboard");
       } else {
@@ -34,7 +41,7 @@ const ConnectWallet = () => {
       }
     }
     console.log("successfulLogin", successfulLogin);
-  }, [successfulLogin]);
+  }, [successfulLogin, router, userData]);
   return (
     <div>
       <ConnectButton

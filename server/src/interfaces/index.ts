@@ -3,3 +3,8 @@ export interface IPayload {
   signature: string;
   signer: string;
 }
+
+export interface ArtistListeningStats {
+  walletAddress: string;
+  totalListeningTime: number;
+}

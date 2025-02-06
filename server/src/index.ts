@@ -3,7 +3,7 @@ import http from "http";
 import { config } from "./configs/config";
 import logger from "./configs/logger";
 import { rootSocket } from "./configs/rootSocket";
-import { scheduleCronJobs } from "./cronJob";
+// import { scheduleCronJobs } from "./cronJob";
 import { Server } from "socket.io";
 import redisClient from "./configs/redisClient";
 import { TrackListeningService } from "./services/trackListening.service";
@@ -41,22 +41,6 @@ const io = new Server(server, {
 globalThis.io = io;
 const redis = new Redis();
 
-// Middleware to verify JWT token
-// io.use((socket, next) => {
-//   const token = socket.handshake.auth.token;
-
-//   if (!token) {
-//     return next(new Error('Authentication token required'));
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-//     socket.data.user = decoded;
-//     next();
-//   } catch (err) {
-//     next(new Error('Invalid token'));
-//   }
-// });
 io.use(socketAuth());
 
 new TrackListeningService(io, prisma, redis);
