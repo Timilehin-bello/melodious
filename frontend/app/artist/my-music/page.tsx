@@ -83,25 +83,6 @@ const MyMusic = () => {
     <div className="m-4">
       <div className="w-full flex flex-wrap  items-center gap-8 bg-[url('/images/icons/banner.svg')] bg-cover bg-center rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
         <div className="w-2/3">
-          {/* <h2 className="text-2xl lg:text-7xl md:text-5xl sm:text-3xl md:text-left sm:text-center text-center font-bold mb-2">
-            Your Playlist
-          </h2>
-          <div className="flex flex-wrap gap-4 px-4">
-            <div className="flex gap-2">
-              <Image
-                src="/images/artist.svg"
-                width={12}
-                height={12}
-                alt="artist"
-                className="rounded-full"
-              />
-              <p>Raza</p>
-            </div>
-            <p>
-              <span className="font-bold">10 songs,</span> 24 min 38 sec
-            </p>
-          </div> */}
-
           <div className="w-64 mb-3 rounded-md bg-gradient-to-br from-[#6B1F97B8] via-[#2A1A4B] to-[#1B184259] py-4 px-6">
             <h2 className="text-5xl">My Music</h2>
           </div>
@@ -337,7 +318,6 @@ const MyMusic = () => {
         uploadType={uploadType}
         handleUpload={handleUpload}
       />
-      ]]]
     </div>
   );
 };
