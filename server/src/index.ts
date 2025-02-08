@@ -29,7 +29,12 @@ redisClient.on("error", (err) => {
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: {
+    origin: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${
+      process.env.CLIENT_DOMAIN ?? "localhost:3000"
+    }`,
+    methods: ["GET", "POST"], // Allow specific methods if needed
+  },
   path: "/v1/socket.io",
 });
 

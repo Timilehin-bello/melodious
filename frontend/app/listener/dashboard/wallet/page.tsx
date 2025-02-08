@@ -8,9 +8,9 @@ import {
   Stack,
   SimpleGrid,
 } from "@chakra-ui/react";
-import { Balance } from "@/components/examples/Balance";
-import Transfers from "@/components/examples/Transfers";
+import Transfers from "@/components/Wallet/Cartesi/Transfers";
 import { DAPP_ADDRESS } from "@/lib/constants";
+import Balance from "@/components/Wallet/Cartesi/Balance";
 
 const Payment: FC = () => {
   const [dappAddress, setDappAddress] = useState<string>(DAPP_ADDRESS);
@@ -42,7 +42,7 @@ const Payment: FC = () => {
         </Box>
       </Stack>
       <br />
-      <Balance />
+      {/* <Balance /> */}
       <br /> <br />
       <Transfers dappAddress={dappAddress} />
       <br /> <br />

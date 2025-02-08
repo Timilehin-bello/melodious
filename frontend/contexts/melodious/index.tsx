@@ -3,8 +3,11 @@
 import axios from "axios";
 import { ethers } from "ethers";
 import { Web3Provider } from "@ethersproject/providers";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useContext } from "react";
+import { io, Socket } from "socket.io-client";
+import { DeviceInfo } from "@/lib/getDeviceInfo";
+import { disconnectSocket, initSocket } from "@/lib/socket";
 
 declare global {
   interface Window {
@@ -19,6 +22,20 @@ interface IMelodiousContext {
   createGenre: (genre: ICreateGenre) => Promise<any>;
   createAlbum?: (album: ICreateAlbum) => Promise<any>;
   createSingleTrack: (album: ICreateTrack) => Promise<any>;
+  // sendEvent: (event: PlaybackEvent) => void | null;
+  playing: boolean;
+  setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
+  //////////////////////////////////////////
+  socket: Socket | null;
+  isConnected: boolean;
+  isConnectionAllowed: boolean;
+  connect: (token: string) => void;
+  disconnect: () => void;
+  setConditionFulfilled: (value: boolean) => void;
+}
+interface SocketState {
+  token: string | null;
+  isConditionFulfilled: boolean;
 }
 
 interface ICreateAlbum {
@@ -67,6 +84,41 @@ interface ICreateTrack {
   isrcCode: string;
   isPublished: string;
 }
+
+// Define event types and payload interfaces
+type EventType =
+  | "startPlaying"
+  | "updatePosition"
+  | "updateBuffer"
+  | "networkQualityUpdate"
+  | "pausePlaying"
+  | "resumePlaying"
+  | "bufferingStart"
+  | "bufferingEnd"
+  | "stopPlaying"
+  | "skipTrack";
+
+type StartPlayingPayload = {
+  trackId: number;
+  artistId: number;
+  deviceInfo: DeviceInfo;
+  duration: number;
+};
+
+type UpdatePositionPayload = number; // milliseconds
+type UpdateBufferPayload = number; // bytes
+type NetworkQualityPayload = "good" | "poor" | "unstable";
+
+type PlaybackEvent = {
+  event: EventType;
+  payload?:
+    | StartPlayingPayload
+    | UpdatePositionPayload
+    | UpdateBufferPayload
+    | NetworkQualityPayload
+    | Record<string, never>; // For empty payloads
+};
+
 export const MelodiousContext = React.createContext<IMelodiousContext>({
   uploadToIPFS: async (file: File) => {
     return "";
@@ -86,11 +138,161 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
   createSingleTrack: async (song: ICreateTrack) => {
     return "";
   },
+  // sendEvent: (event: PlaybackEvent) => {
+  //   return null;
+  // },
+  playing: false,
+  setPlaying: () => {},
+  socket: null,
+  isConnected: false,
+  isConnectionAllowed: false,
+  connect: () => {},
+  disconnect: () => {},
+  setConditionFulfilled: () => {},
 });
 
 export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [playing, setPlaying] = useState<boolean>(false);
+
+  // const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [socketState, setSocketState] = useState<SocketState>({
+    token: null,
+    isConditionFulfilled: false,
+  });
+
+  // Computed property to determine if connection should be allowed
+  const isConnectionAllowed = Boolean(
+    socketState.token && socketState.isConditionFulfilled
+  );
+
+  // Update the condition status
+  const setConditionFulfilled = (value: boolean) => {
+    setSocketState((prev) => ({
+      ...prev,
+      isConditionFulfilled: value,
+    }));
+  };
+
+  const connect = (token: string) => {
+    setSocketState((prev) => ({
+      ...prev,
+      token: token,
+    }));
+  };
+
+  const disconnect = () => {
+    if (socket) {
+      disconnectSocket();
+
+      setIsConnected(false);
+      setSocketState((prev) => ({
+        ...prev,
+        token: null,
+      }));
+    }
+  };
+
+  // Effect to handle socket connection based on conditions
+  useEffect(() => {
+    if (!isConnectionAllowed) {
+      // Disconnect socket if conditions are not met
+      if (socket) {
+        disconnect();
+      }
+      return;
+    }
+
+    // If all conditions are met, initialize socket
+    try {
+      const socketInstance = io({
+        // serverUrl: "http://localhost:8088",
+        // authToken: socketState.token!,
+
+        auth: {
+          token: socketState.token!,
+        },
+      });
+
+      setSocket(socketInstance);
+
+      socketInstance.on("connection", () => {
+        setIsConnected(true);
+        console.log("Socket connected via context");
+      });
+
+      socketInstance.on("disconnect", () => {
+        setIsConnected(false);
+        console.log("Socket disconnected via context");
+      });
+
+      socketInstance.on("connect_error", (error) => {
+        console.error("Socket connection error:", error);
+        setIsConnected(false);
+      });
+
+      socketInstance.on("unauthorized", (error) => {
+        console.error("Unauthorized socket access:", error);
+        disconnect();
+      });
+
+      // Cleanup function
+      return () => {
+        socketInstance.disconnect();
+        setSocket(null);
+        setIsConnected(false);
+      };
+    } catch (error) {
+      console.error("Failed to connect socket:", error);
+      setIsConnected(false);
+    }
+  }, [isConnectionAllowed, socketState.token]);
+
+  // useEffect(() => {
+  //   console.log("useEffect triggered, playing:", playing);
+  //   if (playing) {
+  //     let data = localStorage.getItem("xx-mu") as any;
+  //     console.log("token gotten", JSON.parse(data));
+
+  //     data = JSON.parse(data) ?? null;
+  //     const url = "http://localhost:8088";
+
+  //     // console.log("error", data);
+  //     const token = data ? data["tokens"]["token"].access.token : null;
+
+  //     socket.current = io(
+  //       url,
+
+  //       {
+  //         path: "/",
+  //         extraHeaders: {
+  //           token: `${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     console.log('socket', socket.current)
+  //     socket.current.on("connection", () => {
+  //       console.log("Socket.IO connection established.");
+  //     });
+
+  //     socket.current.on("disconnect", () => {
+  //       console.log("Socket.IO connection closed.");
+  //     });
+
+  //     // socket.current.on("connect_error", (error) => {
+  //     //   console.error("Socket.IO connection error:", error);
+  //     // });
+  //   }
+
+  //   return () => {
+  //     socket.current?.disconnect();
+  //   };
+  // }, [playing]);
+
   const uploadToIPFS = async (file: File): Promise<string> => {
     try {
       console.log("Uploading file to IPFS...", file);
@@ -224,6 +426,14 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
   //   }
   // };
 
+  // const sendEvent = (event: PlaybackEvent) => {
+  //   if (socket.current?.connected) {
+  //     socket.current.emit(event.event, event.payload);
+  //   } else {
+  //     console.error("Socket.IO is not connected.");
+  //   }
+  // };
+
   const signMessages = async (message: any) => {
     console.log("signMessages", JSON.stringify(message));
     try {
@@ -311,6 +521,15 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         createUser,
         createGenre,
         createSingleTrack,
+        // sendEvent,
+        playing,
+        setPlaying,
+        socket,
+        isConnected,
+        isConnectionAllowed,
+        connect,
+        disconnect,
+        setConditionFulfilled,
       }}
     >
       {children}

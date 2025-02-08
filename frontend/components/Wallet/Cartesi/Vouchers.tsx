@@ -3,16 +3,7 @@
 import { ethers } from "ethers";
 import React, { useCallback, useEffect, useState } from "react";
 import { useRollups } from "@/cartesi/hooks/useRollups";
-import {
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Button,
-  Text,
-} from "@chakra-ui/react";
+
 import { Voucher, useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher, executeVouchers } from "@/cartesi/Portals";
 import toast from "react-hot-toast";
@@ -61,41 +52,44 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
   return (
     <div className="text-slate-200">
       <p></p>
-      <Button
-        marginTop={"15px"}
-        float={"right"}
-        size="sm"
+      <button
+        className="mt-4 float-right px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
         onClick={() => refetch({ requestPolicy: "network-only" })}
       >
         Reload 🔃
-      </Button>
+      </button>
       {voucherToExecute ? (
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Input Index</Th>
-              <Th>Action</Th>
-              <Th>Voucher Index</Th>
-              {/*<Th>Destination</Th> */}
-              {/* <Th>Payload</Th> */}
+        <table className="min-w-full mt-6 table-auto">
+          <thead>
+            <tr>
+              <th className="px-4 py-2">Input Index</th>
+              <th className="px-4 py-2">Action</th>
+              <th className="px-4 py-2">Voucher Index</th>
+              {/*<th>Destination</th> */}
+              {/* <th>Payload</th> */}
               {/* <th>Proof</th> */}
-              {/* <Th>Input Payload</Th> */}
-              {/* <Th>Msg</Th> */}
-            </Tr>
-          </Thead>
-          <Tbody>
-            <Tr
+              {/* <th>Input Payload</th> */}
+              {/* <th>Msg</th> */}
+            </tr>
+          </thead>
+          <tbody>
+            <tr
               key={`${voucherToExecute && voucherToExecute.input.index}-${
                 voucherToExecute && voucherToExecute.index
               }`}
             >
-              <Td>{voucherToExecute && voucherToExecute.input.index}</Td>
+              <td className="px-4 py-2">
+                {voucherToExecute && voucherToExecute.input.index}
+              </td>
               {/*<Td>{voucherToExecute.destination}</Td> */}
-              <Td>
-                <Button
-                  size="sm"
-                  colorScheme={"green"}
-                  isDisabled={voucherToExecute.executed}
+              <td className="px-4 py-2">
+                <button
+                  className={`px-4 py-2 text-sm bg-green-500 text-white rounded-md ${
+                    voucherToExecute.executed
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "hover:bg-green-600"
+                  }`}
+                  disabled={voucherToExecute.executed}
                   onClick={async () => {
                     const res: any = await executeVoucher(
                       client,
@@ -110,60 +104,65 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
                   voucherToExecute.executed
                     ? "Voucher executed"
                     : "Execute Voucher"}
-                </Button>
-              </Td>
-              <Td>{voucherToExecute && voucherToExecute.index}</Td>
+                </button>
+              </td>
+              <td className="px-4 py-2">
+                {voucherToExecute && voucherToExecute.index}
+              </td>
               {/* <td>{voucherToExecute.payload}</td> */}
               {/* <td>{voucherToExecute.proof}</td> */}
               {/* <Td>{voucherToExecute.input.payload}</Td> */}
               {/* <Td>{voucherToExecute.msg}</Td> */}
               <br /> <br />
-            </Tr>
-          </Tbody>
-        </Table>
+            </tr>
+          </tbody>
+        </table>
       ) : (
-        <Text></Text>
+        <p></p>
       )}
-      <Table marginTop={"20px"}>
-        <Thead>
-          <Tr>
-            {/*<Th>Input Index</Th>
-                        <Th>Voucher Index</Th>
-                        <Th>Destination</Th> */}
-            <Th>Action</Th>
+      <table className="min-w-full mt-8 table-auto">
+        <thead>
+          <tr>
+            {/*<th>Input Index</th>
+                        <th>Voucher Index</th>
+                        <th>Destination</th> */}
+            <th className="px-4 py-2">Action</th>
             {/* <th>Input Payload</th> */}
-            <Th>Payload</Th>
+            <th className="px-4 py-2">Payload</th>
             {/* <th>Proof</th> */}
-          </Tr>
-        </Thead>
-        <Tbody>
+          </tr>
+        </thead>
+        <tbody>
           {vouchers && vouchers.length === 0 && (
-            <Tr>
-              <Td textAlign={"center"} colSpan={4}>
+            <tr>
+              <td className="text-center px-4 py-2" colSpan={4}>
                 -
-              </Td>
-            </Tr>
+              </td>
+            </tr>
           )}
           {vouchers &&
             vouchers.map((n: any) => (
-              <Tr key={`${n.input.index}-${n.index}`}>
+              <tr key={`${n.input.index}-${n.index}`}>
                 {/*<Td>{n.input.index}</Td>
                             <Td>{n.index}</Td>
                             <Td>{n.destination}</Td> */}
-                <Td>
-                  <Button size="sm" onClick={() => getProof(n)}>
+                <td className="px-4 py-2">
+                  <button
+                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    onClick={() => getProof(n)}
+                  >
                     Get Proof
-                  </Button>
-                </Td>
+                  </button>
+                </td>
                 {/* <td>{n.input.payload}</td> */}
-                <Td color={"slategray"}>{n.payload}</Td>
+                <td className="px-4 py-2 text-slate-500">{n.payload}</td>
                 {/* <td>
                                 <button disabled={!!n.proof} onClick={() => executeVoucher(n)}>Execute voucher</button>
                             </td> */}
-              </Tr>
+              </tr>
             ))}
-        </Tbody>
-      </Table>
+        </tbody>
+      </table>
     </div>
   );
 };

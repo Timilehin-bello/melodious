@@ -142,21 +142,21 @@ const SingleRelease = () => {
 
   const fetchTracks = async () => {
     try {
-      setLoading(true);
+      // setLoading(true);
       const genreList: any[] = await fetchMethod("get_genres");
       console.log("genreList", genreList);
       if (Array.isArray(genreList)) {
         setTimeout(() => {
           setGenreList(genreList);
-          setLoading(false);
+          // setLoading(false);
         }, 3000);
       } else {
         console.log("Fetched data is not an array");
-        setLoading(false);
+        // setLoading(false);
       }
     } catch (error) {
       console.log(error);
-      setLoading(false);
+      // setLoading(false);
     }
   };
   useEffect(() => {
@@ -169,10 +169,11 @@ const SingleRelease = () => {
 
   return (
     <div>
+      <h2 className="p-4 text-4wl font-bold">Single Release</h2>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="grid grid-cols-2 gap-4 p-4 border rounded shadow-lg w-full text-large"
+          className="grid grid-cols-2 gap-4 p-4  rounded shadow-lg w-full text-large"
         >
           <FormField
             control={form.control}
