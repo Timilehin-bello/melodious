@@ -67,9 +67,15 @@ const loginRequest = catchAsync(async (req: any, res: any) => {
   const chainId = typeof chainIdQuery === "string" ? chainIdQuery : undefined;
 
   // Retrieve the user by wallet address from the user service
-  const user = await userService.getUserByUniqueValue({
-    walletAddress: walletAddress.toLowerCase(),
-  });
+  const user = await userService.getUserByUniqueValue(
+    {
+      walletAddress: walletAddress.toLowerCase(),
+    },
+    {
+      listener: true,
+      artist: true,
+    }
+  );
 
   // If the user is not found, throw a 'User not found' error
   if (!user) {

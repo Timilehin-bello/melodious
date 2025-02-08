@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import Balance from "@/components/Wallet/Cartesi/Balance";
 import Transfers from "@/components/Wallet/Cartesi/Transfers";
 import DepositModal from "@/components/Wallet/Deposit";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useActiveAccount, useActiveWallet } from "thirdweb/react";
 import { useRollups } from "@/cartesi/hooks/useRollups";
 import { ethers } from "ethers";
@@ -20,7 +20,7 @@ const Wallet = () => {
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const { reports, decodedReports, inspectCall } = useInspectCall();
 
-  const dappAddress = process.env.PUBLIC_DAPP_ADDRESS as string;
+  const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
   const rollups = useRollups(dappAddress);
   const [providerInstance, setProviderInstance] = useState<
@@ -31,9 +31,34 @@ const Wallet = () => {
     client,
     chain: localhostChain!,
   });
-  const wallet = useActiveWallet();
-
   const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
+
+  const getData = React.useCallback(async () => {
+    const getSigner = ethers5Adapter.signer.toEthers({
+      client,
+      chain: localhostChain!,
+      account: account!,
+    });
+
+    setSignerInstance(await getSigner);
+
+    console.log("await signer", await getSigner);
+    // const getAddress = (await getSigner).getAddress();
+    // console.log("getAddress", getAddress);
+    const provider = (await getSigner).provider;
+
+    const signer = provider.getSigner();
+    const signerAddress = await signer?.getAddress();
+    console.log("signerAddress", signerAddress);
+
+    console.log("provider", provider);
+
+    setProviderInstance(provider);
+  }, [account]);
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
 
   return (
     <div>
@@ -68,7 +93,6 @@ const Wallet = () => {
       </div>
       <div className="px-8 mt-2 text-white bg-blue-950">
         {/* <h2 className="text-2xl font-bold">Transaction History</h2> */}
-
         <Transfers dappAddress={dappAddress} />
       </div>
 

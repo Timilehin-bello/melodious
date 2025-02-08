@@ -29,13 +29,13 @@ const ConnectWallet = () => {
   useEffect(() => {
     if (successfulLogin && userData) {
       if (userData.listener === null) {
-        router.push("/artist/dashboard");
+        // router.push("/artist/dashboard");
       } else if (userData.listener !== null) {
         // router.push("/listener/dashboard");
       } else if (userData.artist === null) {
         // router.push("/listener/dashboard");
       } else if (userData.artist !== null) {
-        router.push("/artist/dashboard");
+        // router.push("/artist/dashboard");
       } else {
         router.push("/");
       }

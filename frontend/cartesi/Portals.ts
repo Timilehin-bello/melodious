@@ -83,6 +83,18 @@ export const depositErc20ToPortal = async (
   dappAddress: string
 ) => {
   try {
+    console.log(
+      "rollups",
+      rollups,
+      "signer",
+      signer,
+      "token",
+      token,
+      "amount",
+      amount,
+      "dappAddress",
+      dappAddress
+    );
     if (rollups && signer) {
       const data = ethers.utils.toUtf8Bytes(
         `Deposited (${amount}) of ERC20 (${token}).`

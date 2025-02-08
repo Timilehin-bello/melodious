@@ -54,8 +54,10 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
     });
 
     setSignerInstance(await getSigner);
-    const getAddress = (await getSigner).getAddress();
-    console.log("getAddress", getAddress);
+
+    console.log("await signer", await getSigner);
+    // const getAddress = (await getSigner).getAddress();
+    // console.log("getAddress", getAddress);
     const provider = (await getSigner).provider;
 
     const signer = provider.getSigner();
