@@ -71,10 +71,12 @@ export default function Page() {
           >
             <div className="flex justify-between flex-wrap items-start">
               <div>
-                <p className="text-white text-sm mb-3">
-                  Total Amount <br /> earned
-                </p>
-                <h4 className="text-white font-semibold text-2xl">40589</h4>
+                <Link href="/artist/wallet">
+                  <p className="text-white text-sm mb-3">
+                    Total Amount <br /> earned
+                  </p>
+                  <h4 className="text-white font-semibold text-2xl">40589</h4>
+                </Link>
               </div>
 
               <div className="rounded-lg w-10 h-10 bg-[#950944] py-1 px-2">

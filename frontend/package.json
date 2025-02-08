@@ -16,6 +16,7 @@
     "@cartesi/rollups": "^1.4.3",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
+    "@headlessui/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@openzeppelin/contracts": "^5.2.0",
     "@radix-ui/react-avatar": "^1.1.1",

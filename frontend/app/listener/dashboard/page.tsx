@@ -68,52 +68,53 @@ export default function Page() {
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
   const { playTrack, playPlaylist } = usePlayer();
-  const data = [
-    {
-      id: 1,
-      title: "Song Title 1",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-      audioUrl: "/audio/song1.mp3",
-    },
-    {
-      id: 2,
-      title: "Song Title 2",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-      audioUrl: "/audio/song2.mp3",
-    },
-    {
-      id: 3,
-      title: "Song Title 3",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-      audioUrl: "/audio/song1.mp3",
-    },
-    {
-      id: 4,
-      title: "Song Title 4",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-      audioUrl: "/audio/song3.mp3",
-    },
-    {
-      id: 5,
-      title: "Song Title 4",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-      audioUrl: "/audio/song1.mp3",
-    },
-  ];
 
-  // const transoformedData = tracks.map((track) => {
-  //   return {
-  //     id: track.id,
-  //     songTitle: track.title,
-  //     imageUrl: track.image_path,
-  //     songDetails: "289 songs, 5hr 10 min",
-  //   };
-  // });
+  // const data = [
+  //   {
+  //     id: 1,
+  //     title: "Song Title 1",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //     audioUrl: "/audio/song1.mp3",
+  //   },
+  //   {
+  //     id: 2,
+  //     title: "Song Title 2",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //     audioUrl: "/audio/song2.mp3",
+  //   },
+  //   {
+  //     id: 3,
+  //     title: "Song Title 3",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/woman-with-headphone-front.png",
+  //     audioUrl: "/audio/song1.mp3",
+  //   },
+  //   {
+  //     id: 4,
+  //     title: "Song Title 4",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/artist.svg",
+  //     audioUrl: "/audio/song3.mp3",
+  //   },
+  //   {
+  //     id: 5,
+  //     title: "Song Title 4",
+  //     songDetails: "189 songs, 2hr 40min",
+  //     imageUrl: "/images/woman-with-headphone-front.png",
+  //     audioUrl: "/audio/song1.mp3",
+  //   },
+  // ];
+
+  const transformedData = tracks.map((track) => {
+    return {
+      id: track.id,
+      songTitle: track.title,
+      imageUrl: track.image_path,
+      songDetails: "289 songs, 5hr 10 min",
+    };
+  });
 
   const genres = [
     {
@@ -383,11 +384,11 @@ export default function Page() {
             </p>
           </div>
           <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {data.slice(0, 4).map((album, index) => (
+            {transformedData.slice(0, 4).map((album, index) => (
               <TrendingSoundItem
                 key={index}
                 imageUrl={album.imageUrl}
-                songTitle={album.title}
+                songTitle={album.songTitle}
                 songDetails={album.songDetails}
                 playSong={() => playSong(album)}
                 likeSong={likeSong}

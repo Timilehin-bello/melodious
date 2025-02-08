@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, Tab } from "@headlessui/react";
+import {
+  Dialog,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+} from "@headlessui/react";
 import { toast } from "react-hot-toast";
 import {
   sendAddress,
@@ -23,7 +30,7 @@ interface DepositModalProps {
   dappAddress: string;
 }
 
-export default function WithdrawModal({
+export default function DepositModal({
   isOpen,
   onClose,
   rollups,
@@ -58,6 +65,8 @@ export default function WithdrawModal({
   };
 
   const handleDepositERC20 = async () => {
+    console.log("erc20Token", erc20Token);
+    console.log("erc20Token", erc20Amount);
     if (!erc20Token || !erc20Amount) return toast.error("Fields required!");
     setLoading(true);
     try {
@@ -68,6 +77,7 @@ export default function WithdrawModal({
         Number(erc20Amount),
         dappAddress
       );
+      console.log("res", res);
       if (!res.hash) throw new Error(res);
       toast.success(res.hash);
     } catch (error) {
@@ -104,8 +114,15 @@ export default function WithdrawModal({
       className="fixed inset-0 flex items-center justify-center z-50"
     >
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <Tab.Group>
-          <Tab.List className="flex space-x-2 border-b pb-2">
+        <div className="flex justify-between">
+          <div></div>
+          <button onClick={onClose} className="text-black">
+            x
+          </button>
+        </div>
+        <h2 className="font-bold mb-4">Deposit</h2>
+        <TabGroup>
+          <TabList className="flex space-x-2 w-full border-b pb-2">
             {["Ether", "ERC20", "ERC721"].map((tab) => (
               <Tab
                 key={tab}
@@ -118,10 +135,10 @@ export default function WithdrawModal({
                 {tab}
               </Tab>
             ))}
-          </Tab.List>
-          <Tab.Panels>
+          </TabList>
+          <TabPanels>
             {/* Ether Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="number"
                 placeholder="Enter amount"
@@ -134,11 +151,11 @@ export default function WithdrawModal({
                 onClick={handleDepositEther}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loading ? "Depositing..." : "Deposit"}
               </button>
-            </Tab.Panel>
+            </TabPanel>
             {/* ERC20 Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="text"
                 placeholder="Token Address"
@@ -158,11 +175,11 @@ export default function WithdrawModal({
                 onClick={handleDepositERC20}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loading ? "Depositing..." : "Deposit"}
               </button>
-            </Tab.Panel>
+            </TabPanel>
             {/* ERC721 Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="text"
                 placeholder="NFT Contract Address"
@@ -182,17 +199,11 @@ export default function WithdrawModal({
                 onClick={handleTransferERC721}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loading ? "Transferring..." : "Transfer"}
               </button>
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
-        <button
-          className="mt-4 w-full p-2 bg-gray-500 text-white rounded"
-          onClick={onClose}
-        >
-          Close
-        </button>
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
       </div>
     </Dialog>
   );

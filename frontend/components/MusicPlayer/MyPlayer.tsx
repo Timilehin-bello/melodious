@@ -76,7 +76,7 @@ const MyPlayer: React.FC = () => {
     setCurrentTime(state.playedSeconds);
     setDuration(state.loadedSeconds);
     setProgress((state.playedSeconds / state.loadedSeconds) * 100);
-    // Your custom logic here, for example:
+
     // console.log(`Played: ${state.played * 100}%`);
   };
 
