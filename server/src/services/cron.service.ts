@@ -82,3 +82,22 @@ export const updateArtistListeningTimeForReward = async () => {
 
   return txhash;
 };
+
+export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
+  const payload = await getArtistsListeningStats();
+
+  const userPayload = {
+    method: "distribute_reward_to_artists",
+    args: {
+      artistsTotalTrackListenTime: payload,
+    },
+  };
+
+  console.log("userPayload", JSON.stringify(userPayload));
+
+  const txhash = await transactionService.signMessages(userPayload);
+
+  console.log("txhas", txhash);
+
+  return txhash;
+};
