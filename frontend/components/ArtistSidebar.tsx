@@ -24,6 +24,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { usePlayer } from "@/contexts/melodious/PlayerContext";
+import { twMerge } from "tailwind-merge";
 
 // Menu items.
 const items = [
@@ -53,11 +55,12 @@ export function ArtistSidebar() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const { state } = useSidebar();
   const router = useRouter();
-  const logOut = () => {
-    router.push("/");
-  };
+  const { currentTrack } = usePlayer();
   return (
-    <Sidebar collapsible="icon" className="sidebar">
+    <Sidebar
+      collapsible="icon"
+      className={twMerge(`sidebar`, currentTrack && "h-[calc(100%-90px)]")}
+    >
       <SidebarContent className="bg-sidebar-gradient text-white bg-cover bg-center border-0">
         <SidebarGroup>
           <SidebarHeader>
@@ -117,7 +120,7 @@ export function ArtistSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-[#950944] text-white">
+      {/* <SidebarFooter className="bg-[#950944] text-white">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex align-middle items-center w-full">
@@ -143,7 +146,7 @@ export function ArtistSidebar() {
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

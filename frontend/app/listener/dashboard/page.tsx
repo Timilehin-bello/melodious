@@ -9,15 +9,12 @@ import Link from "next/link";
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
-import useOnPlay from "@/hooks/useOnPlay";
 import { twMerge } from "tailwind-merge";
-// import usePlayer from "@/hooks/usePlayer";
 import { useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
 import { initializeSocket } from "@/lib/testSocket";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { usePlayer } from "@/contexts/melodious/PlayerContext";
-import { object } from "zod";
 
 export default function Page() {
   const [tracks, setTracks] = useState<any[]>([]);
@@ -64,7 +61,7 @@ export default function Page() {
   }, []);
 
   const { connect } = useConnectModal();
-  const onPlay = useOnPlay(tracks);
+  // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
   const { playTrack, playPlaylist } = usePlayer();
@@ -113,6 +110,7 @@ export default function Page() {
       songTitle: track.title,
       imageUrl: track.image_path,
       songDetails: "289 songs, 5hr 10 min",
+      audioUrl: track.song_path,
     };
   });
 

@@ -3,10 +3,11 @@ import { ConnectButton } from "thirdweb/react";
 import { LoginPayload, VerifyLoginPayloadParams } from "thirdweb/auth";
 
 import { get, post } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useEffect, useState } from "react";
 import { defineChain } from "thirdweb";
+import { useMelodiousContext } from "@/contexts/melodious";
 
 export const localhostChain = defineChain({
   id: 31337,
@@ -22,26 +23,92 @@ interface User {
 
 const ConnectWallet = () => {
   const router = useRouter();
-  const [userData, setUserData] = useState<User | null>(null);
+  // const [userData, setUserData] = useState<User | null>(null);
 
   const [successfulLogin, setSuccessfulLogin] = useState(false);
 
+  const pathname = usePathname();
+
+  // useEffect(() => {
+  //   // if (successfulLogin && userData) {
+  //   //   if (userData.listener === null) {
+  //   //     // router.push("/artist/dashboard");
+  //   //   } else if (userData.listener !== null) {
+  //   //     // router.push("/listener/dashboard");
+  //   //   } else if (userData.artist === null) {
+  //   //     // router.push("/listener/dashboard");
+  //   //   } else if (userData.artist !== null) {
+  //   //     // router.push("/artist/dashboard");
+  //   //   } else {
+  //   //     router.push("/");
+  //   //   }
+  //   // }
+  //   console.log("successfulLogin", successfulLogin);
+
+  //   if (successfulLogin) {
+  //     if (userData) {
+  //       console.log("user data", userData);
+  //       // Get the current path to check if the user is already in the correct section
+  //       const currentPath = pathname;
+
+  //       // If the user is an artist and the current path is not the artist section, redirect to the artist section
+  //       if (userData.artist && !currentPath.startsWith("/artist")) {
+  //         // Ensure redirection to the artist section, either to the dashboard or other page
+  //         router.push("/artist/dashboard");
+  //       }
+  //       // If the user is a listener and the current path is not the listener section, redirect to the listener section
+  //       else if (userData.listener && !currentPath.startsWith("/listener")) {
+  //         // Ensure redirection to the listener section, either to the dashboard or other page
+  //         router.push("/listener/dashboard");
+  //       }
+  //     }
+  //   } else {
+  //     // Redirect to the login page if the user is not authenticated
+  //     router.push("/");
+  //   }
+  // }, [router, userData]);
+
+  const { userData, setUserData, isLoggedIn, checkLoginStatus } =
+    useMelodiousContext();
+
+  // Step 1: Ensure `checkLoginStatus` runs first and updates state
   useEffect(() => {
-    if (successfulLogin && userData) {
-      if (userData.listener === null) {
-        // router.push("/artist/dashboard");
-      } else if (userData.listener !== null) {
-        // router.push("/listener/dashboard");
-      } else if (userData.artist === null) {
-        // router.push("/listener/dashboard");
-      } else if (userData.artist !== null) {
-        // router.push("/artist/dashboard");
-      } else {
-        router.push("/");
+    const checkLogin = async () => {
+      console.log("Checking login status..."); // Debug log
+      const status = await checkLoginStatus();
+      console.log("Login status:", status);
+
+      // Redirect if login failed
+      if (!status) {
+        console.log("User not logged in, redirecting to home...");
+        router.replace("/");
       }
+    };
+
+    checkLogin();
+  }, []);
+
+  // Step 2: Handle redirection after state updates
+  useEffect(() => {
+    if (isLoggedIn === null || userData === null) {
+      console.log("Waiting for user data...");
+      return;
     }
-    console.log("successfulLogin", successfulLogin);
-  }, [successfulLogin, router, userData]);
+
+    console.log("User logged in:", isLoggedIn, "User data:", userData);
+
+    handleRedirect(userData);
+  }, [isLoggedIn, userData]);
+
+  const handleRedirect = (user: User) => {
+    const currentPath = pathname;
+
+    if (user?.artist && !currentPath.startsWith("/artist")) {
+      router.replace("/artist/dashboard");
+    } else if (user?.listener && !currentPath.startsWith("/listener")) {
+      router.replace("/listener/dashboard");
+    }
+  };
   return (
     <div>
       <ConnectButton
@@ -144,3 +211,46 @@ const ConnectWallet = () => {
 };
 
 export default ConnectWallet;
+
+// // components/ConnectWallet.tsx
+// import React from "react";
+// import { ConnectButton } from "thirdweb/react";
+// import { useRouter } from "next/navigation";
+// import { useAuth } from "@/contexts/melodious/AuthContext";
+// import { LoginPayload } from "thirdweb/auth";
+
+// const ConnectWallet: React.FC = () => {
+//   const { isAuthenticated, userData, loginWithWallet, logout } = useAuth();
+//   const router = useRouter();
+
+//   return (
+//     <div>
+//       <ConnectButton
+//         client={client}
+//         connectButton={{
+//           label: "Connect Wallet",
+//           className: "connect-button",
+//         }}
+//         auth={{
+//           getLoginPayload: async (params: {
+//             address: string;
+//           }): Promise<any> => {
+//             localStorage.setItem("walletAddress", params.address);
+//             await loginWithWallet(params.address);
+//           },
+//           doLogin: async (params: any) => {
+//             return params;
+//           },
+//           isLoggedIn: async () => {
+//             return isAuthenticated;
+//           },
+//           doLogout: async () => {
+//             await logout();
+//           },
+//         }}
+//       />
+//     </div>
+//   );
+// };
+
+// export default ConnectWallet;

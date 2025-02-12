@@ -2,7 +2,17 @@ import { Play } from "lucide-react";
 import React, { useState } from "react";
 import { AiOutlineEllipsis } from "react-icons/ai";
 
-const SongListItem = ({ index, song }: any) => {
+interface SongListItemProps {
+  index: number;
+  song: any;
+  playSong: (song: any) => void;
+}
+
+const SongListItem: React.FC<SongListItemProps> = ({
+  index,
+  song,
+  playSong,
+}) => {
   const [showSongMenu, setShowSongMenu] = useState(false);
 
   return (
@@ -12,19 +22,27 @@ const SongListItem = ({ index, song }: any) => {
           {index + 1}
         </span>
 
-        <Play className="h-4 w-4 hidden group-hover:block ml-4" />
+        <Play
+          className="h-4 w-4 hidden group-hover:block ml-4"
+          onClick={playSong}
+        />
       </td>
       <td className="flex items-center">
         <span className="p-2">
-          <img className="h-10 w-10" src={song.imageUrl} alt={song.title} />
+          <img
+            className="h-10 w-10"
+            src={song.imageUrl}
+            alt={song.title || song.songTitle}
+          />
         </span>
         <span className="p-2">
-          <span className="block">{song.title}</span>
+          <span className="block">{song.title || song.songTitle}</span>
           {/* <span className="block text-xs text-mygrey-200">{song.artist}</span> */}
         </span>
       </td>
+      {/* <td className="w-80"><span>{song.songDetails}</span></td> */}
       <td className="w-80">
-        <span>{song.audio_src}</span>
+        <span>{song.songDetails}</span>
       </td>
       <td>
         <button

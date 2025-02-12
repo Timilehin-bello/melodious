@@ -3,6 +3,7 @@
 import { ethers } from "ethers";
 import React, { useEffect } from "react";
 import { useReports } from "@/cartesi/hooks/useReports";
+import toast from "react-hot-toast";
 
 const Reports: React.FC = () => {
   const { loading, error, data, reports, refetch } = useReports();
@@ -15,9 +16,9 @@ const Reports: React.FC = () => {
   if (error) return <p className="text-gray-400">Oh no... {error.message}</p>;
   if (!data || !data.reports)
     return <p className="text-gray-400">No reports</p>;
-
+  toast.error(reports[reports.length - 1].payload);
   return (
-    <div className="overflow-x-auto border border-gray-300 p-4 rounded-lg">
+    <div className="overflow-x-hidden border border-gray-300 p-4 rounded-lg">
       <table className="w-full border-collapse text-black border border-gray-200">
         <thead>
           <tr className="bg-gray-100">
@@ -43,7 +44,7 @@ const Reports: React.FC = () => {
           {reports &&
             reports.map((n: any) => (
               <tr key={`${n.input.index}-${n.index}`} className="border-b">
-                <td className="p-2 text-gray-600">{n.payload}</td>
+                <td className="p-2 text-gray-600  text-wrap">{n.payload}</td>
               </tr>
             ))}
         </tbody>

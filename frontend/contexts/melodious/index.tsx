@@ -8,6 +8,7 @@ import { useContext } from "react";
 import { io, Socket } from "socket.io-client";
 import { DeviceInfo } from "@/lib/getDeviceInfo";
 import { disconnectSocket, initSocket } from "@/lib/socket";
+import toast from "react-hot-toast";
 
 declare global {
   interface Window {
@@ -20,6 +21,7 @@ interface IMelodiousContext {
   signMessages: (message: any) => Promise<any>;
   createUser: (user: ICreateUser) => Promise<any>;
   createGenre: (genre: ICreateGenre) => Promise<any>;
+  withdrawCTSI: (amount: number) => Promise<any>;
   createAlbum?: (album: ICreateAlbum) => Promise<any>;
   createSingleTrack: (album: ICreateTrack) => Promise<any>;
   // sendEvent: (event: PlaybackEvent) => void | null;
@@ -32,6 +34,10 @@ interface IMelodiousContext {
   connect: (token: string) => void;
   disconnect: () => void;
   setConditionFulfilled: (value: boolean) => void;
+  isLoggedIn: boolean;
+  userData: any;
+  checkLoginStatus: () => Promise<boolean>;
+  setUserData: React.Dispatch<React.SetStateAction<any>>;
 }
 interface SocketState {
   token: string | null;
@@ -132,6 +138,9 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
   createGenre: async (genre: ICreateGenre) => {
     return "";
   },
+  withdrawCTSI: async (amount: number) => {
+    return "";
+  },
   createAlbum: async (songs: ICreateAlbum) => {
     return "";
   },
@@ -149,6 +158,12 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
   connect: () => {},
   disconnect: () => {},
   setConditionFulfilled: () => {},
+  isLoggedIn: false,
+  userData: null,
+  checkLoginStatus: async () => {
+    return false;
+  },
+  setUserData: () => {},
 });
 
 export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -163,6 +178,43 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     token: null,
     isConditionFulfilled: false,
   });
+
+  const [userData, setUserData] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const checkLoginStatus = async () => {
+    let data = localStorage.getItem("xx-mu") as any | null;
+    if (!data) return false; // handle the case when there's no data
+
+    data = JSON.parse(data);
+    const accessToken = data["tokens"]["token"].access.token;
+    const thirdwebToken = data["tokens"]["token"].thirdWeb.token;
+
+    try {
+      const response = await axios.get(
+        process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
+        {
+          params: {
+            accessToken: accessToken,
+            thirdwebToken: thirdwebToken,
+          },
+        }
+      );
+
+      setUserData(data.user);
+      setIsLoggedIn(response.data);
+      console.log("isLoggedIn", response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error("Error checking login status:", error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
 
   // Computed property to determine if connection should be allowed
   const isConnectionAllowed = Boolean(
@@ -251,51 +303,10 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [isConnectionAllowed, socketState.token]);
 
-  // useEffect(() => {
-  //   console.log("useEffect triggered, playing:", playing);
-  //   if (playing) {
-  //     let data = localStorage.getItem("xx-mu") as any;
-  //     console.log("token gotten", JSON.parse(data));
-
-  //     data = JSON.parse(data) ?? null;
-  //     const url = "http://localhost:8088";
-
-  //     // console.log("error", data);
-  //     const token = data ? data["tokens"]["token"].access.token : null;
-
-  //     socket.current = io(
-  //       url,
-
-  //       {
-  //         path: "/",
-  //         extraHeaders: {
-  //           token: `${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     console.log('socket', socket.current)
-  //     socket.current.on("connection", () => {
-  //       console.log("Socket.IO connection established.");
-  //     });
-
-  //     socket.current.on("disconnect", () => {
-  //       console.log("Socket.IO connection closed.");
-  //     });
-
-  //     // socket.current.on("connect_error", (error) => {
-  //     //   console.error("Socket.IO connection error:", error);
-  //     // });
-  //   }
-
-  //   return () => {
-  //     socket.current?.disconnect();
-  //   };
-  // }, [playing]);
-
   const uploadToIPFS = async (file: File): Promise<string> => {
     try {
       console.log("Uploading file to IPFS...", file);
+      toast.success("Uploading file to IPFS...");
       const formData = new FormData();
       formData.append("file", file!);
 
@@ -311,6 +322,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       console.log("File uploaded to IPFS:", res.data.IpfsHash);
+      toast.success("File uploaded to IPFS \n" + res.data.IpfsHash);
       const subdomain = process.env.NEXT_PUBLIC_PINATA_SUBDOMAIN;
       if (!subdomain) {
         throw new Error("PINATA_SUBDOMAIN is not defined");
@@ -318,6 +330,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       return `${subdomain}/ipfs/${res.data.IpfsHash}`;
     } catch (error) {
       console.error("Error uploading to Pinata:", error);
+      toast.error("Error uploading to Pinata: \n" + error);
+
       throw error;
     }
   };
@@ -342,10 +356,14 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(userPayload);
+      toast.success(
+        "User created successfully \n" + "Transaction hash is: " + txhash
+      );
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
       console.error("Error creating user:", error);
+      toast.error("Error creating user: \n" + error);
     }
   };
 
@@ -365,9 +383,35 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(genrePayload);
+      toast.success(
+        "Genre created successfully \n" + "Transaction hash is: " + txhash
+      );
+
       console.log(`Transaction hash is: ${txhash}`);
       return txhash;
     } catch (error) {
+      toast.error("Error creating genre: " + error);
+      console.error("Error creating genre:", error);
+    }
+  };
+
+  const withdrawCTSI = async (amount: number): Promise<any> => {
+    const genrePayload = {
+      method: "withdraw_artist_vault",
+      args: {
+        amount,
+      },
+    };
+
+    try {
+      const txhash = await signMessages(genrePayload);
+      toast.success(
+        "Withdrawal successful. \n  To complete the withdrawal, you need to execute voucher."
+      );
+      console.log(`Transaction hash is: ${txhash}`);
+      return txhash;
+    } catch (error) {
+      toast.error("Error withdrawing CTSI " + error);
       console.error("Error creating user:", error);
     }
   };
@@ -402,37 +446,6 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Error creating user:", error);
     }
   };
-
-  // const createAlbum = async ({
-  //   name,
-  //   imageUrl,
-  //   description,
-  // }: ICreateGenre): Promise<any> => {
-  //   const genrePayload = {
-  //     method: "create_genre",
-  //     args: {
-  //       name: name,
-  //       imageUrl: imageUrl,
-  //       description: description,
-  //     },
-  //   };
-
-  //   try {
-  //     const txhash = await signMessages(genrePayload);
-  //     console.log(`Transaction hash is: ${txhash}`);
-  //     return txhash;
-  //   } catch (error) {
-  //     console.error("Error creating user:", error);
-  //   }
-  // };
-
-  // const sendEvent = (event: PlaybackEvent) => {
-  //   if (socket.current?.connected) {
-  //     socket.current.emit(event.event, event.payload);
-  //   } else {
-  //     console.error("Socket.IO is not connected.");
-  //   }
-  // };
 
   const signMessages = async (message: any) => {
     console.log("signMessages", JSON.stringify(message));
@@ -521,7 +534,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         createUser,
         createGenre,
         createSingleTrack,
-        // sendEvent,
+        withdrawCTSI,
         playing,
         setPlaying,
         socket,
@@ -530,6 +543,10 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         connect,
         disconnect,
         setConditionFulfilled,
+        userData,
+        isLoggedIn,
+        setUserData,
+        checkLoginStatus,
       }}
     >
       {children}

@@ -12,12 +12,15 @@ import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { client } from "@/lib/client";
 import { localhostChain } from "@/components/ConnectWallet";
 import WithdrawModal from "@/components/Wallet/Withdraw";
+import WithdrawCTSIModal from "@/components/Wallet/WithdrawCTSI";
 
 const Wallet = () => {
   const account = useActiveAccount();
   const [transactionStatus, setTransactionStatus] = useState(false);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [isWithdrawalCTSModalOpen, setIsWithdrawalCTSModalOpen] =
+    useState(false);
   const { reports, decodedReports, inspectCall } = useInspectCall();
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
@@ -43,8 +46,7 @@ const Wallet = () => {
     setSignerInstance(await getSigner);
 
     console.log("await signer", await getSigner);
-    // const getAddress = (await getSigner).getAddress();
-    // console.log("getAddress", getAddress);
+
     const provider = (await getSigner).provider;
 
     const signer = provider.getSigner();
@@ -65,8 +67,8 @@ const Wallet = () => {
       <div className="w-full flex flex-wrap  items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
         <div className="w-2/3 h-75">
           <div className="mb-3 py-4 px-6">
-            <h3 className="text-2xl">Total Revenue</h3>
-            {/* <h2 className="text-6xl mt-4">CTSI (62,340.48)</h2> */}
+            <h3 className="text-3xl">Wallet</h3>
+
             <Balance
               account={account ? account : null}
               transactionStatus={transactionStatus}
@@ -74,25 +76,33 @@ const Wallet = () => {
               reports={reports}
               decodedReports={decodedReports}
             />
-            <div className="flex gap-4 flex-wrap mt-8">
-              <Button
-                onClick={() => setIsTransferModalOpen(true)}
-                className={`h-[45px] px-4 py-2 rounded-md text-blue-300 hover:bg-blue-500`}
-              >
-                Transfer
-              </Button>
-              <Button
-                onClick={() => setIsWithdrawModalOpen(true)}
-                className={`h-[45px] px-4 py-2 rounded-md text-green-300 hover:bg-green-500`}
-              >
-                Withdraw
-              </Button>
+            <div>
+              <div className="flex gap-4 flex-wrap mt-8">
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsWithdrawalCTSModalOpen(true)}
+                  className={`h-[45px] px-4 py-2 rounded-md text-white hover:bg-blue-500`}
+                >
+                  Withdraw CTSI Reward
+                </Button>
+                <Button
+                  onClick={() => setIsTransferModalOpen(true)}
+                  className={`h-[45px] px-4 py-2 rounded-md text-blue-300 hover:bg-blue-500`}
+                >
+                  Transfer
+                </Button>
+                <Button
+                  onClick={() => setIsWithdrawModalOpen(true)}
+                  className={`h-[45px] px-4 py-2 rounded-md text-green-300 hover:bg-green-500`}
+                >
+                  Withdraw
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div className="px-8 mt-2 text-white bg-blue-950">
-        {/* <h2 className="text-2xl font-bold">Transaction History</h2> */}
         <Transfers dappAddress={dappAddress} />
       </div>
 
@@ -103,6 +113,7 @@ const Wallet = () => {
         provider={provider}
         signerInstance={signerInstance}
         dappAddress={dappAddress}
+        updateTransactionStatus={setTransactionStatus}
       />
       <WithdrawModal
         isOpen={isWithdrawModalOpen}
@@ -111,6 +122,12 @@ const Wallet = () => {
         provider={provider}
         signerInstance={signerInstance}
         dappAddress={dappAddress}
+        updateTransactionStatus={setTransactionStatus}
+      />
+      <WithdrawCTSIModal
+        isOpen={isWithdrawalCTSModalOpen}
+        onClose={() => setIsWithdrawalCTSModalOpen(false)}
+        updateTransactionStatus={setTransactionStatus}
       />
     </div>
   );

@@ -52,7 +52,7 @@ const Notices: React.FC = () => {
           {notices.map((n: any) => (
             <tr key={`${n.input.index}-${n.index}`} className="border-b">
               {payloadIsJSON(n.payload) ? (
-                <td className="p-2">
+                <td className="p-2 ">
                   <span className="px-2 py-1 text-sm rounded bg-blue-200">
                     {JSON.parse(n.payload).type}
                   </span>
@@ -66,7 +66,7 @@ const Notices: React.FC = () => {
               )}
 
               {payloadIsJSON(n.payload) ? (
-                <td className="p-2 text-gray-600">
+                <td className="p-2 text-gray-600 text-wrap">
                   {JSON.parse(n.payload).type === "etherdeposit" && (
                     <>
                       {ethers.utils.formatEther(
@@ -99,7 +99,7 @@ const Notices: React.FC = () => {
                   )}
                 </td>
               ) : (
-                <td className="p-2 text-gray-600">{n.payload}</td>
+                <td className="p-2 text-gray-600 text-wrap">{n.payload}</td>
               )}
             </tr>
           ))}

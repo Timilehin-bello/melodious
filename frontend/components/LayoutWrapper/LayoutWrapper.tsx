@@ -33,11 +33,9 @@ const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     return [client, ssr];
   }, []);
   return (
-    <ChakraProvider>
-      <UrqlProvider client={client} ssr={ssr}>
-        <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
-      </UrqlProvider>
-    </ChakraProvider>
+    <UrqlProvider client={client} ssr={ssr}>
+      <ApolloProvider client={apolloClient}>{children}</ApolloProvider>
+    </UrqlProvider>
   );
 };
 

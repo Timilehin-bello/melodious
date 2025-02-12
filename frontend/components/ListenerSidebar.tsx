@@ -53,10 +53,8 @@ const items = [
 export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
-  // const player = usePlayer();
-  const router = useRouter();
-
   const { currentTrack } = usePlayer();
+
   return (
     <Sidebar
       collapsible="icon"

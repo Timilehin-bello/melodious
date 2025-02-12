@@ -4,10 +4,10 @@ import { ListenerSidebar } from "@/components/ListenerSidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import Header from "@/components/Header";
 import { ThirdwebProvider } from "thirdweb/react";
-import { MusicPlayerProvider } from "@/contexts/MusicPlayerContext";
 import { MelodiousProvider } from "@/contexts/melodious";
 import MyPlayer from "@/components/MusicPlayer/MyPlayer";
 import { PlayerProvider } from "@/contexts/melodious/PlayerContext";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "Listener",
@@ -21,24 +21,25 @@ export default function ListenerLayout({
 }>) {
   return (
     <div>
-      <ThirdwebProvider>
+      {/* <ThirdwebProvider>
         <MelodiousProvider>
           {/* <MusicPlayerProvider> */}
-          <PlayerProvider>
-            <SidebarProvider>
-              <ListenerSidebar />
-              <SidebarInset className="bg-main-content-gradient bg-cover bg-center">
-                <Header />
-                <main>{children}</main>
-              </SidebarInset>
-            </SidebarProvider>
-            {/* <Player /> */}
-            {/* <MusicPlayer /> */}
-            <MyPlayer />
-            {/* </MusicPlayerProvider> */}
-          </PlayerProvider>
+      {/* <PlayerProvider> */} */
+      <SidebarProvider>
+        <ListenerSidebar />
+        <SidebarInset className="bg-main-content-gradient bg-cover bg-center">
+          <Header />
+          <main>{children}</main>
+        </SidebarInset>
+        <Toaster />
+      </SidebarProvider>
+      {/* <Player /> */}
+      {/* <MusicPlayer /> */}
+      {/* <MyPlayer /> */}
+      {/* </MusicPlayerProvider> */}
+      {/* </PlayerProvider>
         </MelodiousProvider>
-      </ThirdwebProvider>
+      </ThirdwebProvider> */}
     </div>
   );
 }

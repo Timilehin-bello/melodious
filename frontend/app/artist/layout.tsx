@@ -6,13 +6,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 import "./../globals.css";
 import { Input } from "@/components/ui/input";
 import { Bell, ChevronDown, Search } from "lucide-react";
-import Image from "next/image";
+
 import { MelodiousProvider } from "@/contexts/melodious";
 import ConnectWallet from "@/components/ConnectWallet";
+import { Toaster } from "react-hot-toast";
 
 // export const metadata: Metadata = {
 //   title: "Artist | Melodious Music Streaming Platform ",
@@ -45,39 +47,24 @@ export default function ArtistLayout({
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 w-1/3">
+                <div className="flex items-center gap-4">
                   <Bell size={24} fill="blue" className="text-white" />
-                  <div className="flex items-center gap-2 text-white">
-                    <Image
-                      src="/images/UK_Flag.png"
-                      width={45}
-                      height={27}
-                      alt="country flag"
-                    />
-                    <p>English</p>
-                    <ChevronDown size={16} className="text-white" />
-                  </div>
+
+                  <Link
+                    href="/artist/wallet"
+                    className="bg-[#950944] text-white p-2 rounded"
+                  >
+                    Wallet
+                  </Link>
 
                   <div className="flex items-center gap-2">
-                    {/* <Image
-                      src="/images/artist_avatar.png"
-                      width={50}
-                      height={54}
-                      alt="country flag"
-                      className="rounded-full p-1 border-1 border-gray-400"
-                    /> */}
-
-                    {/* <div className="flex flex-col items-center text-xs text-white mr-2"> */}
-                    {/* <p className="mb-1">Money Ray</p>
-                      <p>Admin</p>
-                    </div>
-                    <ChevronDown size={16} className="text-white" /> */}
                     <ConnectWallet />
                   </div>
                 </div>
               </div>
             </header>
             <main>{children}</main>
+            <Toaster />
           </SidebarInset>
         </SidebarProvider>
       </MelodiousProvider>

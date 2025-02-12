@@ -43,6 +43,16 @@ const Release = () => {
     fetchTracks();
   }, []);
 
+  const transformedData = tracks.map((track) => {
+    return {
+      id: track.id,
+      songTitle: track.title,
+      imageUrl: track.imageUrl,
+      songDetails: track.duration,
+      audioUrl: track.audioUrl,
+    };
+  });
+
   if (loading) {
     return <BlockLoader message="Loading songs" />;
   }
@@ -128,7 +138,7 @@ const Release = () => {
           </Button>
         </div>
         {tracks.length !== 0 ? (
-          <SongList songList={tracks} />
+          <SongList songList={transformedData} />
         ) : (
           <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
             <Music2 size={54} className="mb-4" />

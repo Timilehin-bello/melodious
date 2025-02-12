@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, Tab } from "@headlessui/react";
+import {
+  Dialog,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+} from "@headlessui/react";
 import { toast } from "react-hot-toast";
 import {
   sendAddress,
@@ -21,6 +28,7 @@ interface DepositModalProps {
   provider: any;
   signerInstance: any;
   dappAddress: string;
+  updateTransactionStatus: (status: boolean) => void;
 }
 
 export default function WithdrawModal({
@@ -30,72 +38,66 @@ export default function WithdrawModal({
   provider,
   signerInstance,
   dappAddress,
+  updateTransactionStatus,
 }: DepositModalProps) {
   const [etherAmount, setEtherAmount] = useState("");
-  const [erc20Token, setErc20Token] = useState("");
-  const [erc20Amount, setErc20Amount] = useState("");
-  const [erc721, setErc721] = useState("");
-  const [erc721Id, setErc721Id] = useState("");
+  const [erc20Amount, setErc20Amount] = useState<string>("");
+  const [erc20Token, setErc20Token] = useState<string>("");
+  const [erc721Id, setErc721Id] = useState<string>("");
+  const [erc721, setErc721] = useState<string>("");
+  const [loadWithdrawEther, setLoadWithdrawEther] = useState(false);
+  const [loadWithdrawERC20, setLoadWithdrawERC20] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleDepositEther = async () => {
-    if (!etherAmount) return toast.error("Amount field required!");
-    setLoading(true);
-    try {
-      const res = await depositEtherToPortal(
-        rollups,
-        provider,
-        Number(etherAmount),
-        dappAddress
-      );
-      if (!res.hash) throw new Error(res);
-      toast.success(res.hash);
-    } catch (error) {
-      toast.error(String(error));
-    } finally {
-      setLoading(false);
+  const handleWithdrawEther = async () => {
+    if (!etherAmount) return toast.error("Amount fields required!");
+    setLoadWithdrawEther(true);
+    console.log("withdrawEther", dappAddress);
+
+    const res: any = await withdrawEther(
+      rollups,
+      provider,
+      Number(etherAmount),
+      dappAddress
+    );
+
+    console.log("result", res);
+
+    if (res.transactionHash) {
+      setLoadWithdrawEther(false);
+      updateTransactionStatus(true);
+      onClose();
+      toast.success(res.transactionHash);
+    } else {
+      setLoadWithdrawEther(false);
+      return toast.error(res);
     }
+
+    // setEtherAmount("");
   };
 
-  const handleDepositERC20 = async () => {
-    if (!erc20Token || !erc20Amount) return toast.error("Fields required!");
-    setLoading(true);
-    try {
-      const res: any = await depositErc20ToPortal(
-        rollups,
-        signerInstance,
-        erc20Token,
-        Number(erc20Amount),
-        dappAddress
-      );
-      if (!res.hash) throw new Error(res);
-      toast.success(res.hash);
-    } catch (error) {
-      toast.error(String(error));
-    } finally {
-      setLoading(false);
+  const handleWithdrawERC20 = async () => {
+    if (!erc20Amount || !erc20Token) return toast.error("Fields required!");
+    setLoadWithdrawERC20(true);
+    const res: any = await withdrawErc20(
+      rollups,
+      provider,
+      Number(erc20Amount),
+      erc20Token,
+      dappAddress
+    );
+    if (!res.hash) {
+      setLoadWithdrawERC20(false);
+      return toast.error(res);
     }
+    updateTransactionStatus(true);
+    setLoadWithdrawERC20(false);
+    onClose();
+    toast.success(res.hash);
+    setErc20Amount("");
   };
 
-  const handleTransferERC721 = async () => {
-    if (!erc721 || !erc721Id) return toast.error("Fields required!");
-    setLoading(true);
-    try {
-      const res: any = await transferNftToPortal(
-        rollups,
-        provider,
-        erc721,
-        Number(erc721Id),
-        dappAddress
-      );
-      if (!res.hash) throw new Error(res);
-      toast.success(res.hash);
-    } catch (error) {
-      toast.error(String(error));
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleWithdrawERC721 = async () => {};
 
   return (
     <Dialog
@@ -104,8 +106,18 @@ export default function WithdrawModal({
       className="fixed inset-0 flex items-center justify-center z-50"
     >
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <Tab.Group>
-          <Tab.List className="flex space-x-2 border-b pb-2">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold mb-4 text-2xl">Withdraw</h2>
+
+          <button
+            onClick={onClose}
+            className="text-gray-700 font-bold text-medium"
+          >
+            X
+          </button>
+        </div>
+        <TabGroup>
+          <TabList className="flex space-x-2 border-b pb-2">
             {["Ether", "ERC20", "ERC721"].map((tab) => (
               <Tab
                 key={tab}
@@ -118,10 +130,10 @@ export default function WithdrawModal({
                 {tab}
               </Tab>
             ))}
-          </Tab.List>
-          <Tab.Panels>
+          </TabList>
+          <TabPanels>
             {/* Ether Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="number"
                 placeholder="Enter amount"
@@ -131,14 +143,14 @@ export default function WithdrawModal({
               />
               <button
                 className="w-full p-2 bg-blue-600 text-white rounded mt-2"
-                onClick={handleDepositEther}
+                onClick={handleWithdrawEther}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loadWithdrawEther ? "Withdrawing please wait..🤑" : "Withdraw"}
               </button>
-            </Tab.Panel>
+            </TabPanel>
             {/* ERC20 Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="text"
                 placeholder="Token Address"
@@ -155,14 +167,14 @@ export default function WithdrawModal({
               />
               <button
                 className="w-full p-2 bg-blue-600 text-white rounded mt-2"
-                onClick={handleDepositERC20}
+                onClick={handleWithdrawERC20}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loading ? "Withdrawing Erc20..." : "Withdraw"}
               </button>
-            </Tab.Panel>
+            </TabPanel>
             {/* ERC721 Tab */}
-            <Tab.Panel className="p-4">
+            <TabPanel className="p-4">
               <input
                 type="text"
                 placeholder="NFT Contract Address"
@@ -179,20 +191,14 @@ export default function WithdrawModal({
               />
               <button
                 className="w-full p-2 bg-blue-600 text-white rounded mt-2"
-                onClick={handleTransferERC721}
+                onClick={handleWithdrawERC721}
                 disabled={loading}
               >
-                {loading ? "Withdrawing..." : "Withdraw"}
+                {loadWithdrawERC20 ? "Withdrawing please wait..🤑" : "Withdraw"}
               </button>
-            </Tab.Panel>
-          </Tab.Panels>
-        </Tab.Group>
-        <button
-          className="mt-4 w-full p-2 bg-gray-500 text-white rounded"
-          onClick={onClose}
-        >
-          Close
-        </button>
+            </TabPanel>
+          </TabPanels>
+        </TabGroup>
       </div>
     </Dialog>
   );

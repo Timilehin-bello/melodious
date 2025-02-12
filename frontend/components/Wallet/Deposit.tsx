@@ -28,6 +28,7 @@ interface DepositModalProps {
   provider: any;
   signerInstance: any;
   dappAddress: string;
+  updateTransactionStatus: (status: boolean) => void;
 }
 
 export default function DepositModal({
@@ -37,6 +38,7 @@ export default function DepositModal({
   provider,
   signerInstance,
   dappAddress,
+  updateTransactionStatus,
 }: DepositModalProps) {
   const [etherAmount, setEtherAmount] = useState("");
   const [erc20Token, setErc20Token] = useState("");
@@ -55,9 +57,15 @@ export default function DepositModal({
         Number(etherAmount),
         dappAddress
       );
+      console.log("error", res.hash);
       if (!res.hash) throw new Error(res);
+      updateTransactionStatus(true);
+      onClose();
       toast.success(res.hash);
     } catch (error) {
+      console.log("error", error);
+      updateTransactionStatus(true);
+      onClose();
       toast.error(String(error));
     } finally {
       setLoading(false);
@@ -65,8 +73,8 @@ export default function DepositModal({
   };
 
   const handleDepositERC20 = async () => {
-    console.log("erc20Token", erc20Token);
-    console.log("erc20Token", erc20Amount);
+    // console.log("erc20Token", erc20Token);
+    // console.log("erc20Token", erc20Amount);
     if (!erc20Token || !erc20Amount) return toast.error("Fields required!");
     setLoading(true);
     try {
@@ -114,13 +122,17 @@ export default function DepositModal({
       className="fixed inset-0 flex items-center justify-center z-50"
     >
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <div className="flex justify-between">
-          <div></div>
-          <button onClick={onClose} className="text-black">
-            x
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold mb-4 text-2xl">Deposit</h2>
+
+          <button
+            onClick={onClose}
+            className="text-black font-bold text-medium"
+          >
+            X
           </button>
         </div>
-        <h2 className="font-bold mb-4">Deposit</h2>
+
         <TabGroup>
           <TabList className="flex space-x-2 w-full border-b pb-2">
             {["Ether", "ERC20", "ERC721"].map((tab) => (

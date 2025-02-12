@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useRollups } from "../../../cartesi/hooks/useRollups";
 
-import { Tab } from "@headlessui/react";
+import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { Vouchers } from "./Vouchers";
 
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
@@ -120,9 +120,9 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
   };
 
   return (
-    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-full mx-auto  shadow-md">
-      <Tab.Group>
-        <Tab.List className="flex space-x-2 border-b border-gray-300">
+    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-[1000px] mx-auto  shadow-md">
+      <TabGroup>
+        <TabList className="flex space-x-2 border-b border-gray-300 ">
           {["🎟️ Vouchers", "🔔 Activity"].map((tab, index) => (
             <Tab
               key={index}
@@ -137,10 +137,10 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
               {tab}
             </Tab>
           ))}
-        </Tab.List>
-        <Tab.Panels className="p-4">
-          <Tab.Panel>
-            <p className="text-sm text-gray-600">
+        </TabList>
+        <TabPanels className="p-4">
+          <TabPanel>
+            <p className="text-sm text-gray-200 font-bold">
               After the withdrawal request, the user must execute a voucher to
               transfer assets from the Cartesi dApp to their account.
             </p>
@@ -150,7 +150,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
                 <div className="text-slate-500">
                   Let the dApp know its address! <br />
                   <button
-                    className="mt-4"
+                    className="mt-4 bg-blue-300 text-black rounded p-2 hover:bg-blue-500"
                     onClick={async () => {
                       try {
                         const tx = await sendAddress(rollups, dappAddress);
@@ -170,17 +170,17 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
               )}
               {dappRelayedAddress && <Vouchers dappAddress={dappAddress} />}
             </div>
-          </Tab.Panel>
+          </TabPanel>
 
-          <Tab.Panel>
+          <TabPanel className="">
             <div className="mt-4 bg-gray-100 p-4 rounded">
               <Notices />
               <br />
               <Reports />
             </div>
-          </Tab.Panel>
-        </Tab.Panels>
-      </Tab.Group>
+          </TabPanel>
+        </TabPanels>
+      </TabGroup>
     </div>
   );
 };

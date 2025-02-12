@@ -122,7 +122,7 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
       )}
       <table className="min-w-full mt-8 table-auto">
         <thead>
-          <tr>
+          <tr className="text-gray-900">
             {/*<th>Input Index</th>
                         <th>Voucher Index</th>
                         <th>Destination</th> */}
