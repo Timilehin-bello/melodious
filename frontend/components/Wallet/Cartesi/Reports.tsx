@@ -16,7 +16,7 @@ const Reports: React.FC = () => {
   if (error) return <p className="text-gray-400">Oh no... {error.message}</p>;
   if (!data || !data.reports)
     return <p className="text-gray-400">No reports</p>;
-  toast.error(reports[reports.length - 1].payload);
+  toast.error(reports[reports.length - 1]?.payload);
   return (
     <div className="overflow-x-hidden border border-gray-300 p-4 rounded-lg">
       <table className="w-full border-collapse text-black border border-gray-200">

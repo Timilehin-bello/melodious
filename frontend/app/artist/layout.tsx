@@ -50,12 +50,12 @@ export default function ArtistLayout({
                 <div className="flex items-center gap-4">
                   <Bell size={24} fill="blue" className="text-white" />
 
-                  <Link
+                  {/* <Link
                     href="/artist/wallet"
                     className="bg-[#950944] text-white p-2 rounded"
                   >
                     Wallet
-                  </Link>
+                  </Link> */}
 
                   <div className="flex items-center gap-2">
                     <ConnectWallet />

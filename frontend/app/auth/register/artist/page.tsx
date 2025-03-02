@@ -26,6 +26,8 @@ import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
 import { useActiveAccount } from "thirdweb/react";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -57,6 +59,7 @@ const formSchema = z.object({
 
 const RegisterArtist = () => {
   const { createUser } = useMelodiousContext();
+  const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
   const activeAccount = useActiveAccount();
   // 1. Define your form.
@@ -78,8 +81,10 @@ const RegisterArtist = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
     // Do something with the form values.
     // const walletAddress = secureStorage.get("walletAddress");
+
     const walletAddress = activeAccount?.address;
     const chainId = "31337";
     // console.log(walletAddress);
@@ -93,7 +98,9 @@ const RegisterArtist = () => {
     });
     if (response.status !== "success" || response.code === 400) {
       // console.error("Error creating user:", response);
+      toast.error("Error Creating User: " + response.message);
       console.log("Error Creating User: ", response.message);
+      setLoading(false);
 
       return;
     } else {
@@ -112,8 +119,11 @@ const RegisterArtist = () => {
       }).then((user) => {
         // router.push("/auth/login");
         localStorage.clear();
+        setLoading(false);
         window.location.href = "/auth/login";
-        console.log("User created with transaction hash:", user);
+        toast.success("User created successfully");
+
+        // console.log("User created with transaction hash:", user);
       });
     }
 
@@ -224,58 +234,61 @@ const RegisterArtist = () => {
 
           <div>
             <h2>Social Media Links</h2>
-            <FormField
-              control={form.control}
-              name="socialMediaLinks.twitter"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Twitter</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://x.com/@michael" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="socialMediaLinks.instagram"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Instagram</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://instagram.com/@michael"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="socialMediaLinks.facebook"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Facebook</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://facebook.com/michael"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="flex flex-wrap gap-4 items-center">
+              <FormField
+                control={form.control}
+                name="socialMediaLinks.twitter"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Twitter</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://x.com/@michael" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="socialMediaLinks.instagram"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instagram</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://instagram.com/@michael"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="socialMediaLinks.facebook"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Facebook</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://facebook.com/michael"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           <Button
             type="submit"
             className="w-full bg-[#950944] text-white hover:bg-[#950944]/60"
+            disabled={loading}
           >
-            Submit
+            {loading ? "Creating Artist ..." : "Submit"}
           </Button>
         </form>
       </Form>

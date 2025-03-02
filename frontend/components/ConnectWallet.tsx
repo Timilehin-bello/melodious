@@ -8,6 +8,8 @@ import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useEffect, useState } from "react";
 import { defineChain } from "thirdweb";
 import { useMelodiousContext } from "@/contexts/melodious";
+import toast from "react-hot-toast";
+import fetchMethod from "@/lib/readState";
 
 export const localhostChain = defineChain({
   id: 31337,
@@ -23,7 +25,7 @@ interface User {
 
 const ConnectWallet = () => {
   const router = useRouter();
-  // const [userData, setUserData] = useState<User | null>(null);
+  const [userDetails, setUserDetails] = useState<any>({});
 
   const [successfulLogin, setSuccessfulLogin] = useState(false);
 
@@ -80,7 +82,7 @@ const ConnectWallet = () => {
 
       // Redirect if login failed
       if (!status) {
-        console.log("User not logged in, redirecting to home...");
+        toast.error("User not logged in, redirecting to home...");
         router.replace("/");
       }
     };
@@ -100,14 +102,15 @@ const ConnectWallet = () => {
     handleRedirect(userData);
   }, [isLoggedIn, userData]);
 
-  const handleRedirect = (user: User) => {
+  const handleRedirect = async (user: User) => {
     const currentPath = pathname;
 
-    if (user?.artist && !currentPath.startsWith("/artist")) {
-      router.replace("/artist/dashboard");
-    } else if (user?.listener && !currentPath.startsWith("/listener")) {
-      router.replace("/listener/dashboard");
-    }
+      if (user?.artist && !currentPath.startsWith("/artist")) {
+        router.replace("/artist/dashboard");
+      } else if (user?.listener && !currentPath.startsWith("/listener")) {
+        router.replace("/listener/dashboard");
+      }
+   
   };
   return (
     <div>
@@ -132,6 +135,7 @@ const ConnectWallet = () => {
             if (!response.ok) {
               // throw new Error(`HTTP error! status: ${response.status}`);
               console.error("Error fetching login payload:", response);
+              toast.error("Error fetching login payload");
             }
             localStorage.setItem("walletAddress", params.address);
             const request = await response.json();
@@ -201,7 +205,9 @@ const ConnectWallet = () => {
             ).then(() => {
               localStorage.clear();
               // router.push("/");
-              window.location.href = "/";
+              // router.refresh();
+              // window.location.href = "/";
+              window.location.replace("/");
             });
           },
         }}

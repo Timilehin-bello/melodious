@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { useActiveAccount } from "thirdweb/react";
 import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
@@ -13,6 +13,14 @@ const Balance: React.FC<BalanceProps> = ({
   reports,
   decodedReports,
 }) => {
+  const [userDetails, setUserDetails] = useState<any>(null);
+
+  useEffect(() => {
+    let details: any = localStorage.getItem("userDetails");
+    details = JSON.parse(details);
+    setUserDetails(details);
+  }, []);
+
   useEffect(() => {
     if (account?.address || transactionStatus) {
       inspectCall(`balance/${account?.address}`);
@@ -28,7 +36,9 @@ const Balance: React.FC<BalanceProps> = ({
             <div className="content-center items-center flex justify-between ">
               <h2>CTSI Reward</h2>
               <div className="text-4xl font-bold font-mono">
-                178,022<span className="text-white/20">.50</span>
+                {userDetails?.cartesiTokenBalance
+                  ? userDetails?.cartesiTokenBalance
+                  : 0}
               </div>
             </div>
           </div>

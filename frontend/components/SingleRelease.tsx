@@ -26,16 +26,23 @@ import Dropzone from "react-dropzone";
 import { UploadCloud } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useMelodiousContext } from "@/contexts/melodious";
-import { extractDuration } from "@/lib/extractDuration";
-import { toast } from "@/hooks/use-toast";
+import {
+  extractDuration,
+  extractDurationInSeconds,
+} from "@/lib/extractDuration";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import fetchMethod from "@/lib/readState";
 import BlockLoader from "./BlockLoader";
+import Image from "next/image";
 
 const SingleRelease = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [genreList, setGenreList] = useState<any[]>([]);
   const { uploadToIPFS, createSingleTrack } = useMelodiousContext();
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [loadingRequest, setLoadingRequest] = useState<boolean>(false);
+  const [myAudio, setMyAudio] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -43,9 +50,6 @@ const SingleRelease = () => {
     title: z.string().min(2, {
       message: "Title must be at least 2 characters.",
     }),
-    // genreId: z.string({
-    //   message: "Genre Id must be selected.",
-    // }),
 
     genreId: z.preprocess(
       (val) => {
@@ -56,7 +60,7 @@ const SingleRelease = () => {
         return val;
       },
       z.number({
-        message: "Genre Id must be selected.",
+        message: "Genre must be selected.",
       })
     ),
 
@@ -69,9 +73,7 @@ const SingleRelease = () => {
     imageUrl: z.string({
       message: "You must select a file",
     }),
-    isPublished: z.string({
-      message: "You must select an option",
-    }),
+    isPublished: z.string().nonempty("Please select an option."),
     duration: z
       .string({
         message: "You must enter a duration",
@@ -95,17 +97,22 @@ const SingleRelease = () => {
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!myAudio || !fileUrl) {
+      toast.error("Please select a file");
+      return;
+    }
+
+    setLoadingRequest(true);
     const genre = Number(values.genreId);
 
     const result = await createSingleTrack(values);
 
     if (result) {
-      toast({
-        title: "Successfully created track song",
-        description: "Create new track seamlessly",
-      });
-
+      setLoadingRequest(false);
       // router.push("/artist/release");
+    } else {
+      toast.error("Failed to create track");
+      setLoadingRequest(false);
     }
   }
 
@@ -116,13 +123,14 @@ const SingleRelease = () => {
       setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
       if (ipfsHash) {
-        const durationOfSong = await extractDuration(acceptedFiles[0]);
+        setMyAudio(ipfsHash);
+        const durationOfSong = await extractDurationInSeconds(acceptedFiles[0]);
         form.setValue("audioUrl", ipfsHash);
-        form.setValue("duration", durationOfSong);
+        form.setValue("duration", String(durationOfSong));
         setLoading(false);
       }
     },
-    [uploadToIPFS]
+    [uploadToIPFS, setMyAudio]
   );
 
   const onDropImage = useCallback(
@@ -133,18 +141,19 @@ const SingleRelease = () => {
       setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
       if (ipfsHash) {
+        setFileUrl(ipfsHash);
         form.setValue("imageUrl", ipfsHash);
         setLoading(false);
       }
     },
-    [uploadToIPFS]
+    [uploadToIPFS, setFileUrl]
   );
 
   const fetchTracks = async () => {
     try {
       // setLoading(true);
       const genreList: any[] = await fetchMethod("get_genres");
-      console.log("genreList", genreList);
+      // console.log("genreList", genreList);
       if (Array.isArray(genreList)) {
         setTimeout(() => {
           setGenreList(genreList);
@@ -196,7 +205,10 @@ const SingleRelease = () => {
               <FormItem>
                 <FormLabel>Genre</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange}>
+                  <Select
+                    value={field.value?.toString()}
+                    onValueChange={field.onChange}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a music genre" />
@@ -209,9 +221,6 @@ const SingleRelease = () => {
                             {genre.name}
                           </SelectItem>
                         ))}
-                      {/* <SelectItem value="1">Hip Hop</SelectItem>
-                      <SelectItem value="2">Blues </SelectItem>
-                      <SelectItem value="3">Country</SelectItem> */}
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -309,28 +318,49 @@ const SingleRelease = () => {
             )}
           />
 
-          {/* <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>ISRC Code</FormLabel>
-                <FormControl>
-                  <Input placeholder="mikej" {...field} />
-                </FormControl>
+          <div className="flex justify-between col-span-2">
+            <div className="flex-1">
+              {fileUrl && (
+                <div className="mx-0 max-w-[500px] flex-1 ">
+                  <div className="mx-0">
+                    <Image
+                      src={fileUrl}
+                      alt="Track image"
+                      width={200}
+                      height={200}
+                      className="rounded-lg "
+                    />
+                    {/* <audio controls className="w-full">
+                                      <source src={fileUrl} />
+                                      Your browser does not support the audio element.
+                                    </audio> */}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex-1">
+              {myAudio && (
+                <div className="mx-0 max-w-[500px] flex-1 ">
+                  <div className="mx-0">
+                    <audio controls className="w-full">
+                      <source src={myAudio} />
+                      Your browser does not support the audio element.
+                    </audio>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
-                <FormMessage />
-              </FormItem>
-            )}
-          /> */}
-
-          <div></div>
-          <Button
-            type="submit"
-            className="w-full bg-[#950944] text-white hover:bg-[#950944]/60"
-          >
-            Submit
-          </Button>
+          <div className="flex justify-end col-span-2">
+            <Button
+              type="submit"
+              className="w-full bg-[#950944] text-white hover:bg-[#950944]/60"
+              disabled={loadingRequest}
+            >
+              {loadingRequest ? "Creating Track ..." : "Create Track"}
+            </Button>
+          </div>
         </form>
       </Form>
     </div>

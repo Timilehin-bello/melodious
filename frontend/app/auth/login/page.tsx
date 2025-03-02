@@ -5,7 +5,6 @@ import React, { useEffect } from "react";
 
 const Login = () => {
   useEffect(() => {
-    
     localStorage.clear();
   }, []);
   return (
@@ -24,7 +23,8 @@ const Login = () => {
                   alt="Thirdweb"
                   className="w-56 h-auto mb-12"
                 />
-                <ConnectButtonAuth />
+                {/* <ConnectButtonAuth /> */}
+                <ConnectWallet />
                 <div className="text-center text-slate-600 font-semibold mt-6">
                   <p>Music at its best</p>
                 </div>

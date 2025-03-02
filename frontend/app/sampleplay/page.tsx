@@ -3,6 +3,7 @@ import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { useFetch } from "../../hooks/useFetch";
 import { Track } from "@/types";
 import { useState } from "react";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
 const AlbumPage: React.FC = () => {
   //   const { data: album, loading, error } = useFetch<Track>(`/api/album/1`);
@@ -20,7 +21,7 @@ const AlbumPage: React.FC = () => {
 
   const [error, setError] = useState(null);
 
-  const { playPlaylist, playTrack } = usePlayer();
+  const { playTrack } = useMusic();
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -29,7 +30,7 @@ const AlbumPage: React.FC = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold">{data?.title}</h1>
       <button
-        onClick={() => playTrack(data)}
+        // onClick={() => playTrack(data)}
         className="bg-blue-500 text-white py-2 px-4 rounded"
       >
         Play Album

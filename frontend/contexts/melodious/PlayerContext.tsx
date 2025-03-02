@@ -22,6 +22,7 @@ interface PlayerContextProps {
   playlist: (Track | null)[];
   currentIndex: number;
   progress: number;
+  isMounted: boolean;
   favorites: Track[];
   playTrack: (track: Track) => void;
   playPlaylist: (tracks: Track[]) => void;
@@ -31,6 +32,7 @@ interface PlayerContextProps {
   toggleRepeat: () => void;
   toggleLoop: () => void;
   setVolume: (volume: number) => void;
+  setIsMounted: (status: boolean) => void;
   seekTo: (seconds: number) => void;
   addToFavorites: (track: Track) => void;
   isFavorite: (track: Track) => boolean;
@@ -58,22 +60,21 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [favorites, setFavorites] = useState<Track[]>([]);
-
+  const [isMounted, setIsMounted] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [user, setUser] = useState<any>(null);
 
+  // Initialize socket connection
   useEffect(() => {
-    // const token = localStorage.getItem("authToken");
     let data = localStorage.getItem("xx-mu") as any;
-    //     console.log("token gotten", JSON.parse(data));
-
     data = JSON.parse(data) ?? null;
+    setUser(data?.user);
 
     const token = data ? data["tokens"]["token"].access.token : null;
     if (token) {
       const newSocket = io("http://localhost:8088", {
         path: "/v1/socket.io",
         auth: { token },
-        // transports: ["websocket"],
       });
       setSocket(newSocket);
 
@@ -83,54 +84,58 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  useEffect(() => {
-    if (socket && currentTrack) {
-      socket.emit("startPlaying", {
-        trackId: currentTrack.id,
-        artistId: currentTrack.id,
-        deviceInfo: getDeviceInfo(),
-        // duration: currentTrack.duration * 1000, // in milliseconds
-        duration: 20000, // in milliseconds
-      });
-      toast.success("Music Player Started");
-    }
+  const playTrack = useCallback(
+    async (track: any) => {
+      console.log('track from context', track)
+      try {
+        // Reset player state
+        setIsPlaying(false);
+        setProgress(0);
 
+        // Set new track
+        localStorage.setItem("currentTrack", JSON.stringify(track));
+        setCurrentTrack(track);
+
+        // Short delay to ensure proper initialization
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // Start playing
+        setIsPlaying(true);
+
+        if (socket) {
+          socket.emit("startPlaying", {
+            trackId: track.id,
+            artistId: track.other.artist,
+            deviceInfo: getDeviceInfo(),
+            duration: 20000,
+          });
+          
+        }
+      } catch (error) {
+        console.error("Error playing track:", error);
+        toast.error("Failed to play track");
+      }
+    },
+    [socket]
+  );
+
+  // Add cleanup handling
+  useEffect(() => {
     return () => {
-      if (socket && currentTrack) {
+      if (socket && currentTrack && isPlaying) {
         socket.emit("stopPlaying", {});
+        setIsPlaying(false);
       }
     };
-  }, [currentTrack]);
+  }, [currentTrack, isPlaying, socket]);
 
-  // useEffect(() => {
-  //   let interval: NodeJS.Timeout | null = null;
-
-  //   if (isPlaying && currentTrack) {
-  //     interval = setInterval(() => {
-  //       setProgress((prev) => {
-  //         const newProgress = prev + 1;
-  //         emitUpdatePosition(newProgress); // Emit progress in seconds
-  //         if (newProgress >= currentTrack.duration) {
-  //           clearInterval(interval!);
-  //           setIsPlaying(false); // Stop playback when track ends
-  //           handlePlaybackState("stop");
-  //         }
-  //         return newProgress;
-  //       });
-  //     }, 1000); // Update position every second
-  //   }
-
-  //   return () => {
-  //     if (interval) clearInterval(interval);
-  //   };
-  // }, [isPlaying, currentTrack]);
-
-  const playTrack = useCallback((track: Track) => {
-    localStorage.setItem("currentTrack", JSON.stringify(track));
-    setCurrentTrack(track);
-    setIsPlaying(true);
-    setProgress(0);
-  }, []);
+  // const playTrack = useCallback((track: Track) => {
+  //   localStorage.setItem("currentTrack", JSON.stringify(track));
+  //   setCurrentTrack(track);
+  //   setIsPlaying(true);
+  //   setProgress(0);
+  //   setIsMounted(true);
+  // }, []);
 
   const playPlaylist = useCallback((tracks: Track[]) => {
     setPlaylist(tracks);
@@ -249,7 +254,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
         emitBufferingEnd,
         emitNetworkQualityUpdate,
         handlePlaybackState,
-        // emitPlaybackState,
+        isMounted,
+        setIsMounted,
       }}
     >
       {children}

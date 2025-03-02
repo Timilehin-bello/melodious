@@ -6,7 +6,12 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { Toaster } from "@/components/ui/toaster";
 import LayoutWrapper from "@/components/LayoutWrapper/LayoutWrapper";
 import { PlayerProvider } from "@/contexts/melodious/PlayerContext";
-import MyPlayer from "@/components/MusicPlayer/MyPlayer";
+// import MyPlayer from "@/components/MusicPlayer/MyPlayer";
+import WalletConnectionHandler from "@/components/WalletConnectionHandler";
+import { MusicProvider } from "@/contexts/melodious/MusicPlayerContext";
+import MusicPlayer from "@/components/Player/Player";
+import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
+import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,23 +37,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <ThirdwebProvider>
-        {/* <AuthProvider> */}
-        {/* <RedirectAfterLogin /> */}
+        <WalletConnectionHandler />
         <LayoutWrapper>
           <MelodiousProvider>
-            {/* <MusicPlayerProvider> */}
-            <PlayerProvider>
-              <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
-              >
+            {/* <PlayerProvider> */}
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
+            >
+              {/* <MusicProvider> */}
+              <MusicPlayerProvider>
                 <main>{children}</main>
                 <Toaster />
-              </body>
-              <MyPlayer />
-            </PlayerProvider>
+                {/* <MyPlayer /> */}
+                {/* <MusicPlayer /> */}
+                <MelodiousMusicPlayer />
+              </MusicPlayerProvider>
+              {/* </MusicProvider> */}
+            </body>
+            {/* </PlayerProvider> */}
           </MelodiousProvider>
         </LayoutWrapper>
-        {/* </AuthProvider> */}
       </ThirdwebProvider>
     </html>
   );

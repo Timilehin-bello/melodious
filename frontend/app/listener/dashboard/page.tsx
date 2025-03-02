@@ -10,61 +10,64 @@ import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
 import { initializeSocket } from "@/lib/testSocket";
 import { useMelodiousContext } from "@/contexts/melodious";
-import { usePlayer } from "@/contexts/melodious/PlayerContext";
+import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+// import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
-  const [tracks, setTracks] = useState<any[]>([]);
-  // const songs = [
-  //   {
-  //     id: "1",
-  //     user_id: "string",
-  //     artist: "string",
-  //     title: "string",
-  //     song_path: "/audio/song1.mp3",
-  //     image_path: "/images/artist.svg",
-  //   },
-  // ];
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
+    useMusicPlayer();
 
-  const fetchTracks = async () => {
-    try {
-      const trackList: any[] = await fetchMethod("get_tracks");
-      if (Array.isArray(trackList)) {
-        const transformed = trackList.map((track) => {
-          return {
-            id: track.id,
-            user_id: "string",
-            artist: "Artist",
-            title: track.title,
-            song_path: track.audioUrl,
-            image_path: track.imageUrl,
-          };
-        });
-        setTimeout(() => {
-          setTracks(transformed);
-          // setLoading(false);
-        }, 3000);
-      } else {
-        console.log("Fetched data is not an array");
-        // setLoading(false);
+  useEffect(() => {
+    const loadTracks = async () => {
+      try {
+        const trackList = await await fetchMethod("get_tracks");
+        console.log("tracklist", trackList);
+        setTracks(trackList);
+        setIsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch tracks:", error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.log(error);
-      // setLoading(false);
+    };
+
+    loadTracks();
+  }, []);
+
+  const handlePlayTrack = (track: Track, index: number) => {
+    if (currentTrack?.id === track.id) {
+      togglePlay();
+    } else {
+      playPlaylist(tracks, index);
     }
   };
-  useEffect(() => {
-    fetchTracks();
-  }, []);
 
   const { connect } = useConnectModal();
   // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
-  const { playTrack, playPlaylist } = usePlayer();
+
+  // const { currentTrack, isPlaying, playTrack, pauseTrack, resumeTrack } =
+  //   useMusic();
+
+  // const handlePlayPause = (track: Track) => {
+  //   if (currentTrack?.id === track.id) {
+  //     if (isPlaying) {
+  //       pauseTrack();
+  //     } else {
+  //       resumeTrack();
+  //     }
+  //   } else {
+  //     playTrack(track);
+  //   }
+  // };
 
   // const data = [
   //   {
@@ -104,15 +107,17 @@ export default function Page() {
   //   },
   // ];
 
-  const transformedData = tracks.map((track) => {
-    return {
-      id: track.id,
-      songTitle: track.title,
-      imageUrl: track.image_path,
-      songDetails: "289 songs, 5hr 10 min",
-      audioUrl: track.song_path,
-    };
-  });
+  // const transformedData = tracks.map((track) => {
+  //   return {
+  //     id: track.id,
+  //     title: track.title,
+  //     artist: track.artist,
+  //     album: track.album,
+  //     duration: track.duration,
+  //     cover: track.image_path,
+  //     url: track.song_path,
+  //   };
+  // });
 
   const genres = [
     {
@@ -272,19 +277,29 @@ export default function Page() {
     },
   ];
 
-  const playSong = async (song: any) => {
-    // console.log("id", id);
-    if (status === "disconnected") {
-      await connect({ client, size: "compact" }); // opens the connect modal
-    }
-    // alert("Play Song ");
-    // onPlay(id)
+  // const playSong = useCallback(
+  //   async (song: any) => {
+  //     try {
+  //       if (status === "disconnected") {
+  //         await connect({ client, size: "compact" });
+  //       }
 
-    if (typeof song === "object") {
-      playTrack(song);
-    }
-    // playPlaylist(song);
-  };
+  //       if (typeof song === "object") {
+  //         // Stop current playback first
+  //         setIsPlaying(false);
+
+  //         // Short delay to ensure clean state
+  //         await new Promise((resolve) => setTimeout(resolve, 100));
+
+  //         // Play new track
+  //         await playTrack(song);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error playing song:", error);
+  //     }
+  //   },
+  //   [status, connect, playTrack, setIsPlaying]
+  // );
 
   const likeSong = async () => {
     if (status === "disconnected") {
@@ -293,42 +308,41 @@ export default function Page() {
 
     alert("Like Song ");
   };
-  const { currentTrack } = usePlayer();
 
   const [isConnected, setIsConnected] = useState(false);
 
-  useEffect(() => {
-    let data = localStorage.getItem("xx-mu") as any;
-    //     console.log("token gotten", JSON.parse(data));
+  // useEffect(() => {
+  //   let data = localStorage.getItem("xx-mu") as any;
+  //   //     console.log("token gotten", JSON.parse(data));
 
-    data = JSON.parse(data) ?? null;
+  //   data = JSON.parse(data) ?? null;
 
-    const token = data ? data["tokens"]["token"].access.token : null;
+  //   const token = data ? data["tokens"]["token"].access.token : null;
 
-    const socket = initializeSocket(token);
+  //   const socket = initializeSocket(token);
 
-    if (socket) {
-      setConditionFulfilled(true);
-      setIsConnected(true);
+  //   if (socket) {
+  //     setConditionFulfilled(true);
+  //     setIsConnected(true);
 
-      socket.on("startPlaying", () => {
-        console.log("Playing music");
-      });
-    }
+  //     socket.on("startPlaying", () => {
+  //       console.log("Playing music");
+  //     });
+  //   }
 
-    // if (setConditionFulfilled) {
+  //   // if (setConditionFulfilled) {
 
-    socket.on("startPlaying", () => {
-      console.log("Playing music");
-    });
-    // }
-    socket.on("connect", () => setIsConnected(true));
-    socket.on("disconnect", () => setIsConnected(false));
+  //   socket.on("startPlaying", () => {
+  //     console.log("Playing music");
+  //   });
+  //   // }
+  //   socket.on("connect", () => setIsConnected(true));
+  //   socket.on("disconnect", () => setIsConnected(false));
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [isConnected]);
+  //   return () => {
+  //     socket.disconnect();
+  //   };
+  // }, [isConnected]);
 
   return (
     <div
@@ -382,14 +396,15 @@ export default function Page() {
             </p>
           </div>
           <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {transformedData.slice(0, 4).map((album, index) => (
+            {tracks.slice(0, 4).map((track, index) => (
               <TrendingSoundItem
                 key={index}
-                imageUrl={album.imageUrl}
-                songTitle={album.songTitle}
-                songDetails={album.songDetails}
-                playSong={() => playSong(album)}
+                imageUrl={track.imageUrl}
+                songTitle={track.title}
+                songDetails={String(track.duration)}
+                playSong={() => handlePlayTrack(track, index)}
                 likeSong={likeSong}
+                isLoading={isLoading}
               />
             ))}
           </div>

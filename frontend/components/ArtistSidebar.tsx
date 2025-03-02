@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   ListCheck,
   LogOut,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -26,6 +27,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { twMerge } from "tailwind-merge";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
 // Menu items.
 const items = [
@@ -49,13 +51,18 @@ const items = [
     url: "/artist/release",
     icon: ListCheck,
   },
+  {
+    title: "Wallet",
+    url: "/artist/wallet",
+    icon: Wallet,
+  },
 ];
 
 export function ArtistSidebar() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const { state } = useSidebar();
   const router = useRouter();
-  const { currentTrack } = usePlayer();
+  const { currentTrack } = useMusic();
   return (
     <Sidebar
       collapsible="icon"

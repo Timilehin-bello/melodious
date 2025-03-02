@@ -11,3 +11,21 @@ export const extractDuration = async (file: File): Promise<string> => {
     audio.addEventListener("error", () => reject("Error extracting duration"));
   });
 };
+
+export const extractDurationInSeconds = async (file: File): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const audio = document.createElement("audio");
+    audio.src = URL.createObjectURL(file);
+    audio.addEventListener("loadedmetadata", () => {
+      resolve(Math.floor(audio.duration));
+    });
+    audio.addEventListener("error", () => reject("Error extracting duration"));
+  });
+};
+
+export const formatDuration = (seconds: string | number): string => {
+  const totalSeconds = Math.floor(Number(seconds)); // Ensure it's a valid number
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};

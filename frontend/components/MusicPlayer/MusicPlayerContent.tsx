@@ -18,10 +18,10 @@ import usePlayer from "@/hooks/usePlayer";
 
 // import PlayerModal from "./modals/PlayerModal";
 import usePlayerModal from "@/hooks/usePlayerModal";
-import Slider from "./Slider";
-import LikeButton from "./LikeButton";
-import MediaItem from "./MediaItem";
-import Seekbar from "./Seekbar";
+import Slider from "../Slider";
+import LikeButton from "../LikeButton";
+import MediaItem from "../MediaItem";
+import Seekbar from "../Seekbar";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { DeviceInfo, getDeviceInfo } from "@/lib/getDeviceInfo";
 

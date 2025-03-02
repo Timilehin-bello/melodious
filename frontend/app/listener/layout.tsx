@@ -5,7 +5,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import Header from "@/components/Header";
 import { ThirdwebProvider } from "thirdweb/react";
 import { MelodiousProvider } from "@/contexts/melodious";
-import MyPlayer from "@/components/MusicPlayer/MyPlayer";
+// import MyPlayer from "@/components/MusicPlayer/MyPlayer";
 import { PlayerProvider } from "@/contexts/melodious/PlayerContext";
 import { Toaster } from "react-hot-toast";
 

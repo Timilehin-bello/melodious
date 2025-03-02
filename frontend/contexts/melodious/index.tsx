@@ -24,6 +24,8 @@ interface IMelodiousContext {
   withdrawCTSI: (amount: number) => Promise<any>;
   createAlbum?: (album: ICreateAlbum) => Promise<any>;
   createSingleTrack: (album: ICreateTrack) => Promise<any>;
+  getUser: (userId: number) => Promise<any>;
+
   // sendEvent: (event: PlaybackEvent) => void | null;
   playing: boolean;
   setPlaying: React.Dispatch<React.SetStateAction<boolean>>;
@@ -147,6 +149,10 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
   createSingleTrack: async (song: ICreateTrack) => {
     return "";
   },
+
+  getUser: async (userId: number) => {
+    return "";
+  },
   // sendEvent: (event: PlaybackEvent) => {
   //   return null;
   // },
@@ -208,6 +214,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       return response.data;
     } catch (error) {
       console.error("Error checking login status:", error);
+      toast.error("Error checking login status:" + error);
       return false;
     }
   };
@@ -366,6 +373,26 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.error("Error creating user: \n" + error);
     }
   };
+  const getUser = async (userId: number): Promise<any> => {
+    const userPayload = {
+      method: "get_user",
+      args: {
+        userId: userId,
+      },
+    };
+
+    try {
+      const txhash = await signMessages(userPayload);
+      toast.success(
+        "User created successfully \n" + "Transaction hash is: " + txhash
+      );
+      console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
+      return txhash;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      toast.error("Error creating user: \n" + error);
+    }
+  };
 
   const createGenre = async ({
     name,
@@ -383,12 +410,14 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(genrePayload);
-      toast.success(
-        "Genre created successfully \n" + "Transaction hash is: " + txhash
-      );
+      if (txhash) {
+        toast.success(
+          "Genre created successfully \n" + "Transaction hash is: " + txhash
+        );
 
-      console.log(`Transaction hash is: ${txhash}`);
-      return txhash;
+        console.log(`Transaction hash is: ${txhash}`);
+        return txhash;
+      }
     } catch (error) {
       toast.error("Error creating genre: " + error);
       console.error("Error creating genre:", error);
@@ -440,10 +469,16 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(trackPayload);
-      console.log(`Transaction hash is: ${txhash}`);
-      return txhash;
+      if (txhash) {
+        // console.log(`Transaction hash is: ${txhash}`);
+        toast.success(
+          "Track created successfully \n" + "Transaction hash is: " + txhash
+        );
+        return txhash;
+      }
     } catch (error) {
-      console.error("Error creating user:", error);
+      // console.error("Error creating user:", error);
+      toast.error("Error creating user: \n" + error);
     }
   };
 
@@ -532,6 +567,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         uploadToIPFS,
         signMessages,
         createUser,
+        getUser,
         createGenre,
         createSingleTrack,
         withdrawCTSI,

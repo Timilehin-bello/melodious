@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 // import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
 import { usePlayer } from "@/contexts/melodious/PlayerContext";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 // Menu items.
 const items = [
   {
@@ -53,7 +54,7 @@ const items = [
 export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
-  const { currentTrack } = usePlayer();
+  const { currentTrack } = useMusic();
 
   return (
     <Sidebar
