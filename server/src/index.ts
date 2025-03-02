@@ -10,8 +10,14 @@ import { TrackListeningService } from "./services/trackListening.service";
 import { prisma } from "./services";
 import Redis from "ioredis";
 import socketAuth from "./middlewares/socketAuth";
+import {
+  distributeRewardToArtistsBasedOnTotalTrackListens,
+  updateArtistListeningTimeOnCartesi,
+} from "./cronJob";
 
 // scheduleCronJobs();
+// updateArtistListeningTimeOnCartesi();
+// distributeRewardToArtistsBasedOnTotalTrackListens();
 redisClient.on("connect", () => {
   logger.info(`Redis connected ${config.redis.host}:${config.redis.port}`);
   redisClient.set("try", "Hello Welcome to Redis Client");

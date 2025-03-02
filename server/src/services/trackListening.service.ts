@@ -501,6 +501,8 @@ export class TrackListeningService {
 
     if (listeningTime >= this.MINIMUM_VALID_LISTEN_TIME) {
       try {
+        console.log("session: ", session);
+
         await this.prisma.$transaction([
           // Update Track listening time
           this.prisma.track.update({

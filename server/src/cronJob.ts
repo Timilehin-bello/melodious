@@ -21,7 +21,7 @@ const CRON_SCHEDULES = {
 // };
 
 export const updateArtistListeningTimeOnCartesi = (
-  schedule = CRON_SCHEDULES.EVERY_DAY
+  schedule = CRON_SCHEDULES.EVERY_MINUTE
 ) => {
   logger.info("Initializing artist listening stats cron job", { schedule });
   // Validate cron schedule
@@ -34,6 +34,35 @@ export const updateArtistListeningTimeOnCartesi = (
   const job = cron.schedule(
     schedule,
     cronService.updateArtistListeningTimeForReward,
+    {
+      scheduled: false,
+      timezone: "UTC",
+    }
+  );
+
+  // Start the cron job
+  job.start();
+
+  logger.info("Artist listening stats cron job initialized", { schedule });
+
+  // Return the job instance for external control if needed
+  return job;
+};
+
+export const distributeRewardToArtistsBasedOnTotalTrackListens = (
+  schedule = CRON_SCHEDULES.EVERY_MINUTE
+) => {
+  logger.info("Initializing artist listening stats cron job", { schedule });
+  // Validate cron schedule
+  if (!cron.validate(schedule)) {
+    logger.error("Invalid cron schedule provided", { schedule });
+    throw new Error("Invalid cron schedule provided");
+  }
+
+  // Schedule the cron job
+  const job = cron.schedule(
+    schedule,
+    cronService.distributeRewardToArtistsBasedOnTotalTrackListens,
     {
       scheduled: false,
       timezone: "UTC",
