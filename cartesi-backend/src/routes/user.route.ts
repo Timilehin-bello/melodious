@@ -132,6 +132,12 @@ class UserRoute extends InspectRoute {
   };
 }
 
+class UserInfoRoute extends InspectRoute {
+  execute = (request: any): Output => {
+    return this.user.getUserByWalletAddress(request as string);
+  };
+}
+
 export {
   UpdateUserRoute,
   DeleteUserRoute,
@@ -139,4 +145,5 @@ export {
   CreateUserRoute,
   UsersRoute,
   UserRoute,
+  UserInfoRoute,
 };

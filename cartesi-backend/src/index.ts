@@ -47,6 +47,7 @@ router.addRoute("create_user", new Routes.CreateUserRoute(user));
 router.addRoute("update_user", new Routes.UpdateUserRoute(user));
 router.addRoute("get_users", new Routes.UsersRoute(user));
 router.addRoute("get_user", new Routes.UserRoute(user));
+router.addRoute("get_user_info", new Routes.UserInfoRoute(user));
 // router.addRoute("delete_user", new Routes.DeleteUserRoute(user));
 // router.addRoute("delete_users", new Routes.DeleteUsersRoute(user));
 

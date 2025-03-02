@@ -5,6 +5,7 @@ import {
   UpdateUserRoute,
   UsersRoute,
   UserRoute,
+  UserInfoRoute,
 } from "./user.route";
 
 import {
@@ -41,6 +42,7 @@ import {
   UpdateArtistListeningTimeForRewardRoute,
   ReferralRewardRoute,
 } from "./reward.route";
+
 import {
   CreateConfigRoute,
   UpdateConfigRoute,
@@ -55,6 +57,7 @@ export {
   UpdateUserRoute,
   UsersRoute,
   UserRoute,
+  UserInfoRoute,
 
   // Album
   CreateAlbumRoute,

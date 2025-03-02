@@ -171,6 +171,24 @@ class UserController {
     }
   }
 
+  public getUserByWalletAddress(walletAddress: string) {
+    try {
+      const user_json = JSON.stringify(
+        this.getUserByUniqueValue({
+          key: "walletAddress",
+          value: walletAddress.toLocaleLowerCase(),
+        })
+      );
+      console.log("User", user_json);
+      return new Log(user_json);
+    } catch (error) {
+      console.debug("Error getting user by wallet address", error);
+      return new Error_out(
+        `User with wallet address ${walletAddress} not found`
+      );
+    }
+  }
+
   public deleteUser(userId: number) {
     try {
       const user = this.getUserByUniqueValue({ key: "id", value: userId });

@@ -28,6 +28,15 @@ class ArtistDistributionRewardRoute extends AdvanceRoute {
         signer = this.msg_sender;
       }
 
+      console.log("getConfig", getConfig);
+
+      console.log("msg_sender in reward route is", this.msg_sender);
+      console.log(
+        "Executing Create Reward request",
+        JSON.stringify(this.request_args)
+      );
+      console.log("signer", signer);
+
       if (
         !getConfig.adminWalletAddresses.some(
           (address) => address.toLowerCase() === signer.toLowerCase()
@@ -71,7 +80,19 @@ class UpdateArtistListeningTimeForRewardRoute extends AdvanceRoute {
         return new Error_out("Config not found. Please create it first.");
       }
 
-      const { signer, ...request_payload } = this.request_args;
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
+      console.log("getConfig", getConfig);
+
+      console.log("msg_sender in reward route is", this.msg_sender);
+      console.log(
+        "Executing Create Reward request",
+        JSON.stringify(this.request_args)
+      );
+      console.log("signer", signer);
 
       if (
         !getConfig.adminWalletAddresses.some(
