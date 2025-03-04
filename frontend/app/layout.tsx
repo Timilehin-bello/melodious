@@ -5,11 +5,7 @@ import { MelodiousProvider } from "@/contexts/melodious";
 import { ThirdwebProvider } from "thirdweb/react";
 import { Toaster } from "@/components/ui/toaster";
 import LayoutWrapper from "@/components/LayoutWrapper/LayoutWrapper";
-import { PlayerProvider } from "@/contexts/melodious/PlayerContext";
-// import MyPlayer from "@/components/MusicPlayer/MyPlayer";
 import WalletConnectionHandler from "@/components/WalletConnectionHandler";
-import { MusicProvider } from "@/contexts/melodious/MusicPlayerContext";
-import MusicPlayer from "@/components/Player/Player";
 import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 
@@ -40,21 +36,16 @@ export default function RootLayout({
         <WalletConnectionHandler />
         <LayoutWrapper>
           <MelodiousProvider>
-            {/* <PlayerProvider> */}
             <body
               className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
             >
-              {/* <MusicProvider> */}
               <MusicPlayerProvider>
                 <main>{children}</main>
                 <Toaster />
-                {/* <MyPlayer /> */}
-                {/* <MusicPlayer /> */}
+
                 <MelodiousMusicPlayer />
               </MusicPlayerProvider>
-              {/* </MusicProvider> */}
             </body>
-            {/* </PlayerProvider> */}
           </MelodiousProvider>
         </LayoutWrapper>
       </ThirdwebProvider>

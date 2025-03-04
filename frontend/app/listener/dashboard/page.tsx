@@ -12,7 +12,6 @@ import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
 import { useCallback, useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
-import { initializeSocket } from "@/lib/testSocket";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
@@ -53,71 +52,6 @@ export default function Page() {
   // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
-
-  // const { currentTrack, isPlaying, playTrack, pauseTrack, resumeTrack } =
-  //   useMusic();
-
-  // const handlePlayPause = (track: Track) => {
-  //   if (currentTrack?.id === track.id) {
-  //     if (isPlaying) {
-  //       pauseTrack();
-  //     } else {
-  //       resumeTrack();
-  //     }
-  //   } else {
-  //     playTrack(track);
-  //   }
-  // };
-
-  // const data = [
-  //   {
-  //     id: 1,
-  //     title: "Song Title 1",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //     audioUrl: "/audio/song1.mp3",
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Song Title 2",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //     audioUrl: "/audio/song2.mp3",
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Song Title 3",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/woman-with-headphone-front.png",
-  //     audioUrl: "/audio/song1.mp3",
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "Song Title 4",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/artist.svg",
-  //     audioUrl: "/audio/song3.mp3",
-  //   },
-  //   {
-  //     id: 5,
-  //     title: "Song Title 4",
-  //     songDetails: "189 songs, 2hr 40min",
-  //     imageUrl: "/images/woman-with-headphone-front.png",
-  //     audioUrl: "/audio/song1.mp3",
-  //   },
-  // ];
-
-  // const transformedData = tracks.map((track) => {
-  //   return {
-  //     id: track.id,
-  //     title: track.title,
-  //     artist: track.artist,
-  //     album: track.album,
-  //     duration: track.duration,
-  //     cover: track.image_path,
-  //     url: track.song_path,
-  //   };
-  // });
 
   const genres = [
     {
@@ -277,30 +211,6 @@ export default function Page() {
     },
   ];
 
-  // const playSong = useCallback(
-  //   async (song: any) => {
-  //     try {
-  //       if (status === "disconnected") {
-  //         await connect({ client, size: "compact" });
-  //       }
-
-  //       if (typeof song === "object") {
-  //         // Stop current playback first
-  //         setIsPlaying(false);
-
-  //         // Short delay to ensure clean state
-  //         await new Promise((resolve) => setTimeout(resolve, 100));
-
-  //         // Play new track
-  //         await playTrack(song);
-  //       }
-  //     } catch (error) {
-  //       console.log("Error playing song:", error);
-  //     }
-  //   },
-  //   [status, connect, playTrack, setIsPlaying]
-  // );
-
   const likeSong = async () => {
     if (status === "disconnected") {
       await connect({ client, size: "compact" }); // opens the connect modal
@@ -311,43 +221,10 @@ export default function Page() {
 
   const [isConnected, setIsConnected] = useState(false);
 
-  // useEffect(() => {
-  //   let data = localStorage.getItem("xx-mu") as any;
-  //   //     console.log("token gotten", JSON.parse(data));
-
-  //   data = JSON.parse(data) ?? null;
-
-  //   const token = data ? data["tokens"]["token"].access.token : null;
-
-  //   const socket = initializeSocket(token);
-
-  //   if (socket) {
-  //     setConditionFulfilled(true);
-  //     setIsConnected(true);
-
-  //     socket.on("startPlaying", () => {
-  //       console.log("Playing music");
-  //     });
-  //   }
-
-  //   // if (setConditionFulfilled) {
-
-  //   socket.on("startPlaying", () => {
-  //     console.log("Playing music");
-  //   });
-  //   // }
-  //   socket.on("connect", () => setIsConnected(true));
-  //   socket.on("disconnect", () => setIsConnected(false));
-
-  //   return () => {
-  //     socket.disconnect();
-  //   };
-  // }, [isConnected]);
-
   return (
     <div
       className={twMerge(
-        `relative grid gap-0 md:grid-cols-4 mt-[-65px] w-full h-full`,
+        `relative grid gap-0 md:grid-cols-4 mt-[-35px] w-full h-full`,
         currentTrack && "h-[calc(100%-40px)] pb-[90px]"
       )}
     >

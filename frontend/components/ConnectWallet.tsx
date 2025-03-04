@@ -108,7 +108,8 @@ const ConnectWallet = () => {
     if (user?.artist && !currentPath.startsWith("/artist")) {
       router.replace("/artist/dashboard");
     } else if (user?.listener && !currentPath.startsWith("/listener")) {
-      router.replace("/listener/dashboard");
+      // router.replace("/listener/dashboard");
+      window.location.href = "/listener/dashboard";
     }
   };
   return (

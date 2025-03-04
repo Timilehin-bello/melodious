@@ -23,7 +23,8 @@ const RedirectAfterLogin: React.FC = () => {
         // If the user is a listener and the current path is not the listener section, redirect to the listener section
         else if (userData.listener && !currentPath.startsWith("/listener")) {
           // Ensure redirection to the listener section, either to the dashboard or other page
-          router.push("/listener/dashboard");
+          // router.push("/listener/dashboard");
+          window.location.href = "/listener/dashboard";
         }
       }
     } else {

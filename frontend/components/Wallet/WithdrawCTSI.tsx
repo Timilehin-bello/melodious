@@ -15,11 +15,16 @@ export default function WithdrawCTSIModal({
   isOpen,
   onClose,
 }: WithdrawalCTSIModalProps) {
-  const [ctsiAmount, setCtsiAmount] = useState<number>();
+  const [ctsiAmount, setCtsiAmount] = useState(0);
 
   const { withdrawCTSI } = useMelodiousContext();
 
   const [loadWithdrawCTSI, setLoadWithdrawCTSI] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    setCtsiAmount(isNaN(value) ? 0 : value);
+  };
 
   const handleWithdrawCTSI = async () => {
     if (!ctsiAmount) return toast.error("Fields required!");
@@ -55,7 +60,7 @@ export default function WithdrawCTSIModal({
             type="number"
             placeholder="Amount"
             value={ctsiAmount}
-            onChange={(e) => setCtsiAmount(e.target.value as any)}
+            onChange={handleChange}
             className="border border-gray-300 rounded-lg w-full p-2"
           />
           <button
