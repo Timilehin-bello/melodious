@@ -32,7 +32,7 @@ export default function Page() {
         setTracks(trackList);
         setIsLoading(false);
       } catch (error) {
-        console.error("Failed to fetch tracks:", error);
+        console.log("Failed to fetch tracks:", error);
       } finally {
         setIsLoading(false);
       }
@@ -295,7 +295,7 @@ export default function Page() {
   //         await playTrack(song);
   //       }
   //     } catch (error) {
-  //       console.error("Error playing song:", error);
+  //       console.log("Error playing song:", error);
   //     }
   //   },
   //   [status, connect, playTrack, setIsPlaying]

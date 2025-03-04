@@ -91,7 +91,7 @@ const Release = () => {
         setTracks(trackList);
         setIsLoading(false);
       } catch (error) {
-        console.error("Failed to fetch tracks:", error);
+        console.log("Failed to fetch tracks:", error);
       } finally {
         setIsLoading(false);
       }

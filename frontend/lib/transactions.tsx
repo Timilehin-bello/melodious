@@ -83,7 +83,7 @@ async function sendTransaction(data: any) {
     console.log("Transaction successful:", response.data);
     return response.data;
   } catch (error: any) {
-    console.error(
+    console.log(
       "Error sending transaction:",
       error.response ? error.response.data : error.message
     );

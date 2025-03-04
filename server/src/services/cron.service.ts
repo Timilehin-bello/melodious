@@ -59,7 +59,7 @@ export const getArtistsListeningStats = async (): Promise<
 
     return formattedStats;
   } catch (error) {
-    console.error("Error fetching artist listening stats:", error);
+    console.log("Error fetching artist listening stats:", error);
     throw error;
   }
 };

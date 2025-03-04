@@ -154,7 +154,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         try {
           audioContextRef.current.close();
         } catch (e) {
-          console.error("Error closing AudioContext:", e);
+          console.log("Error closing AudioContext:", e);
         }
       }
 
@@ -165,7 +165,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
             ctx.close();
           }
         } catch (e) {
-          console.error("Error closing tracked AudioContext:", e);
+          console.log("Error closing tracked AudioContext:", e);
         }
       });
     };
@@ -192,7 +192,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (e) {
-          console.error("Error stopping media element:", e);
+          console.log("Error stopping media element:", e);
         }
       }
     });
@@ -212,7 +212,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         // SoundCloud specific
         iframe.contentWindow?.postMessage('{"method":"pause"}', "*");
       } catch (e) {
-        console.error("Error stopping iframe playback:", e);
+        console.log("Error stopping iframe playback:", e);
       }
     });
 
@@ -224,7 +224,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       try {
         audioContextRef.current.suspend();
       } catch (e) {
-        console.error("Error suspending AudioContext:", e);
+        console.log("Error suspending AudioContext:", e);
       }
     }
 
@@ -235,7 +235,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
           ctx.suspend();
         }
       } catch (e) {
-        console.error("Error suspending tracked AudioContext:", e);
+        console.log("Error suspending tracked AudioContext:", e);
       }
     });
 
@@ -250,14 +250,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         audioContextRef.current = newContext;
         activeAudioContexts.push(newContext);
       } catch (e) {
-        console.error("Error creating new AudioContext:", e);
+        console.log("Error creating new AudioContext:", e);
       }
     } else if (audioContextRef.current.state === "suspended") {
       try {
         // Resume our audio context when needed
         audioContextRef.current.resume();
       } catch (e) {
-        console.error("Error resuming AudioContext:", e);
+        console.log("Error resuming AudioContext:", e);
       }
     }
   };

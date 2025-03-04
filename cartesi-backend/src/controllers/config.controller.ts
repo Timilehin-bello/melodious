@@ -25,7 +25,7 @@ class ConfigController {
 
       return new Notice(notice_payload);
     } catch (error) {
-      console.error("Failed to create config", error);
+      console.log("Failed to create config", error);
       return new Error_out(`Failed to create config`);
     }
   }
@@ -37,7 +37,7 @@ class ConfigController {
       console.log("config", config_json);
       return new Log(config_json);
     } catch (error) {
-      console.error("Failed to get config", error);
+      console.log("Failed to get config", error);
       return new Error_out(`Failed to get config`);
     }
   }
@@ -55,7 +55,7 @@ class ConfigController {
 
       return new Notice(notice_payload);
     } catch (error) {
-      console.error("Failed to update config", error);
+      console.log("Failed to update config", error);
       return new Error_out(`Failed to update config`);
     }
   }

@@ -75,6 +75,6 @@ export async function fetchVouchers() {
     }
     return all_Vouchers;
   } catch (error) {
-    console.error("Error fetching notices:", error);
+    console.log("Error fetching notices:", error);
   }
 }

@@ -455,7 +455,7 @@
 //               }
 //               onDuration={(duration) => onDuration(duration)}
 //               onError={(e) => {
-//                 console.error("Player error:", e);
+//                 console.log("Player error:", e);
 //                 setPlayerReady(false);
 //               }}
 //             />

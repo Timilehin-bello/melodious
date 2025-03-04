@@ -104,7 +104,7 @@ class NetworkMonitor {
         this.currentStrength = "poor";
       }
     } catch (error) {
-      console.error("Error measuring connection speed:", error);
+      console.log("Error measuring connection speed:", error);
       // Default to medium if we can't measure
       this.currentStrength = "medium";
     }

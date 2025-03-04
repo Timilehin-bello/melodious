@@ -97,7 +97,7 @@ const RegisterArtist = () => {
       },
     });
     if (response.status !== "success" || response.code === 400) {
-      // console.error("Error creating user:", response);
+      // console.log("Error creating user:", response);
       toast.error("Error Creating User: " + response.message);
       console.log("Error Creating User: ", response.message);
       setLoading(false);

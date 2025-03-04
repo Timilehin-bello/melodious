@@ -20,7 +20,7 @@ async function fetchMethod(data: any) {
     const convertToString = hexToString(response.data.reports[0].payload);
     return JSON.parse(convertToString);
   } catch (error: any) {
-    console.error(
+    console.log(
       "Error sending transaction:",
       error.response ? error.response.data : error.message
     );

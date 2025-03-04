@@ -124,9 +124,9 @@ const SingleRelease = () => {
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
       if (ipfsHash) {
         setMyAudio(ipfsHash);
-        const durationOfSong = await extractDurationInSeconds(acceptedFiles[0]);
+        const durationOfSong = await extractDuration(acceptedFiles[0]);
         form.setValue("audioUrl", ipfsHash);
-        form.setValue("duration", String(durationOfSong));
+        form.setValue("duration", durationOfSong);
         setLoading(false);
       }
     },

@@ -37,7 +37,7 @@ var handlers: any = {
 // });
 // console.log("config result is ", configResult);
 // if (configResult instanceof Error_out) {
-//   console.error(configResult);
+//   console.log(configResult);
 //   process.exit(1);
 // }
 
@@ -221,7 +221,7 @@ async function handle_advance(data: any) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
     }
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return new Error_out(`failed to process advance_request ${e}`);
   }
 }

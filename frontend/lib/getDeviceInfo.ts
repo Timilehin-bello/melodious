@@ -31,3 +31,37 @@ export const getDeviceInfo = (): DeviceInfo => {
     networkType: connection.effectiveType || "unknown",
   };
 };
+
+// Helper functions for device detection
+export function detectBrowser(ua: string): string {
+  if (ua.includes("Chrome")) return "chrome";
+  if (ua.includes("Firefox")) return "firefox";
+  if (ua.includes("Safari")) return "safari";
+  if (ua.includes("Opera") || ua.includes("OPR")) return "opera";
+  if (ua.includes("Edge")) return "edge";
+  if (ua.includes("MSIE") || ua.includes("Trident/")) return "ie";
+  return "unknown";
+}
+
+export function detectOS(ua: string): string {
+  if (ua.includes("Win")) return "windows";
+  if (ua.includes("Mac")) return "macos";
+  if (ua.includes("Linux")) return "linux";
+  if (ua.includes("Android")) return "android";
+  if (ua.includes("iOS")) return "ios";
+  return "unknown";
+}
+
+export function detectDeviceType(ua: string): string {
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+    return "tablet";
+  }
+  if (
+    /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
+      ua
+    )
+  ) {
+    return "mobile";
+  }
+  return "desktop";
+}

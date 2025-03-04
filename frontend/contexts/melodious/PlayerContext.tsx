@@ -86,7 +86,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const playTrack = useCallback(
     async (track: any) => {
-      console.log('track from context', track)
+      console.log("track from context", track);
       try {
         // Reset player state
         setIsPlaying(false);
@@ -109,10 +109,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({
             deviceInfo: getDeviceInfo(),
             duration: 20000,
           });
-          
         }
       } catch (error) {
-        console.error("Error playing track:", error);
+        console.log("Error playing track:", error);
         toast.error("Failed to play track");
       }
     },

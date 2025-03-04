@@ -92,7 +92,7 @@ export class TrackListeningService {
               data = JSON.parse(data);
               data.listenerId = socket.user.listener?.id;
             } catch (error) {
-              console.error("Error parsing data:", error);
+              console.log("Error parsing data:", error);
               return;
             }
           }
@@ -237,7 +237,7 @@ export class TrackListeningService {
         completionRate: session.currentPosition / (session.duration || 1),
       });
     } catch (error) {
-      console.error("Error in handleStopPlaying:", error);
+      console.log("Error in handleStopPlaying:", error);
     }
   }
 
@@ -553,7 +553,7 @@ export class TrackListeningService {
           timestamp: now,
         });
       } catch (error) {
-        console.error("Failed to update listening time:", error);
+        console.log("Failed to update listening time:", error);
       }
     }
   }
@@ -615,7 +615,7 @@ export class TrackListeningService {
         retryCount++;
         if (retryCount === maxRetries) {
           // Log to error monitoring service
-          console.error("Final retry failed:", retryError);
+          console.log("Final retry failed:", retryError);
         }
       }
     }

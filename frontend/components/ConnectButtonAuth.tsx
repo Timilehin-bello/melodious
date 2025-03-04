@@ -57,7 +57,7 @@ const ConnectButtonAuth = () => {
 
             if (!response.ok) {
               // throw new Error(`HTTP error! status: ${response.status}`);
-              console.error("Error fetching login payload:", response);
+              console.log("Error fetching login payload:", response);
             }
 
             const request = await response.json();

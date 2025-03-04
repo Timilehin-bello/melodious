@@ -37,7 +37,7 @@ export const useInspectCall = () => {
       if (config[toHex(chain.id)]?.inspectAPIURL) {
         apiURL = `${config[toHex(chain.id)].inspectAPIURL}/inspect`;
       } else {
-        console.error(
+        console.log(
           `No inspect interface defined for chain ${toHex(chain.id)}`
         );
         return;
@@ -71,7 +71,7 @@ export const useInspectCall = () => {
       setDecodedReports(reportData);
       toast.success("Successfully fetched");
     } catch (error: any) {
-      console.error("Error fetching inspect data:", error);
+      console.log("Error fetching inspect data:", error);
       toast.error("Failed to fetch");
     }
   };

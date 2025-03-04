@@ -38,7 +38,7 @@
 //   //         await playTrack(song);
 //   //       }
 //   //     } catch (error) {
-//   //       console.error("Error playing song:", error);
+//   //       console.log("Error playing song:", error);
 //   //     }
 //   //   },
 //   //   [status, connect, playTrack, setIsPlaying]
@@ -159,42 +159,43 @@ const SongList: React.FC<SongListProps> = ({
           </tr>
         </thead>
         <tbody>
-          {songList.map((song, index) => (
-            <tr key={song.id} className="hover:bg-[#950944]">
-              <td className="py-2">{index + 1}</td>
-              <td className="py-2">
-                <div className="flex items-center">
-                  <div className="relative w-10 h-10 mr-3">
-                    <Image
-                      src={
-                        song.imageUrl || "/placeholder.svg?height=40&width=40"
-                      }
-                      alt={song.title}
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded"
-                    />
-                    <button
-                      onClick={() =>
-                        handlePlayPauseClick(song, Number(song.id))
-                      }
-                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      {currentTrack?.id === song.id && isPlaying ? (
-                        <Pause className="w-5 h-5 text-white" />
-                      ) : (
-                        <Play className="w-5 h-5 text-white" />
-                      )}
-                    </button>
+          {songList &&
+            songList.map((song, index) => (
+              <tr key={song.id} className="hover:bg-[#950944]">
+                <td className="py-2">{index + 1}</td>
+                <td className="py-2">
+                  <div className="flex items-center">
+                    <div className="relative w-10 h-10 mr-3">
+                      <Image
+                        src={
+                          song.imageUrl || "/placeholder.svg?height=40&width=40"
+                        }
+                        alt={song.title}
+                        layout="fill"
+                        objectFit="cover"
+                        className="rounded"
+                      />
+                      <button
+                        onClick={() =>
+                          handlePlayPauseClick(song, Number(song.id))
+                        }
+                        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
+                      >
+                        {currentTrack?.id === song.id && isPlaying ? (
+                          <Pause className="w-5 h-5 text-white" />
+                        ) : (
+                          <Play className="w-5 h-5 text-white" />
+                        )}
+                      </button>
+                    </div>
+                    <span>{song.title}</span>
                   </div>
-                  <span>{song.title}</span>
-                </div>
-              </td>
-              <td className="py-2">{song.artist}</td>
-              <td className="py-2">{song.album}</td>
-              <td className="py-2 text-right">{song.duration}</td>
-            </tr>
-          ))}
+                </td>
+                <td className="py-2">{song.artist}</td>
+                <td className="py-2">{song.album}</td>
+                <td className="py-2 text-right">{song.duration}</td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </div>

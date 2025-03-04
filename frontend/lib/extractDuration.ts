@@ -29,3 +29,8 @@ export const formatDuration = (seconds: string | number): string => {
   const remainingSeconds = totalSeconds % 60;
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
+
+export function timeStringToSeconds(time: string): number {
+  const [minutes, seconds] = time.split(":").map(Number);
+  return minutes * 60 + seconds;
+}

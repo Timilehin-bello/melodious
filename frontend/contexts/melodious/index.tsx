@@ -213,7 +213,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return response.data;
     } catch (error) {
-      console.error("Error checking login status:", error);
+      console.log("Error checking login status:", error);
       toast.error("Error checking login status:" + error);
       return false;
     }
@@ -289,12 +289,12 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       socketInstance.on("connect_error", (error) => {
-        console.error("Socket connection error:", error);
+        console.log("Socket connection error:", error);
         setIsConnected(false);
       });
 
       socketInstance.on("unauthorized", (error) => {
-        console.error("Unauthorized socket access:", error);
+        console.log("Unauthorized socket access:", error);
         disconnect();
       });
 
@@ -305,7 +305,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsConnected(false);
       };
     } catch (error) {
-      console.error("Failed to connect socket:", error);
+      console.log("Failed to connect socket:", error);
       setIsConnected(false);
     }
   }, [isConnectionAllowed, socketState.token]);
@@ -336,7 +336,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       return `${subdomain}/ipfs/${res.data.IpfsHash}`;
     } catch (error) {
-      console.error("Error uploading to Pinata:", error);
+      console.log("Error uploading to Pinata:", error);
       toast.error("Error uploading to Pinata: \n" + error);
 
       throw error;
@@ -369,7 +369,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.log("Error creating user:", error);
       toast.error("Error creating user: \n" + error);
     }
   };
@@ -389,7 +389,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.log("Error creating user:", error);
       toast.error("Error creating user: \n" + error);
     }
   };
@@ -420,7 +420,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       toast.error("Error creating genre: " + error);
-      console.error("Error creating genre:", error);
+      console.log("Error creating genre:", error);
     }
   };
 
@@ -441,7 +441,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       return txhash;
     } catch (error) {
       toast.error("Error withdrawing CTSI " + error);
-      console.error("Error creating user:", error);
+      console.log("Error creating user:", error);
     }
   };
 
@@ -477,7 +477,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         return txhash;
       }
     } catch (error) {
-      // console.error("Error creating user:", error);
+      // console.log("Error creating user:", error);
       toast.error("Error creating user: \n" + error);
     }
   };
@@ -554,7 +554,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log("Transaction successful:", response.data);
       return response.data;
     } catch (error: any) {
-      console.error(
+      console.log(
         "Error sending transaction:",
         error.response ? error.response.data : error.message
       );

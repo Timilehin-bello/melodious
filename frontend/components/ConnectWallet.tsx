@@ -105,12 +105,11 @@ const ConnectWallet = () => {
   const handleRedirect = async (user: User) => {
     const currentPath = pathname;
 
-      if (user?.artist && !currentPath.startsWith("/artist")) {
-        router.replace("/artist/dashboard");
-      } else if (user?.listener && !currentPath.startsWith("/listener")) {
-        router.replace("/listener/dashboard");
-      }
-   
+    if (user?.artist && !currentPath.startsWith("/artist")) {
+      router.replace("/artist/dashboard");
+    } else if (user?.listener && !currentPath.startsWith("/listener")) {
+      router.replace("/listener/dashboard");
+    }
   };
   return (
     <div>
@@ -134,7 +133,7 @@ const ConnectWallet = () => {
 
             if (!response.ok) {
               // throw new Error(`HTTP error! status: ${response.status}`);
-              console.error("Error fetching login payload:", response);
+              console.log("Error fetching login payload:", response);
               toast.error("Error fetching login payload");
             }
             localStorage.setItem("walletAddress", params.address);

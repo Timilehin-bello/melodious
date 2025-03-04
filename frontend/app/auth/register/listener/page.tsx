@@ -74,7 +74,7 @@ const RegisterListener = () => {
       },
     });
     if (response.status !== "success") {
-      console.error("Error creating user:", response);
+      console.log("Error creating user:", response);
       setLoading(false);
       return;
     } else {

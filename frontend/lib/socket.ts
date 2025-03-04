@@ -40,10 +40,10 @@ export const initSocket = ({
   });
 
   socket.on("connect_error", (error) => {
-    console.error("Socket connection error:", error);
+    console.log("Socket connection error:", error);
     // Handle authentication errors specifically
     if (error.message === "Invalid token") {
-      console.error("Invalid authentication token");
+      console.log("Invalid authentication token");
       // You might want to trigger a logout or token refresh here
     }
   });

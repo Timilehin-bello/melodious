@@ -65,7 +65,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       if (config[toHex(chain.id)]?.DAppRelayAddress) {
         dappRelayAddress = config[toHex(chain.id)].DAppRelayAddress;
       } else {
-        console.error(
+        console.log(
           `No dapp relay address address defined for chain ${toHex(chain.id)}`
         );
       }
@@ -74,7 +74,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       if (config[toHex(chain.id)]?.InputBoxAddress) {
         inputBoxAddress = config[toHex(chain.id)].InputBoxAddress;
       } else {
-        console.error(
+        console.log(
           `No input box address address defined for chain ${toHex(chain.id)}`
         );
       }
@@ -83,7 +83,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       if (config[toHex(chain.id)]?.EtherPortalAddress) {
         etherPortalAddress = config[toHex(chain.id)].EtherPortalAddress;
       } else {
-        console.error(
+        console.log(
           `No ether portal address address defined for chain ${toHex(chain.id)}`
         );
       }
@@ -92,7 +92,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       if (config[toHex(chain.id)]?.Erc20PortalAddress) {
         erc20PortalAddress = config[toHex(chain.id)].Erc20PortalAddress;
       } else {
-        console.error(
+        console.log(
           `No erc20 portal address address defined for chain ${toHex(chain.id)}`
         );
         alert(`No erc20 portal address defined for chain ${toHex(chain.id)}`);
@@ -102,7 +102,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       if (config[toHex(chain.id)]?.Erc721PortalAddress) {
         erc721PortalAddress = config[toHex(chain.id)].Erc721PortalAddress;
       } else {
-        console.error(
+        console.log(
           `No erc721 portal address address defined for chain ${toHex(
             chain.id
           )}`
@@ -115,7 +115,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
         erc1155SinglePortalAddress =
           config[toHex(chain.id)].Erc1155SinglePortalAddress;
       } else {
-        console.error(
+        console.log(
           `No erc1155 single portal address address defined for chain ${toHex(
             chain.id
           )}`
@@ -132,7 +132,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
         erc1155BatchPortalAddress =
           config[toHex(chain.id)].Erc1155BatchPortalAddress;
       } else {
-        console.error(
+        console.log(
           `No erc1155 batch portal address address defined for chain ${toHex(
             chain.id
           )}`
