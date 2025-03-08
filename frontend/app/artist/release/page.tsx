@@ -86,7 +86,7 @@ const Release = () => {
   useEffect(() => {
     const loadTracks = async () => {
       try {
-        const trackList = await await fetchMethod("get_tracks");
+        const trackList = await fetchMethod("get_tracks");
         console.log("tracklist", trackList);
         setTracks(trackList);
         setIsLoading(false);
@@ -103,8 +103,10 @@ const Release = () => {
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
       togglePlay();
+    } else if (tracks.length === 1) {
+      playTrack(track); // Play a single track if there's only one
     } else {
-      playPlaylist(tracks, index);
+      playPlaylist(tracks, index); // Allow playing from any index
     }
   };
 

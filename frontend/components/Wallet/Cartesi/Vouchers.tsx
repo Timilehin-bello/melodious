@@ -50,7 +50,7 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
     return <p className="text-slate-400">No vouchers</p>;
 
   return (
-    <div className="text-slate-200">
+    <div className="overflow-x-auto border border-gray-300 p-4 rounded-lg text-slate-200">
       <p></p>
       <button
         className="mt-4 float-right px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
@@ -59,7 +59,7 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
         Reload 🔃
       </button>
       {voucherToExecute ? (
-        <table className="min-w-full mt-6 table-auto">
+        <table className="w-full mt-6 table-auto">
           <thead>
             <tr>
               <th className="px-4 py-2">Input Index</th>
@@ -120,7 +120,8 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
       ) : (
         <p></p>
       )}
-      <table className="min-w-full mt-8 table-auto">
+
+      <table className="w-full mt-8 table-auto">
         <thead>
           <tr className="text-gray-900">
             {/*<th>Input Index</th>
@@ -155,7 +156,9 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
                   </button>
                 </td>
                 {/* <td>{n.input.payload}</td> */}
-                <td className="px-4 py-2 text-slate-500">{n.payload}</td>
+                <td className="px-4 py-2 text-slate-500 text-wrap">
+                  {n.payload}
+                </td>
                 {/* <td>
                                 <button disabled={!!n.proof} onClick={() => executeVoucher(n)}>Execute voucher</button>
                             </td> */}
