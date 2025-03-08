@@ -20,6 +20,10 @@ const defaultRoutes: IRoute[] = [
     route: userRoute,
   },
   {
+    path: "/tracks",
+    route: userRoute,
+  },
+  {
     path: "/transactions",
     route: transactionRoute,
   },

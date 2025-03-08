@@ -2,21 +2,51 @@ import Joi from "joi";
 import { ethAddress, objectId } from "./custom.validation";
 import { add } from "date-fns";
 
-const register = {
-  body: Joi.object().keys({
-    walletAddress: Joi.string().required().custom(ethAddress),
+const socialMediaSchema = Joi.object({
+  twitter: Joi.string().uri().optional(),
+  instagram: Joi.string().uri().optional(),
+  facebook: Joi.string().uri().optional(),
+}).optional();
 
-    userType: Joi.object()
-      .valid("LISTENER", "ARTIST")
-      //  .keys({
-      //    LISTENER: Joi.string().valid("LISTENER"),
-      //    ARTIST: Joi.string().valid("ARTIST"),
-      //  })
-      .required(),
+const baseUserSchema = {
+  method: Joi.string().valid("create_user").required(),
+  args: Joi.object({
+    name: Joi.string().required().min(2).max(100),
+    displayName: Joi.string().required().min(2).max(50),
+    username: Joi.string()
+      .required()
+      .min(3)
+      .max(30)
+      .pattern(/^[a-zA-Z0-9_]+$/),
+    userType: Joi.string().valid("LISTENER", "ARTIST").required(),
+    walletAddress: Joi.string().custom(ethAddress).required(),
     chainId: Joi.string()
       .valid("1", "137", "43114", "31337", "11155111")
-      .required()
-      .custom(ethAddress),
+      .required(),
+  }),
+};
+
+const register = {
+  body: Joi.alternatives().conditional("args.userType", {
+    switch: [
+      {
+        is: "LISTENER",
+        then: Joi.object({
+          ...baseUserSchema,
+          args: baseUserSchema.args.append({}),
+        }),
+      },
+      {
+        is: "ARTIST",
+        then: Joi.object({
+          ...baseUserSchema,
+          args: baseUserSchema.args.append({
+            biography: Joi.string().min(10).max(1000).required(),
+            socialMediaLinks: socialMediaSchema,
+          }),
+        }),
+      },
+    ],
   }),
 };
 
