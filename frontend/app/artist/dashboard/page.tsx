@@ -12,16 +12,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
+interface User {
+  id: string;
+  walletAddress: string;
+}
 
 export default function Page() {
   const [userDetails, setUserDetails] = useState<any>(null);
 
-  interface User {
-    id: string;
-  }
-
   const fetchData = async (user: User) => {
-    const getUserDetails = await fetchMethod("get_user/" + user.id);
+    const getUserDetails = await fetchMethod(
+      "get_user_info/" + user.walletAddress
+    );
 
     console.log("getUserDetails", getUserDetails);
 

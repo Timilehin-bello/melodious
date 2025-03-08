@@ -43,8 +43,10 @@ export default function Page() {
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
       togglePlay();
+    } else if (tracks.length === 1) {
+      playTrack(track); // Play a single track if there's only one
     } else {
-      playPlaylist(tracks, index);
+      playPlaylist(tracks, index); // Allow playing from any index
     }
   };
 
@@ -233,9 +235,9 @@ export default function Page() {
         <h2 className="text-white font-bold text-3xl mb-4">
           Good Morning Guest!
         </h2>
-        <p className="text-white">
+        {/* <p className="text-white">
           Status: {isConnected ? "Connected" : "Disconnected"}
-        </p>
+        </p> */}
         {/* Banner */}
         <div className="rounded-lg bg-cover bg-center bg-no-repeat bg-[url('/images/icons/banner.svg')] h-25  w-full">
           <div className="flex justify-between items-center">

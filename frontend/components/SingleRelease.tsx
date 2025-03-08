@@ -208,17 +208,21 @@ const SingleRelease = () => {
                   <Select
                     value={field.value?.toString()}
                     onValueChange={field.onChange}
+                    defaultValue=""
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a music genre" />
+                        <SelectValue placeholder="Select a music genre">
+                          {genreList.find((g) => g.id === field.value)?.name ||
+                            "Select a music genre"}
+                        </SelectValue>{" "}
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {genreList &&
                         genreList.map((genre, index) => (
-                          <SelectItem key={index} value={genre.id}>
-                            {genre.name}
+                          <SelectItem key={index} value={genre.id.toString()}>
+                            {genre?.name}
                           </SelectItem>
                         ))}
                     </SelectContent>

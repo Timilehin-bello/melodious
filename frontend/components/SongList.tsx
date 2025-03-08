@@ -159,7 +159,9 @@ const SongList: React.FC<SongListProps> = ({
           </tr>
         </thead>
         <tbody>
-          {songList &&
+          {!Array.isArray(songList) ? (
+            <tr>No songs found</tr>
+          ) : (
             songList.map((song, index) => (
               <tr key={song.id} className="hover:bg-[#950944]">
                 <td className="py-2">{index + 1}</td>
@@ -195,7 +197,8 @@ const SongList: React.FC<SongListProps> = ({
                 <td className="py-2">{song.album}</td>
                 <td className="py-2 text-right">{song.duration}</td>
               </tr>
-            ))}
+            ))
+          )}
         </tbody>
       </table>
     </div>

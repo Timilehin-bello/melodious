@@ -159,7 +159,9 @@ export const MusicPlayerProvider = ({
         autoConnect: false,
       });
 
-      socketRef.current.connect();
+      if (currentTrack) {
+        socketRef.current.connect();
+      }
 
       return () => {
         if (socketRef.current) {
@@ -169,7 +171,7 @@ export const MusicPlayerProvider = ({
     } catch (error) {
       console.error("Failed to initialize socket:", error);
     }
-  }, []);
+  }, [currentTrack]);
 
   // Emit socket event helper
   const emitSocketEvent = useCallback(
@@ -545,7 +547,6 @@ export const MusicPlayerProvider = ({
   const playPlaylist = useCallback(
     (tracks: Track[], startIndex = 0) => {
       if (tracks.length === 0) return;
-
       setPlaylist(tracks);
       setCurrentIndex(startIndex);
       setCurrentTrack(tracks[startIndex]);
