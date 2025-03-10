@@ -5,7 +5,7 @@ import { LoginPayload, VerifyLoginPayloadParams } from "thirdweb/auth";
 import { get, post } from "@/lib/api";
 import { usePathname, useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { defineChain } from "thirdweb";
 import { useMelodiousContext } from "@/contexts/melodious";
 import toast from "react-hot-toast";
@@ -25,50 +25,11 @@ interface User {
 
 const ConnectWallet = () => {
   const router = useRouter();
-  const [userDetails, setUserDetails] = useState<any>({});
+  // const [userDetails, setUserDetails] = useState<any>({});
 
   const [successfulLogin, setSuccessfulLogin] = useState(false);
 
   const pathname = usePathname();
-
-  // useEffect(() => {
-  //   // if (successfulLogin && userData) {
-  //   //   if (userData.listener === null) {
-  //   //     // router.push("/artist/dashboard");
-  //   //   } else if (userData.listener !== null) {
-  //   //     // router.push("/listener/dashboard");
-  //   //   } else if (userData.artist === null) {
-  //   //     // router.push("/listener/dashboard");
-  //   //   } else if (userData.artist !== null) {
-  //   //     // router.push("/artist/dashboard");
-  //   //   } else {
-  //   //     router.push("/");
-  //   //   }
-  //   // }
-  //   console.log("successfulLogin", successfulLogin);
-
-  //   if (successfulLogin) {
-  //     if (userData) {
-  //       console.log("user data", userData);
-  //       // Get the current path to check if the user is already in the correct section
-  //       const currentPath = pathname;
-
-  //       // If the user is an artist and the current path is not the artist section, redirect to the artist section
-  //       if (userData.artist && !currentPath.startsWith("/artist")) {
-  //         // Ensure redirection to the artist section, either to the dashboard or other page
-  //         router.push("/artist/dashboard");
-  //       }
-  //       // If the user is a listener and the current path is not the listener section, redirect to the listener section
-  //       else if (userData.listener && !currentPath.startsWith("/listener")) {
-  //         // Ensure redirection to the listener section, either to the dashboard or other page
-  //         router.push("/listener/dashboard");
-  //       }
-  //     }
-  //   } else {
-  //     // Redirect to the login page if the user is not authenticated
-  //     router.push("/");
-  //   }
-  // }, [router, userData]);
 
   const { userData, setUserData, isLoggedIn, checkLoginStatus } =
     useMelodiousContext();
@@ -82,13 +43,28 @@ const ConnectWallet = () => {
 
       // Redirect if login failed
       if (!status) {
-        toast.error("User not logged in, redirecting to home...");
+        localStorage.clear();
+        toast.error("User not logged in, please connect wallet");
         router.replace("/");
       }
     };
 
     checkLogin();
   }, []);
+
+  const handleRedirect = useCallback(
+    async (user: User) => {
+      const currentPath = pathname;
+
+      if (user?.artist && !currentPath.startsWith("/artist")) {
+        router.replace("/artist/dashboard");
+      } else if (user?.listener && !currentPath.startsWith("/listener")) {
+        // router.replace("/listener/dashboard");
+        window.location.href = "/listener/dashboard";
+      }
+    },
+    [pathname, router]
+  );
 
   // Step 2: Handle redirection after state updates
   useEffect(() => {
@@ -100,18 +76,7 @@ const ConnectWallet = () => {
     console.log("User logged in:", isLoggedIn, "User data:", userData);
 
     handleRedirect(userData);
-  }, [isLoggedIn, userData]);
-
-  const handleRedirect = async (user: User) => {
-    const currentPath = pathname;
-
-    if (user?.artist && !currentPath.startsWith("/artist")) {
-      router.replace("/artist/dashboard");
-    } else if (user?.listener && !currentPath.startsWith("/listener")) {
-      // router.replace("/listener/dashboard");
-      window.location.href = "/listener/dashboard";
-    }
-  };
+  }, [isLoggedIn, userData, handleRedirect]);
   return (
     <div>
       <ConnectButton
@@ -135,7 +100,7 @@ const ConnectWallet = () => {
             if (!response.ok) {
               // throw new Error(`HTTP error! status: ${response.status}`);
               console.log("Error fetching login payload:", response);
-              toast.error("Error fetching login payload");
+              toast.error("User not found redirecting to register...");
             }
             localStorage.setItem("walletAddress", params.address);
             const request = await response.json();

@@ -53,13 +53,14 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
     <div className="overflow-x-auto border border-gray-300 p-4 rounded-lg text-slate-200">
       <p></p>
       <button
-        className="mt-4 float-right px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        className="mt-4 float-right px-4 py-2 text-sm bg-[#950944] text-white rounded-md hover:bg-[#7e0837]"
         onClick={() => refetch({ requestPolicy: "network-only" })}
       >
-        Reload 🔃
+        Reload
+        {/* 🔃 */}
       </button>
       {voucherToExecute ? (
-        <table className="w-full mt-6 table-auto">
+        <table className="w-full mt-6 table-auto ">
           <thead>
             <tr>
               <th className="px-4 py-2">Input Index</th>
@@ -123,7 +124,7 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
 
       <table className="w-full mt-8 table-auto">
         <thead>
-          <tr className="text-gray-900">
+          <tr className="text-white">
             {/*<th>Input Index</th>
                         <th>Voucher Index</th>
                         <th>Destination</th> */}
@@ -149,16 +150,14 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
                             <Td>{n.destination}</Td> */}
                 <td className="px-4 py-2">
                   <button
-                    className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                    className="px-4 py-2 text-sm bg-[#950944] text-white rounded-md hover:bg-[#7e0837]"
                     onClick={() => getProof(n)}
                   >
                     Get Proof
                   </button>
                 </td>
                 {/* <td>{n.input.payload}</td> */}
-                <td className="px-4 py-2 text-slate-500 text-wrap">
-                  {n.payload}
-                </td>
+                <td className="px-4 py-2 text-wrap text-center">{n.payload}</td>
                 {/* <td>
                                 <button disabled={!!n.proof} onClick={() => executeVoucher(n)}>Execute voucher</button>
                             </td> */}

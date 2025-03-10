@@ -26,7 +26,7 @@ const baseUserSchema = {
   }),
 };
 
-const register = {
+const register2 = {
   body: Joi.alternatives().conditional("args.userType", {
     switch: [
       {
@@ -47,6 +47,24 @@ const register = {
         }),
       },
     ],
+  }),
+};
+
+const register = {
+  body: Joi.object().keys({
+    walletAddress: Joi.string().required().custom(ethAddress),
+
+    userType: Joi.object()
+      .valid("LISTENER", "ARTIST")
+      //  .keys({
+      //    LISTENER: Joi.string().valid("LISTENER"),
+      //    ARTIST: Joi.string().valid("ARTIST"),
+      //  })
+      .required(),
+    chainId: Joi.string()
+      .valid("1", "137", "43114", "31337", "11155111")
+      .required()
+      .custom(ethAddress),
   }),
 };
 

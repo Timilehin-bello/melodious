@@ -8,6 +8,7 @@ import LayoutWrapper from "@/components/LayoutWrapper/LayoutWrapper";
 import WalletConnectionHandler from "@/components/WalletConnectionHandler";
 import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
+import { Toaster as Toast } from "react-hot-toast";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -42,6 +43,7 @@ export default function RootLayout({
               <MusicPlayerProvider>
                 <main>{children}</main>
                 <Toaster />
+                <Toast />
 
                 <MelodiousMusicPlayer />
               </MusicPlayerProvider>

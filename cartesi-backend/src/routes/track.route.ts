@@ -138,6 +138,12 @@ class TrackRoute extends InspectRoute {
   };
 }
 
+class TrackByWalletAddressRoute extends InspectRoute {
+  execute = (request: any): Output => {
+    return this.track.getTracksByArtistWalletAddress(request as string);
+  };
+}
+
 export {
   UpdateTrackRoute,
   DeleteTrackRoute,
@@ -145,4 +151,5 @@ export {
   CreateTrackRoute,
   TracksRoute,
   TrackRoute,
+  TrackByWalletAddressRoute,
 };

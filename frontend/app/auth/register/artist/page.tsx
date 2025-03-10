@@ -25,9 +25,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
-import { useActiveAccount } from "thirdweb/react";
-import { useState } from "react";
+import { useActiveAccount, useConnectModal } from "thirdweb/react";
+
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { client } from "@/lib/client";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -79,53 +81,61 @@ const RegisterArtist = () => {
     },
   });
 
+  const { connect, isConnecting } = useConnectModal();
+  const handleConnect = useCallback(async () => {
+    const wallet = await connect({ client: client }); // opens the connect modal
+    console.log("connected to", wallet);
+  }, [connect]);
+
+  useEffect(() => {
+    const walletAddress = activeAccount?.address;
+    console.log("walletAddress", walletAddress);
+    if (!walletAddress) {
+      handleConnect();
+    }
+  }, [activeAccount, handleConnect]);
+
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     // Do something with the form values.
     // const walletAddress = secureStorage.get("walletAddress");
 
-    const walletAddress = activeAccount?.address;
-    const chainId = "31337";
-    // console.log(walletAddress);
-    const response = await post({
-      url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/register",
-      body: {
-        walletAddress: walletAddress,
-        chainId: chainId,
-        userType: "ARTIST",
-      },
-    });
-    if (response.status !== "success" || response.code === 400) {
-      // console.log("Error creating user:", response);
-      toast.error("Error Creating User: " + response.message);
-      console.log("Error Creating User: ", response.message);
-      setLoading(false);
+    const walletAddress =
+      activeAccount?.address || localStorage.getItem("walletAddress");
 
-      return;
-    } else {
-      createUser({
-        name: values.name,
-        displayName: values.displayName,
-        username: values.username,
-        userType: "ARTIST",
-        country: values.country,
-        biography: values.biography,
-        socialMediaLinks: {
-          twitter: values.socialMediaLinks.twitter,
-          instagram: values.socialMediaLinks.instagram,
-          facebook: values.socialMediaLinks.facebook,
-        },
-      }).then((user) => {
+    // const chainId = "31337";
+    // console.log(walletAddress);
+
+    createUser({
+      name: values.name,
+      displayName: values.displayName,
+      username: values.username,
+      userType: "ARTIST",
+      country: values.country,
+      biography: values.biography,
+      socialMediaLinks: {
+        twitter: values.socialMediaLinks.twitter,
+        instagram: values.socialMediaLinks.instagram,
+        facebook: values.socialMediaLinks.facebook,
+      },
+    })
+      .then((data) => {
+        // console.log("User created with transaction hash:", data);
         // router.push("/auth/login");
         localStorage.clear();
         setLoading(false);
-        window.location.href = "/auth/login";
-        toast.success("User created successfully");
+        // window.location.href = "/auth/login";
 
-        // console.log("User created with transaction hash:", user);
+        console.log(
+          "User created with transaction hash:",
+          data.data.isTxComplete.transactionHash
+        );
+      })
+      .finally(() => {
+        setLoading(false);
+        window.location.href = "/";
       });
-    }
 
     // console.log(values);
   }

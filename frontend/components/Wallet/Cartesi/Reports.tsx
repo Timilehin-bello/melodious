@@ -19,9 +19,9 @@ const Reports: React.FC = () => {
   toast.error(reports[reports.length - 1]?.payload);
   return (
     <div className="overflow-x-hidden border border-gray-300 p-4 rounded-lg">
-      <table className="w-full border-collapse text-black border border-gray-200">
+      <table className="w-full border-collapse text-white border border-gray-200">
         <thead>
-          <tr className="bg-gray-100">
+          <tr className="">
             <th className="text-left p-2">Reports</th>
             <th className="p-2">
               <button
@@ -44,7 +44,7 @@ const Reports: React.FC = () => {
           {reports &&
             reports.map((n: any) => (
               <tr key={`${n.input.index}-${n.index}`} className="border-b">
-                <td className="p-2 text-gray-600  text-wrap">{n.payload}</td>
+                <td className="p-2 text-white  text-wrap">{n.payload}</td>
               </tr>
             ))}
         </tbody>

@@ -144,7 +144,7 @@ export const MusicPlayerProvider = ({
   // Initialize socket connection
   useEffect(() => {
     try {
-      let data = localStorage.getItem("xx-mu");
+      const data = localStorage.getItem("xx-mu");
       if (!data) return;
 
       const parsedData = JSON.parse(data);
@@ -546,6 +546,7 @@ export const MusicPlayerProvider = ({
   // Play a playlist
   const playPlaylist = useCallback(
     (tracks: Track[], startIndex = 0) => {
+      console.log("Playing playlist:", tracks, startIndex);
       if (tracks.length === 0) return;
       setPlaylist(tracks);
       setCurrentIndex(startIndex);

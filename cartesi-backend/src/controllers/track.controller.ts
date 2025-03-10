@@ -166,6 +166,73 @@ class TrackController {
     }
   }
 
+  public getTracksByArtistId(artistId: number) {
+    try {
+      const artistTracks = RepositoryService.tracks.filter(
+        (track) => track.artistId === artistId
+      );
+
+      const tracks_json = JSON.stringify(artistTracks);
+      console.log("Artist tracks", tracks_json);
+      return new Log(tracks_json);
+    } catch (error) {
+      const error_msg = `Failed to get artist tracks: ${error}`;
+      console.debug(error_msg);
+      return new Error_out(error_msg);
+    }
+  }
+
+  public getTrackByIdAndArtistId(trackId: number, artistId: number) {
+    try {
+      const track = RepositoryService.tracks.find(
+        (track) => track.id === trackId && track.artistId === artistId
+      );
+
+      // Return an empty array if no track is found
+      const result = track ? [track] : [];
+
+      const track_json = JSON.stringify(result);
+      console.log("Artist track", track_json);
+      return new Log(track_json);
+    } catch (error) {
+      const error_msg = `Failed to get artist track: ${error}`;
+      console.debug(error_msg);
+      return new Error_out(error_msg);
+    }
+  }
+
+  public getTracksByArtistWalletAddress(walletAddress: string) {
+    try {
+      const findUser = RepositoryService.users.find(
+        (user) => user.walletAddress === walletAddress.toLowerCase()
+      );
+
+      if (!findUser) {
+        return new Error_out("User with wallet address does not exist");
+      }
+
+      if (findUser.role !== UserType.ARTIST || !findUser.artist) {
+        return new Error_out("User is not an artist");
+      }
+
+      const artistTracks = this.getAllTracksByArtistId(findUser.artist.id);
+
+      const tracks_json = JSON.stringify(artistTracks);
+      console.log("Artist tracks", tracks_json);
+      return new Log(tracks_json);
+    } catch (error) {
+      const error_msg = `Failed to get artist tracks: ${error}`;
+      console.debug(error_msg);
+      return new Error_out(error_msg);
+    }
+  }
+
+  public getAllTracksByArtistId(artistId: number) {
+    return RepositoryService.tracks.filter(
+      (track) => track.artistId === artistId
+    );
+  }
+
   public deleteTrack(trackId: number) {
     try {
       const track = this.getTrackById({ id: trackId });

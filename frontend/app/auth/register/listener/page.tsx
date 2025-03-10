@@ -24,8 +24,9 @@ import {
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useRouter } from "next/navigation";
 import { post } from "@/lib/api";
-import { useActiveAccount } from "thirdweb/react";
-import { useState } from "react";
+import { useActiveAccount, useConnectModal } from "thirdweb/react";
+import { useCallback, useEffect, useState } from "react";
+import { client } from "@/lib/client";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -59,40 +60,75 @@ const RegisterListener = () => {
     },
   });
 
+  const { connect, isConnecting } = useConnectModal();
+  const handleConnect = useCallback(async () => {
+    const wallet = await connect({ client: client }); // opens the connect modal
+    console.log("connected to", wallet);
+  }, [connect]);
+
+  useEffect(() => {
+    const walletAddress = activeAccount?.address;
+    console.log("walletAddress", walletAddress);
+    if (!walletAddress) {
+      handleConnect();
+    }
+  }, [activeAccount, handleConnect]);
+
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setLoading(true);
     const walletAddress = activeAccount?.address;
     const chainId = "31337";
     console.log("walletAddress", walletAddress);
-    const response = await post({
-      url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/register",
-      body: {
-        walletAddress: walletAddress,
-        chainId: chainId,
-        userType: "LISTENER",
-      },
-    });
-    if (response.status !== "success") {
-      console.log("Error creating user:", response);
-      setLoading(false);
-      return;
-    } else {
-      createUser({
-        name: values.name,
-        displayName: values.displayName,
-        username: values.username,
-        userType: "LISTENER",
-        country: values.country,
-      }).then((user) => {
+
+    createUser({
+      name: values.name,
+      displayName: values.displayName,
+      username: values.username,
+      userType: "LISTENER",
+      country: values.country,
+    })
+      .then((data) => {
+        // console.log("User created with transaction hash:", data);
         // router.push("/auth/login");
         localStorage.clear();
         setLoading(false);
-        window.location.href = "/auth/login";
+        // window.location.href = "/auth/login";
 
-        console.log("User created with transaction hash:", user);
+        console.log("User created with transaction hash:");
+      })
+      .finally(() => {
+        setLoading(false);
+        window.location.href = "/";
       });
-    }
+    // const response = await post({
+    //   url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/register",
+    //   body: {
+    //     walletAddress: walletAddress,
+    //     chainId: chainId,
+    //     userType: "LISTENER",
+    //   },
+    // });
+    // if (response.status !== "success") {
+    //   console.log("Error creating user:", response);
+    //   setLoading(false);
+    //   return;
+    // } else {
+    //   createUser({
+    //     name: values.name,
+    //     displayName: values.displayName,
+    //     username: values.username,
+    //     userType: "LISTENER",
+    //     country: values.country,
+    //   }).then((user) => {
+    //     // router.push("/auth/login");
+    //     localStorage.clear();
+    //     setLoading(false);
+    //     window.location.href = "/auth/login";
+
+    //     console.log("User created with transaction hash:", user);
+    //   });
+    // }
     // console.log(values);
   }
   return (

@@ -33,6 +33,7 @@ import {
   UpdateTrackRoute,
   TracksRoute,
   TrackRoute,
+  TrackByWalletAddressRoute,
 } from "./track.route";
 
 import { DepositVaultRoute, WithdrawalArtistVaultRoute } from "./vault.route";
@@ -82,6 +83,7 @@ export {
   UpdateTrackRoute,
   TracksRoute,
   TrackRoute,
+  TrackByWalletAddressRoute,
 
   // Vault
   DepositVaultRoute,

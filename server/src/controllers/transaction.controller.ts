@@ -9,9 +9,11 @@ const sendTransactionRequest = catchAsync(
     const txStatus = await transactionService.addTransactionRequest(req.body);
 
     // Return the transaction status
-    res
-      .status(httpStatus.OK)
-      .send({ status: "success", message: txStatus, data: req.body });
+    res.status(httpStatus.OK).send({
+      status: "success",
+      message: "Transaction sent successfully",
+      data: txStatus,
+    });
   }
 );
 
