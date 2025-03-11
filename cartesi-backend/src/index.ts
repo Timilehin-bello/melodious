@@ -75,6 +75,10 @@ router.addRoute("create_track", new Routes.CreateTrackRoute(track));
 router.addRoute("update_track", new Routes.UpdateTrackRoute(track));
 router.addRoute("get_tracks", new Routes.TracksRoute(track));
 router.addRoute("get_track", new Routes.TrackRoute(track));
+router.addRoute(
+  "get_tracks_by_wallet_address",
+  new Routes.TrackByWalletAddressRoute(track)
+);
 // router.addRoute("delete_track", new DeleteTrackRoute(track));
 // router.addRoute("delete_tracks", new DeleteTracksRoute(track));
 

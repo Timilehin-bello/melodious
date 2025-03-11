@@ -26,8 +26,8 @@ const Notices: React.FC = () => {
   };
 
   return (
-    <div className="overflow-x-auto border border-gray-300 p-4 rounded-lg">
-      <table className="w-full border-collapse border text-black border-gray-200">
+    <div className="w-[1000px] overflow-x-auto border border-gray-300 p-4 rounded-lg">
+      <table className=" border-collapse border  border-gray-200">
         <thead>
           <tr className="">
             <th className="text-left p-2">Notices</th>
@@ -53,20 +53,20 @@ const Notices: React.FC = () => {
             <tr key={`${n.input.index}-${n.index}`} className="border-b">
               {payloadIsJSON(n.payload) ? (
                 <td className="p-2 ">
-                  <span className="px-2 py-1 text-sm rounded bg-blue-200">
+                  <span className="px-2 py-1 text-sm text-white rounded bg-[#950944]   ">
                     {JSON.parse(n.payload).type}
                   </span>
                 </td>
               ) : (
                 <td className="p-2">
-                  <span className="px-2 py-1 text-sm rounded bg-gray-300">
+                  <span className="px-2 py-1 text-sm rounded bg-[#950944]  ">
                     DappAdressRelay
                   </span>
                 </td>
               )}
 
               {payloadIsJSON(n.payload) ? (
-                <td className="p-2 text-gray-600 text-wrap">
+                <td className="p-2 text-white text-wrap">
                   {JSON.parse(n.payload).type === "etherdeposit" && (
                     <>
                       {ethers.utils.formatEther(
@@ -99,7 +99,7 @@ const Notices: React.FC = () => {
                   )}
                 </td>
               ) : (
-                <td className="p-2 text-gray-600 text-wrap">{n.payload}</td>
+                <td className="p-2 text-white text-wrap">{n.payload}</td>
               )}
             </tr>
           ))}

@@ -43,13 +43,16 @@ const createUser = async (
         });
         console.log("userInfo", userInfo);
         // Create the client associated with the  user
-        await tx.listener.create({
+        const listenerInfo = await tx.listener.create({
           data: {
             userId: userInfo.id,
           },
+          include: {
+            user: true,
+          },
         });
 
-        return userInfo;
+        return listenerInfo;
       } else if (userType === "ARTIST") {
         // Create the user with the given data
         const userInfo = await tx.user.create({
@@ -62,13 +65,16 @@ const createUser = async (
           },
         });
 
-        await tx.artist.create({
+        const artistInfo = await tx.artist.create({
           data: {
             userId: userInfo.id,
           },
+          include: {
+            user: true,
+          },
         });
 
-        return userInfo;
+        return artistInfo;
       }
     });
   } catch (error) {

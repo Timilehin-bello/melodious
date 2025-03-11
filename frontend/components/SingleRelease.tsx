@@ -119,7 +119,12 @@ const SingleRelease = () => {
   const handleDropSingle = useCallback(
     async (acceptedFiles: File[]) => {
       // Handle the files here
-      if (acceptedFiles.length === 0) throw new Error("No file selected");
+      console.log("acceptedFiles", acceptedFiles);
+      if (acceptedFiles.length === 0) {
+        toast.error("File size too large. Please select a file less than 5MB");
+        return;
+      }
+
       setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
       if (ipfsHash) {
@@ -137,7 +142,12 @@ const SingleRelease = () => {
     async (acceptedFiles: File[]) => {
       // Handle the files here
 
-      if (acceptedFiles.length === 0) throw new Error("No file selected");
+      console.log("acceptedFiles", acceptedFiles);
+      if (acceptedFiles.length === 0) {
+        toast.error("File size too large. Please select a file less than 5MB");
+        return;
+      }
+
       setLoading(true);
       const ipfsHash = await uploadToIPFS(acceptedFiles[0]);
       if (ipfsHash) {

@@ -15,7 +15,10 @@ class CreateAlbumRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      const { signer, ...request_payload } = this.request_args;
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
 
       const album = this.album.createAlbum({
         walletAddress: signer,
@@ -46,7 +49,10 @@ class UpdateAlbumRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
-      const { signer, ...request_payload } = this.request_args;
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
 
       console.log("Executing Update album request");
       return this.album.updateAlbum({

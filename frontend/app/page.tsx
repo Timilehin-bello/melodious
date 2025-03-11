@@ -38,8 +38,8 @@ export default function Home() {
   //   }
   // }, [redirect, userData, router]);
 
-  const { socket, isConnected, connect, setConditionFulfilled } =
-    useMelodiousContext();
+  // const { socket, isConnected, connect, setConditionFulfilled } =
+  //   useMelodiousContext();
 
   // Set up socket event listeners
   // useEffect(() => {

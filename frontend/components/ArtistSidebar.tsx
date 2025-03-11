@@ -25,7 +25,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { twMerge } from "tailwind-merge";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
@@ -36,16 +35,16 @@ const items = [
     url: "/artist/dashboard",
     icon: Home,
   },
-  {
-    title: "Song Analytics",
-    url: "/artist/song-analytics",
-    icon: ChartNoAxesColumn,
-  },
-  {
-    title: "My Music",
-    url: "/artist/my-music",
-    icon: LayoutGrid,
-  },
+  // {
+  //   title: "Song Analytics",
+  //   url: "/artist/song-analytics",
+  //   icon: ChartNoAxesColumn,
+  // },
+  // {
+  //   title: "My Music",
+  //   url: "/artist/my-music",
+  //   icon: LayoutGrid,
+  // },
   {
     title: "Release",
     url: "/artist/release",

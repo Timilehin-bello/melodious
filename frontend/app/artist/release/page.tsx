@@ -16,6 +16,7 @@ import BlockLoader from "@/components/BlockLoader";
 import fetchMethod from "@/lib/readState";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useActiveAccount } from "thirdweb/react";
 
 const Release = () => {
   // const [tracks, setTracks] = useState<Track[]>([]);
@@ -78,6 +79,7 @@ const Release = () => {
   // if (loading) {
   //   return <BlockLoader message="Loading songs" />;
   // }
+  const activeAccount = useActiveAccount();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
@@ -86,7 +88,12 @@ const Release = () => {
   useEffect(() => {
     const loadTracks = async () => {
       try {
-        const trackList = await fetchMethod("get_tracks");
+        const trackList = await fetchMethod(
+          `get_tracks_by_wallet_address/${
+            activeAccount?.address || localStorage.getItem("walletAddress")
+          }`
+        );
+        // const trackList = await fetchMethod("get_tracks");
         console.log("tracklist", trackList);
         setTracks(trackList);
         setIsLoading(false);

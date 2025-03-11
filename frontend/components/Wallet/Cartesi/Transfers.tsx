@@ -120,7 +120,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
   };
 
   return (
-    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-[1000px] mx-auto  shadow-md">
+    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-full mx-auto  shadow-md">
       <TabGroup>
         <TabList className="flex space-x-2 border-b border-gray-300 ">
           {["🎟️ Vouchers", "🔔 Activity"].map((tab, index) => (
@@ -144,20 +144,20 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
               After the withdrawal request, the user must execute a voucher to
               transfer assets from the Cartesi dApp to their account.
             </p>
-            <div className="mt-4 bg-gray-100 p-4 rounded">
+            <div className="mt-4  p-4 rounded">
               <br />
               {!dappRelayedAddress && (
-                <div className="text-slate-500">
+                <div className="">
                   Let the dApp know its address! <br />
                   <button
-                    className="mt-4 bg-blue-300 text-black rounded p-2 hover:bg-blue-500"
+                    className="mt-4 text-sm text-white rounded p-2 bg-[#950944]  hover:bg-[#7e0837]"
                     onClick={async () => {
                       try {
                         const tx = await sendAddress(rollups, dappAddress);
                         setDappRelayedAddress(true);
                         toast.success(String(tx));
                       } catch (err) {
-                        toast.error(String(err));
+                        toast.error(`sendAddress ${String(err)}`);
                       }
                     }}
                     disabled={!rollups}
@@ -173,8 +173,8 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
           </TabPanel>
 
           <TabPanel className="">
-            <div className="mt-4 bg-gray-100 p-4 rounded">
-              <Notices />
+            <div className="mt-4  p-4 rounded">
+              {/* <Notices /> */}
               <br />
               <Reports />
             </div>

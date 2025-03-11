@@ -5,6 +5,8 @@ import { ethers } from "ethers";
 import { useActiveAccount } from "thirdweb/react";
 import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
 import { BalanceProps } from "@/types";
+import fetchMethod from "@/lib/readState";
+import { IUser } from "@/app/artist/dashboard/page";
 
 const Balance: React.FC<BalanceProps> = ({
   account,
@@ -13,19 +15,46 @@ const Balance: React.FC<BalanceProps> = ({
   reports,
   decodedReports,
 }) => {
+  // const [userDetails, setUserDetails] = useState<any>(null);
+
+  // useEffect(() => {
+  //   let details: any = localStorage.getItem("userDetails");
+  //   details = JSON.parse(details);
+  //   setUserDetails(details);
+  // }, []);
+
   const [userDetails, setUserDetails] = useState<any>(null);
 
-  useEffect(() => {
-    let details: any = localStorage.getItem("userDetails");
-    details = JSON.parse(details);
-    setUserDetails(details);
-  }, []);
+  const fetchData = async (user: IUser) => {
+    const getUserDetails = await fetchMethod(
+      "get_user_info/" + user.walletAddress
+    );
+
+    console.log("getUserDetails", getUserDetails);
+
+    if (getUserDetails) {
+      setUserDetails(getUserDetails);
+      // console.log("getUserDetails", getUserDetails);
+    }
+  };
 
   useEffect(() => {
-    if (account?.address || transactionStatus) {
-      inspectCall(`balance/${account?.address}`);
-    }
-  }, [account?.address, transactionStatus]);
+    let user = localStorage.getItem("xx-mu") as any;
+    //     console.log("token gotten", JSON.parse(data));
+
+    user = JSON.parse(user) ?? null;
+
+    user = user.user;
+    console.log("user", user);
+
+    fetchData(user);
+  }, []);
+
+  // useEffect(() => {
+  //   if (account?.address || transactionStatus) {
+  //     inspectCall(`balance/${account?.address}`);
+  //   }
+  // }, [account?.address, transactionStatus]);
 
   return (
     <div className="pt-4 rounded-lg w-full ">
@@ -94,12 +123,15 @@ const Balance: React.FC<BalanceProps> = ({
           </table>
         </div>
       </div>
-      {/* <button
-        className="w-full mt-4 bg-indigo-500 text-white py-2 rounded-md hover:bg-indigo-600"
-        onClick={() => inspectCall(`balance/${account?.address}`)}
+      <button
+        className="w-full mt-4 bg-[#950844]  hover:bg-[#7e0837] text-white py-2 rounded-md "
+        onClick={() => {
+          fetchData(userDetails);
+          return inspectCall(`balance/${account?.address}`);
+        }}
       >
         Get Balance
-      </button> */}
+      </button>
     </div>
   );
 };
