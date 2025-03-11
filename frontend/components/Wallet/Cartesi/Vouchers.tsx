@@ -6,6 +6,7 @@ import { useRollups } from "@/cartesi/hooks/useRollups";
 
 import { Voucher, useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher, executeVouchers } from "@/cartesi/Portals";
+import { useActiveAccount } from "thirdweb/react";
 import toast from "react-hot-toast";
 
 interface IVoucherProps {
@@ -16,6 +17,7 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
   const { loading, error, data, vouchers, refetch, client } = useVouchers();
   const [voucherToExecute, setVoucherToExecute] = useState<any>();
   const rollups = useRollups(props.dappAddress);
+  const account = useActiveAccount();
 
   const getProof = async (voucher: Voucher) => {
     setVoucher(voucher);
@@ -97,6 +99,9 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
                       voucherToExecute,
                       rollups!
                     );
+                    // if (!res) toast.error("Voucher not executed");
+                    if (!res) return;
+
                     toast.success(res);
                   }}
                 >
@@ -144,23 +149,25 @@ export const Vouchers: React.FC<IVoucherProps> = (props) => {
           )}
           {vouchers &&
             vouchers.map((n: any) => (
-              <tr key={`${n.input.index}-${n.index}`}>
-                {/*<Td>{n.input.index}</Td>
-                            <Td>{n.index}</Td>
-                            <Td>{n.destination}</Td> */}
+              <tr
+                key={`${n.input.index}-${n.index}`}
+                style={{
+                  display: n.payload.includes(
+                    account?.address || localStorage.getItem("walletAddress")
+                  )
+                    ? "table-row"
+                    : "none",
+                }}
+              >
                 <td className="px-4 py-2">
                   <button
-                    className="px-4 py-2 text-sm bg-[#950944] text-white rounded-md hover:bg-[#7e0837]"
+                    className="px-4 py-2 text-sm bg-[#950944] text-nowrap text-white rounded-md hover:bg-[#7e0837]"
                     onClick={() => getProof(n)}
                   >
                     Get Proof
                   </button>
                 </td>
-                {/* <td>{n.input.payload}</td> */}
                 <td className="px-4 py-2 text-wrap text-center">{n.payload}</td>
-                {/* <td>
-                                <button disabled={!!n.proof} onClick={() => executeVoucher(n)}>Execute voucher</button>
-                            </td> */}
               </tr>
             ))}
         </tbody>

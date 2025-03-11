@@ -14,7 +14,7 @@ export default function WalletConnectionHandler() {
       if (!wallet && storedWallet) {
         console.warn("Corrupted Thirdweb session detected. Resetting...");
         localStorage.removeItem("thirdweb.wallet"); // Clear corrupted session
-        () => disconnect;
+        // () => disconnect;
         window.location.reload(); // Reload to reset session
       }
     }, 5000); // Check after 5 seconds

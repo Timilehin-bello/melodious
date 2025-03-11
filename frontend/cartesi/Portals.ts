@@ -10,6 +10,7 @@ import { Report } from "./hooks/useReports";
 import { getVoucherWithProof, createUrqlClient } from "./VoucherService";
 import { errorAlert, successAlert } from "@/lib/customAlert";
 import { ApolloClient } from "@apollo/client";
+import toast from "react-hot-toast";
 
 export const sendAddress = async (
   rollups: RollupsContracts | undefined,
@@ -67,6 +68,7 @@ export const depositEtherToPortal = async (
         txOverrides
       );
       const receipt = await tx.wait(1);
+      console.log("receipt", receipt?.transactionHash);
       return receipt;
     }
   } catch (e: any) {
@@ -478,7 +480,10 @@ export const executeVoucher = async (
   console.log("voucher", voucher);
 
   try {
-    if (!rollups) throw new Error("Rollups contract is required");
+    if (!rollups) {
+      toast.error("Could not execute voucher");
+      return;
+    }
 
     console.log("voucher.input.index", voucher.input.index);
     console.log("voucher.index", voucher.index);
@@ -487,7 +492,10 @@ export const executeVoucher = async (
       BigInt(voucher.index)
     );
 
-    if (isExecuted) throw new Error("Fund already withdrawn");
+    if (isExecuted) {
+      toast.error("Fund already withdrawn");
+      return;
+    }
 
     console.log(
       "client",
@@ -516,11 +524,18 @@ export const executeVoucher = async (
       const receipt = await tx.wait();
       if (receipt) {
         console.log("Voucher receipt", receipt);
-        successAlert("Congratulations! Funds successfully withdrawn");
+        // successAlert("Congratulations! Funds successfully withdrawn");
         return "Congratulations! Funds successfully withdrawn";
       }
+
+      if (!receipt) {
+        console.log("Voucher receipt", receipt);
+        // errorAlert("Could not execute voucher");
+        return "Could not execute voucher";
+      }
+
       console.log("Voucher executed successfully", voucherWithProof);
-      return "Voucher executed successfully";
+      return "Voucher executed successfull";
     }
   } catch (e) {
     console.log("Error executing voucher:", e);
@@ -568,7 +583,8 @@ export const inspectCall = async (inspectUrl: string, endpoint: string) => {
   try {
     const result = await fetch(`${inspectUrl}/${endpoint}`);
     if (!result.ok) {
-      throw new Error("Network response was not ok");
+      toast.error("Network response was not ok");
+      return;
     }
     const data = await result.json();
     const decode = data.reports.map((report: Report) => {

@@ -176,7 +176,12 @@ export const MusicPlayerProvider = ({
   // Emit socket event helper
   const emitSocketEvent = useCallback(
     (eventName: string, data?: any) => {
-      if (socketRef.current && socketRef.current.connected) {
+      console.log(
+        `Before condition ${eventName} event emitted with data:`,
+        data
+      );
+      if (socketRef.current) {
+        console.log(`${eventName} event emitted with data:`, data);
         socketRef.current.emit(eventName, {
           trackId: currentTrack?.id,
           artistId: currentTrack?.artistId,
@@ -275,12 +280,16 @@ export const MusicPlayerProvider = ({
     if (audioRef.current) {
       try {
         await audioRef.current.play();
-
         setIsPlaying(true);
 
-        // Only emit startPlaying if we're starting from the beginning
-        // (progress is close to 0), otherwise this is a resume
-        if (progress < 1) {
+        // Check if this is a resume (progress > 0) or a new start
+        if (audioRef.current.currentTime > 0) {
+          emitSocketEvent("resumePlaying", {
+            trackId: currentTrack?.id,
+            position: audioRef.current.currentTime,
+            deviceInfo: getDeviceInfo(),
+          });
+        } else {
           emitSocketEvent("startPlaying", {
             trackId: currentTrack?.id,
             artistId: currentTrack?.artistId,
@@ -331,13 +340,18 @@ export const MusicPlayerProvider = ({
     if (audioRef.current && currentTrack) {
       audioRef.current.src = currentTrack.audioUrl;
       audioRef.current.load();
-      emitSocketEvent("track_changed", { trackId: currentTrack.id });
+
+      // Only emit track_changed when actually changing tracks
+      if (currentTrack.id !== audioRef.current.dataset.currentTrackId) {
+        emitSocketEvent("track_changed", { trackId: currentTrack.id });
+        audioRef.current.dataset.currentTrackId = currentTrack.id;
+      }
 
       if (isPlaying) {
         playAudio();
       }
     }
-  }, [currentTrack]); // Remove isPlaying from the dependency array
+  }, [currentTrack, isPlaying]); // Remove isPlaying from the dependency array
 
   // Handle play/pause state changes separately
   useEffect(() => {
@@ -481,11 +495,8 @@ export const MusicPlayerProvider = ({
         setIsPlaying(false);
         emitSocketEvent("pausePlaying");
       } else {
-        // Resume the playback
+        // Resume or start the playback
         playAudio();
-        // The emitPlayerEvent for "startPlaying" is already included in playAudio
-        // But we should also emit a specific resume event
-        emitSocketEvent("resumePlaying", {});
       }
     }
   };
@@ -530,17 +541,19 @@ export const MusicPlayerProvider = ({
   // Play a single track
   const playTrack = useCallback(
     (track: Track) => {
-      setCurrentTrack(track);
-      setPlaylist([track]);
-      setCurrentIndex(0);
+      // Only update if it's a different track
+      if (track.id !== currentTrack?.id) {
+        setCurrentTrack(track);
+        setPlaylist([track]);
+        setCurrentIndex(0);
+        // Reset the audio currentTime when playing a new track
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+        }
+      }
       setIsPlaying(true);
-      emitSocketEvent("playTrack", {
-        trackId: track.id,
-        title: track.title,
-        artist: track.artist,
-      });
     },
-    [emitSocketEvent]
+    [currentTrack]
   );
 
   // Play a playlist

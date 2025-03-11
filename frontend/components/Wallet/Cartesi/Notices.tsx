@@ -26,8 +26,8 @@ const Notices: React.FC = () => {
   };
 
   return (
-    <div className="overflow-x-auto border border-gray-300 p-4 rounded-lg">
-      <table className="w-full border-collapse border  border-gray-200">
+    <div className="w-[1000px] overflow-x-auto border border-gray-300 p-4 rounded-lg">
+      <table className=" border-collapse border  border-gray-200">
         <thead>
           <tr className="">
             <th className="text-left p-2">Notices</th>

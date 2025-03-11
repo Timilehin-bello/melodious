@@ -27,6 +27,7 @@ import { post } from "@/lib/api";
 import { useActiveAccount, useConnectModal } from "thirdweb/react";
 import { useCallback, useEffect, useState } from "react";
 import { client } from "@/lib/client";
+import toast from "react-hot-toast";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -96,6 +97,9 @@ const RegisterListener = () => {
         // window.location.href = "/auth/login";
 
         console.log("User created with transaction hash:");
+        toast.success(
+          `Transaction submitted successful! Hash: ${data.data.isTxComplete.transactionHash}`
+        );
       })
       .finally(() => {
         setLoading(false);

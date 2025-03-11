@@ -63,8 +63,8 @@ const Wallet = () => {
   }, [getData]);
 
   return (
-    <div>
-      <div className="w-full flex flex-wrap  items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
+    <div className="max-w-screen-2xl mx-auto ">
+      <div className="mb-6 w-full flex flex-wrap  items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
         <div className="w-full flex justify-center">
           <div className="w-2/3 h-75">
             <div className="mb-3 py-4 px-6">
@@ -80,21 +80,20 @@ const Wallet = () => {
               <div>
                 <div className="flex gap-4 flex-wrap mt-8">
                   <Button
-                    variant="destructive"
                     onClick={() => setIsWithdrawalCTSModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-white hover:bg-blue-500`}
+                    className={`h-[45px] px-4 py-2 rounded-md text-white `}
                   >
                     Withdraw CTSI Reward
                   </Button>
                   <Button
                     onClick={() => setIsTransferModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-blue-300 hover:bg-blue-500`}
+                    className={`h-[45px] px-4 py-2 rounded-md text-blue-300    `}
                   >
                     Transfer
                   </Button>
                   <Button
                     onClick={() => setIsWithdrawModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-green-300 hover:bg-green-500`}
+                    className={`h-[45px] px-4 py-2 rounded-md text-green-300 `}
                   >
                     Withdraw
                   </Button>

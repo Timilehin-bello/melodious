@@ -12,13 +12,13 @@ const Reports: React.FC = () => {
     refetch({ requestPolicy: "network-only" });
   }, [refetch]);
 
-  if (loading) return <p className="text-gray-400">Loading...</p>;
+  if (loading) return <p className="text-white">Loading...</p>;
   if (error) return <p className="text-gray-400">Oh no... {error.message}</p>;
   if (!data || !data.reports)
     return <p className="text-gray-400">No reports</p>;
-  toast.error(reports[reports.length - 1]?.payload);
+  // toast.error(`Reports ${reports[reports.length - 1]?.payload}`);
   return (
-    <div className="overflow-x-hidden border border-gray-300 p-4 rounded-lg">
+    <div className="w-[1000px] overflow-x-hidden border border-gray-300 p-4 rounded-lg">
       <table className="w-full border-collapse text-white border border-gray-200">
         <thead>
           <tr className="">

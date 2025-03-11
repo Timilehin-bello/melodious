@@ -42,8 +42,14 @@ export default function RootLayout({
             >
               <MusicPlayerProvider>
                 <main>{children}</main>
-                <Toaster />
-                <Toast />
+                {/* <Toaster /> */}
+                <Toast
+                  toastOptions={{
+                    style: {
+                      textWrap: "wrap",
+                    },
+                  }}
+                />
 
                 <MelodiousMusicPlayer />
               </MusicPlayerProvider>

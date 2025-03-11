@@ -131,6 +131,10 @@ const RegisterArtist = () => {
           "User created with transaction hash:",
           data.data.isTxComplete.transactionHash
         );
+
+        toast.success(
+          `Transaction submitted successful! Hash: ${data.data.isTxComplete.transactionHash}`
+        );
       })
       .finally(() => {
         setLoading(false);

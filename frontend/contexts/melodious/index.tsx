@@ -437,7 +437,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const txhash = await signMessages(genrePayload);
       toast.success(
-        "Withdrawal successful. \n  To complete the withdrawal, you need to execute voucher."
+        "Withdrawal successful. To complete the withdrawal to your wallet, you need to execute a voucher."
       );
       console.log(`Transaction hash is: ${txhash}`);
       return txhash;

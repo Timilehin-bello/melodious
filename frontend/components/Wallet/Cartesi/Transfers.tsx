@@ -120,7 +120,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
   };
 
   return (
-    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-[1000px] mx-auto  shadow-md">
+    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-full mx-auto  shadow-md">
       <TabGroup>
         <TabList className="flex space-x-2 border-b border-gray-300 ">
           {["🎟️ Vouchers", "🔔 Activity"].map((tab, index) => (
@@ -157,7 +157,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
                         setDappRelayedAddress(true);
                         toast.success(String(tx));
                       } catch (err) {
-                        toast.error(String(err));
+                        toast.error(`sendAddress ${String(err)}`);
                       }
                     }}
                     disabled={!rollups}
@@ -174,7 +174,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
 
           <TabPanel className="">
             <div className="mt-4  p-4 rounded">
-              <Notices />
+              {/* <Notices /> */}
               <br />
               <Reports />
             </div>

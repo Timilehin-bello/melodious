@@ -108,6 +108,12 @@ export const useVouchers = () => {
                 break;
               }
               default: {
+                const decode = decoder.decode(["address", "uint256"], payload);
+                // Changed from ethers.formatEther to ethers.utils.formatEther
+                payload = `CTSI Transfer - Amount: ${ethers.utils.formatEther(
+                  decode[1]
+                )} - Address: ${decode[0]}`;
+
                 break;
               }
             }

@@ -20,7 +20,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 // import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
-import { usePlayer } from "@/contexts/melodious/PlayerContext";
+// import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 // Menu items.
 const items = [

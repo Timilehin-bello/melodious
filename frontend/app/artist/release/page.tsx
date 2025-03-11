@@ -89,7 +89,9 @@ const Release = () => {
     const loadTracks = async () => {
       try {
         const trackList = await fetchMethod(
-          `get_tracks_by_wallet_address/${activeAccount?.address}`
+          `get_tracks_by_wallet_address/${
+            activeAccount?.address || localStorage.getItem("walletAddress")
+          }`
         );
         // const trackList = await fetchMethod("get_tracks");
         console.log("tracklist", trackList);
