@@ -10,11 +10,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
-import { ConnectButton } from "thirdweb/react";
-import { client } from "@/lib/client";
 import { useActiveAccount } from "thirdweb/react";
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useActiveWallet } from "thirdweb/react";
+import ConnectWallet from "@/components/ConnectWallet";
+import ConnectButtonAuth from "./ConnectButtonAuth";
 
 const Header = () => {
   const activeAccount = useActiveAccount();
@@ -42,13 +42,8 @@ const Header = () => {
 
         <div className="pr-14 mt-2">
           {/* Connect Wallet */}
-          <ConnectButton
-            client={client}
-            connectButton={{
-              label: "Connect Wallet",
-              className: "connect-button",
-            }}
-          />
+          <ConnectWallet />
+          {/* <ConnectButtonAuth /> */}
         </div>
       </div>
     </header>

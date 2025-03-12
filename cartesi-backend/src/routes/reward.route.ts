@@ -23,21 +23,34 @@ class ArtistDistributionRewardRoute extends AdvanceRoute {
       if (!getConfig) {
         return new Error_out("Config not found. Please create it first.");
       }
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
+      console.log("getConfig", getConfig);
+
+      console.log("msg_sender in reward route is", this.msg_sender);
+      console.log(
+        "Executing Create Reward request",
+        JSON.stringify(this.request_args)
+      );
+      console.log("signer", signer);
 
       if (
         !getConfig.adminWalletAddresses.some(
-          (address) => address.toLowerCase() === this.msg_sender.toLowerCase()
+          (address) => address.toLowerCase() === signer.toLowerCase()
         )
       ) {
         return new Error_out(
-          `Admin wallet address ${this.msg_sender} is not authorized to run this command`
+          `Admin wallet address ${signer} is not authorized to run this command`
         );
       }
       console.log("Executing deposit reward request by", this.msg_sender);
       const reward =
         this.reward.distributeRewardToArtistsBasedOnTotalTrackListens(
-          this.request_args.artistsTotalTrackListenTime,
-          this.msg_sender
+          request_payload.artistsTotalTrackListenTime,
+          signer
         );
 
       return reward;
@@ -67,18 +80,32 @@ class UpdateArtistListeningTimeForRewardRoute extends AdvanceRoute {
         return new Error_out("Config not found. Please create it first.");
       }
 
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
+      console.log("getConfig", getConfig);
+
+      console.log("msg_sender in reward route is", this.msg_sender);
+      console.log(
+        "Executing Create Reward request",
+        JSON.stringify(this.request_args)
+      );
+      console.log("signer", signer);
+
       if (
         !getConfig.adminWalletAddresses.some(
-          (address) => address.toLowerCase() === this.msg_sender.toLowerCase()
+          (address) => address.toLowerCase() === signer.toLowerCase()
         )
       ) {
         return new Error_out(
-          `Admin wallet address ${this.msg_sender} is not authorized to run this command`
+          `Admin wallet address ${signer} is not authorized to run this command`
         );
       }
-      console.log("Executing update reward request by", this.msg_sender);
+      console.log("Executing update reward request by", signer);
       const reward = this.reward.updateArtistsListeningTime(
-        this.request_args.artistsTotalTrackListenTime
+        request_payload.artistsTotalTrackListenTime
       );
       return reward;
     } catch (error) {

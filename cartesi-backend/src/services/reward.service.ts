@@ -110,7 +110,7 @@ class ListeningRewardService {
       return new Error_out("Total listening time cannot be zero");
     }
 
-    ListeningRewardBody.forEach(({ walletAddress, totalListeningTime }) => {
+    ListeningRewardBody.forEach(({ walletAddress }) => {
       const user = new UserController().getUserByUniqueValue({
         key: "walletAddress",
         value: walletAddress.toLowerCase(),

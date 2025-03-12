@@ -5,6 +5,7 @@ import {
   LayoutGrid,
   ListCheck,
   LogOut,
+  Wallet,
 } from "lucide-react";
 
 import {
@@ -24,6 +25,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { twMerge } from "tailwind-merge";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
 // Menu items.
 const items = [
@@ -32,20 +35,25 @@ const items = [
     url: "/artist/dashboard",
     icon: Home,
   },
-  {
-    title: "Song Analytics",
-    url: "/artist/song-analytics",
-    icon: ChartNoAxesColumn,
-  },
-  {
-    title: "My Music",
-    url: "/artist/my-music",
-    icon: LayoutGrid,
-  },
+  // {
+  //   title: "Song Analytics",
+  //   url: "/artist/song-analytics",
+  //   icon: ChartNoAxesColumn,
+  // },
+  // {
+  //   title: "My Music",
+  //   url: "/artist/my-music",
+  //   icon: LayoutGrid,
+  // },
   {
     title: "Release",
     url: "/artist/release",
     icon: ListCheck,
+  },
+  {
+    title: "Wallet",
+    url: "/artist/wallet",
+    icon: Wallet,
   },
 ];
 
@@ -53,11 +61,12 @@ export function ArtistSidebar() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const { state } = useSidebar();
   const router = useRouter();
-  const logOut = () => {
-    router.push("/");
-  };
+  const { currentTrack } = useMusic();
   return (
-    <Sidebar collapsible="icon" className="sidebar">
+    <Sidebar
+      collapsible="icon"
+      className={twMerge(`sidebar`, currentTrack && "h-[calc(100%-90px)]")}
+    >
       <SidebarContent className="bg-sidebar-gradient text-white bg-cover bg-center border-0">
         <SidebarGroup>
           <SidebarHeader>
@@ -117,7 +126,7 @@ export function ArtistSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-[#950944] text-white">
+      {/* <SidebarFooter className="bg-[#950944] text-white">
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex align-middle items-center w-full">
@@ -143,7 +152,7 @@ export function ArtistSidebar() {
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

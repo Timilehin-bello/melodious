@@ -12,7 +12,7 @@ import { AiOutlineHeart } from "react-icons/ai";
 // import { useUser } from "@/hooks/useUser";
 
 interface LikeButtonProps {
-  songId: string;
+  songId?: string;
   iconSize?: number;
 }
 

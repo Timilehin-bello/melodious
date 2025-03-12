@@ -1,5 +1,6 @@
 import express, { Router } from "express";
 import authRoute from "./auth.route";
+import userRoute from "./user.route";
 import transactionRoute from "./transaction.route";
 
 const router: Router = express.Router();
@@ -13,6 +14,14 @@ const defaultRoutes: IRoute[] = [
   {
     path: "/auth",
     route: authRoute,
+  },
+  {
+    path: "/users",
+    route: userRoute,
+  },
+  {
+    path: "/tracks",
+    route: userRoute,
   },
   {
     path: "/transactions",

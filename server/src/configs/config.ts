@@ -6,7 +6,8 @@ const envVarsSchema = Joi.object()
     NODE_ENV: Joi.string()
       .valid("development", "production", "local", "test")
       .required(),
-    PORT: Joi.number().default(3000),
+    DATABASE_URL: Joi.string().required().description("Database URL"),
+    PORT: Joi.number().default(8888).description("Port number"),
     RPC_URL: Joi.string().required().description("RPC URL"),
     PRIVATE_KEY: Joi.string()
       .required()
@@ -36,6 +37,11 @@ const envVarsSchema = Joi.object()
     LOG_FOLDER: Joi.string().required(),
     LOG_FILE: Joi.string().required(),
     LOG_LEVEL: Joi.string().required(),
+    REDIS_HOST: Joi.string().default("127.0.0.1"),
+    REDIS_PROTOCOL: Joi.string().default("redis"),
+
+    REDIS_USER_PASSWORD: Joi.string().default("no"),
+    REDIS_PASSWORD: Joi.string(),
   })
   .unknown();
 
@@ -74,5 +80,13 @@ export const config = {
     logFolder: envVars.LOG_FOLDER,
     logFile: envVars.LOG_FILE,
     logLevel: envVars.LOG_LEVEL,
+  },
+
+  redis: {
+    protocol: envVars.REDIS_PROTOCOL,
+    host: envVars.REDIS_HOST,
+    port: envVars.REDIS_PORT,
+    userPassword: envVars.REDIS_USER_PASSWORD,
+    password: envVars.REDIS_PASSWORD,
   },
 };

@@ -5,22 +5,22 @@ import { userService, tokenService, prisma } from ".";
 import { tokenTypes } from "../configs/enums";
 import { thirdwebAuth } from "../configs/thirdwebClient";
 
-const logout = async (refreshToken: string): Promise<boolean> => {
-  const refreshTokenDoc = await prisma.token.findFirst({
+const logout = async (accessToken: string): Promise<boolean> => {
+  const accessTokenDoc = await prisma.token.findFirst({
     where: {
-      token: refreshToken,
-      type: tokenTypes.REFRESH,
+      token: accessToken,
+      type: tokenTypes.ACCESS,
       blacklisted: false,
     },
   });
 
-  if (!refreshTokenDoc) {
+  if (!accessTokenDoc) {
     throw new ApiError(httpStatus.NOT_FOUND, "Not found");
   }
 
   const deleteTokenDoc = await prisma.token.deleteMany({
     where: {
-      userId: refreshTokenDoc?.userId,
+      userId: accessTokenDoc?.userId,
     },
   });
 
@@ -33,13 +33,13 @@ const logout = async (refreshToken: string): Promise<boolean> => {
 
 const refreshAuth = async (refreshToken: string): Promise<Object> => {
   try {
-    const refreshTokenDoc = await tokenService.verifyToken(
-      refreshToken,
-      tokenTypes.REFRESH
+    const refreshTokenDoc = await tokenService.verifyToken(refreshToken);
+    const user = await userService.getUserByUniqueValue(
+      {
+        id: refreshTokenDoc.userId,
+      },
+      { listener: true, artist: true }
     );
-    const user = await userService.getUserByUniqueValue({
-      id: refreshTokenDoc.userId,
-    });
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
@@ -50,20 +50,17 @@ const refreshAuth = async (refreshToken: string): Promise<Object> => {
   }
 };
 
-const isLoggedIn = async (accessToken: string) => {
+const isLoggedIn = async (accessToken: string, thirdwebToken: string) => {
   try {
     console.log("accessToken", accessToken);
-    const thirdwebTokenDoc = await tokenService.verifyToken(
-      accessToken,
-      tokenTypes.THIRDWEB
-    );
+    const thirdwebTokenDoc = await tokenService.verifyToken(accessToken);
 
     if (!thirdwebTokenDoc) {
       return false;
     }
 
     const authResult = await thirdwebAuth.verifyJWT({
-      jwt: thirdwebTokenDoc.token,
+      jwt: thirdwebToken,
     });
 
     if (!authResult.valid) {

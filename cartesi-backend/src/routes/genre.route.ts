@@ -15,11 +15,17 @@ class CreateGenreRoute extends AdvanceRoute {
 
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
       return this.genre.createGenre({
         createdAt: new Date(request.metadata.timestamp * 1000),
         updatedAt: new Date(request.metadata.timestamp * 1000),
-        ...this.request_args,
+        ...request_payload,
       });
     } catch (error) {
       const error_msg = `Failed to create genre ${error}`;
@@ -42,11 +48,17 @@ class UpdateGenreRoute extends AdvanceRoute {
   }
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
       console.log("Executing Update genre request");
       return this.genre.updateGenre({
         updatedAt: new Date(request.metadata.timestamp * 1000),
-        ...this.request_args,
+        ...request_payload,
       });
     } catch (error) {
       const error_msg = `Failed to update message ${error}`;
@@ -68,8 +80,14 @@ class DeleteGenreRoute extends AdvanceRoute {
 
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
-      return this.genre.deleteGenre(parseInt(this.request_args.id));
+      return this.genre.deleteGenre(parseInt(request_payload.id));
     } catch (error) {
       const error_msg = `Failed to delete message ${error}`;
       console.debug(error_msg);

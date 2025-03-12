@@ -1,7 +1,14 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { MelodiousProvider } from "@/context";
+import { MelodiousProvider } from "@/contexts/melodious";
+import { ThirdwebProvider } from "thirdweb/react";
+import { Toaster } from "@/components/ui/toaster";
+import LayoutWrapper from "@/components/LayoutWrapper/LayoutWrapper";
+import WalletConnectionHandler from "@/components/WalletConnectionHandler";
+import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
+import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
+import { Toaster as Toast } from "react-hot-toast";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,13 +33,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <MelodiousProvider>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
-        >
-          <main>{children}</main>
-        </body>
-      </MelodiousProvider>
+      <ThirdwebProvider>
+        <WalletConnectionHandler />
+        <LayoutWrapper>
+          <MelodiousProvider>
+            <body
+              className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
+            >
+              <MusicPlayerProvider>
+                <main>{children}</main>
+                {/* <Toaster /> */}
+                <Toast
+                  toastOptions={{
+                    style: {
+                      textWrap: "wrap",
+                    },
+                  }}
+                />
+
+                <MelodiousMusicPlayer />
+              </MusicPlayerProvider>
+            </body>
+          </MelodiousProvider>
+        </LayoutWrapper>
+      </ThirdwebProvider>
     </html>
   );
 }

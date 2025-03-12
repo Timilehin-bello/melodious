@@ -1,4 +1,6 @@
+"use client";
 import { CustomAreaChart } from "@/components/CustomAreaChart";
+
 import {
   Banknote,
   ChartNoAxesColumn,
@@ -8,8 +10,41 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import fetchMethod from "@/lib/readState";
+export interface IUser {
+  id: string;
+  walletAddress: string;
+}
 
 export default function Page() {
+  const [userDetails, setUserDetails] = useState<any>(null);
+
+  const fetchData = async (user: IUser) => {
+    const getUserDetails = await fetchMethod(
+      "get_user_info/" + user.walletAddress
+    );
+
+    console.log("getUserDetails", getUserDetails);
+
+    if (getUserDetails) {
+      setUserDetails(getUserDetails);
+      // console.log("getUserDetails", getUserDetails);
+    }
+  };
+
+  useEffect(() => {
+    let user = localStorage.getItem("xx-mu") as any;
+    //     console.log("token gotten", JSON.parse(data));
+
+    user = JSON.parse(user) ?? null;
+
+    user = user.user;
+    console.log("user", user);
+
+    fetchData(user);
+  }, []);
+
   return (
     <div className="px-4 mt-6 mb-4">
       <h1 className="text-white text-2xl">Dashboard Overview</h1>
@@ -47,7 +82,11 @@ export default function Page() {
             <div className="flex justify-between flex-wrap items-start">
               <div>
                 <p className="text-white text-sm mb-3">Listening Time</p>
-                <h4 className="text-white font-semibold text-2xl">40589</h4>
+                <h4 className="text-white font-semibold text-2xl">
+                  {userDetails?.artist?.totalListeningTime
+                    ? userDetails?.artist?.totalListeningTime
+                    : 0}
+                </h4>
               </div>
 
               <div className="rounded-lg w-10 h-10 bg-[#FEC53D] py-1 px-2">
@@ -71,10 +110,14 @@ export default function Page() {
           >
             <div className="flex justify-between flex-wrap items-start">
               <div>
-                <p className="text-white text-sm mb-3">
-                  Total Amount <br /> earned
-                </p>
-                <h4 className="text-white font-semibold text-2xl">40589</h4>
+                <Link href="/artist/wallet">
+                  <p className="text-white text-sm mb-3">Total CTSI Balance</p>
+                  <h4 className="text-white font-semibold text-2xl">
+                    {userDetails?.cartesiTokenBalance
+                      ? userDetails?.cartesiTokenBalance
+                      : 0}
+                  </h4>
+                </Link>
               </div>
 
               <div className="rounded-lg w-10 h-10 bg-[#950944] py-1 px-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { Track } from "@/contexts/melodious/MusicProvider";
 import { Play } from "lucide-react";
 
 // import { Song } from "@/types";
@@ -13,17 +14,17 @@ export interface Song {
 }
 
 interface PlayButtonProps {
-  data: Song;
-  onClick: (id: string) => void;
+  data: Track;
+  onClick: (song: Track, id: string) => void;
 }
 
-const PlayButton = ({ data, onClick }: PlayButtonProps) => {
+const PlayButton = ({ onClick, data }: PlayButtonProps) => {
   return (
     <button
       className="transition opacity-0 rounded-full flex items-center bg-slate-500 
       p-4 drop-shadow-md translate translate-y-1/4 group-hover:opacity-100 
       group-hover:translate-y-0 hover:scale-110"
-      onClick={() => onClick(data.id)}
+      onClick={() => onClick(data, data.id)}
     >
       <Play className="text-black" />
     </button>

@@ -37,7 +37,7 @@ var handlers: any = {
 // });
 // console.log("config result is ", configResult);
 // if (configResult instanceof Error_out) {
-//   console.error(configResult);
+//   console.log(configResult);
 //   process.exit(1);
 // }
 
@@ -47,6 +47,7 @@ router.addRoute("create_user", new Routes.CreateUserRoute(user));
 router.addRoute("update_user", new Routes.UpdateUserRoute(user));
 router.addRoute("get_users", new Routes.UsersRoute(user));
 router.addRoute("get_user", new Routes.UserRoute(user));
+router.addRoute("get_user_info", new Routes.UserInfoRoute(user));
 // router.addRoute("delete_user", new Routes.DeleteUserRoute(user));
 // router.addRoute("delete_users", new Routes.DeleteUsersRoute(user));
 
@@ -74,6 +75,10 @@ router.addRoute("create_track", new Routes.CreateTrackRoute(track));
 router.addRoute("update_track", new Routes.UpdateTrackRoute(track));
 router.addRoute("get_tracks", new Routes.TracksRoute(track));
 router.addRoute("get_track", new Routes.TrackRoute(track));
+router.addRoute(
+  "get_tracks_by_wallet_address",
+  new Routes.TrackByWalletAddressRoute(track)
+);
 // router.addRoute("delete_track", new DeleteTrackRoute(track));
 // router.addRoute("delete_tracks", new DeleteTracksRoute(track));
 
@@ -143,9 +148,25 @@ async function handle_advance(data: any) {
   console.log("Received advance request data " + JSON.stringify(data));
   try {
     const payload = data.payload;
-    const msg_sender: string = data.metadata.msg_sender;
-    console.log("msg sender is", msg_sender.toLowerCase());
+    console.log("payload is", payload);
     const payloadStr = hexToString(payload);
+    console.log("payloadStr is", payloadStr);
+
+    const payloadObj = JSON.parse(JSON.stringify(payloadStr));
+    console.log("payloadObj is", payloadObj);
+
+    // console.log("payloadObj.args.signer is", payloadObj.args.signer);
+
+    if (payloadObj?.args?.signer !== undefined) {
+      console.log(
+        `The original message sender: ${data.metadata.msg_sender} has been updated to: ${payloadObj.args.signer}`
+      );
+      data.metadata.msg_sender = payloadObj.args.signer.toLowerCase();
+    }
+
+    let msg_sender: string = data.metadata.msg_sender;
+
+    console.log("msg sender is", msg_sender.toLowerCase());
 
     if (
       msg_sender.toLowerCase() ===
@@ -204,7 +225,7 @@ async function handle_advance(data: any) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
     }
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return new Error_out(`failed to process advance_request ${e}`);
   }
 }

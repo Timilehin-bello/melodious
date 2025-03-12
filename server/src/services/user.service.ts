@@ -10,9 +10,14 @@ const createUser = async (
   }
 ): Promise<any> => {
   try {
-    const { walletAddress, userType, ...rest } = userBody;
+    const { walletAddress, userType } = userBody;
 
-    if (await getUserByUniqueValue({ walletAddress })) {
+    if (
+      await getUserByUniqueValue(
+        { walletAddress: walletAddress.toLowerCase() },
+        {}
+      )
+    ) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         "User with wallet address already taken"
@@ -29,33 +34,47 @@ const createUser = async (
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            walletAddress,
+            walletAddress: walletAddress.toLowerCase(),
+          },
+          include: {
+            listener: true,
+            artist: true,
           },
         });
         console.log("userInfo", userInfo);
         // Create the client associated with the  user
-        await tx.listener.create({
+        const listenerInfo = await tx.listener.create({
           data: {
             userId: userInfo.id,
           },
+          include: {
+            user: true,
+          },
         });
 
-        return userInfo;
+        return listenerInfo;
       } else if (userType === "ARTIST") {
         // Create the user with the given data
         const userInfo = await tx.user.create({
           data: {
-            walletAddress,
+            walletAddress: walletAddress.toLowerCase(),
+          },
+          include: {
+            listener: true,
+            artist: true,
           },
         });
 
-        await tx.artist.create({
+        const artistInfo = await tx.artist.create({
           data: {
             userId: userInfo.id,
           },
+          include: {
+            user: true,
+          },
         });
 
-        return userInfo;
+        return artistInfo;
       }
     });
   } catch (error) {
@@ -112,7 +131,7 @@ const queryUsers = async (filter: any, options: any): Promise<any> => {
 
 const getUserByUniqueValue = async (
   where: Prisma.UserWhereUniqueInput,
-  include?: Prisma.UserInclude
+  include: Prisma.UserInclude
 ) => {
   return await prisma.user.findUnique({ where, include });
 };
@@ -136,7 +155,13 @@ const updateUserById = async (
   updateBody: Prisma.UserCreateInput
 ): Promise<any> => {
   try {
-    const user = await getUserByUniqueValue({ id: userId });
+    const user = await getUserByUniqueValue(
+      { id: userId },
+      {
+        listener: true,
+        artist: true,
+      }
+    );
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }
@@ -149,7 +174,7 @@ const updateUserById = async (
 };
 
 const deleteUserById = async (userId: number): Promise<User> => {
-  const user = await getUserByUniqueValue({ id: userId });
+  const user = await getUserByUniqueValue({ id: userId }, {});
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, "User not found");
   }

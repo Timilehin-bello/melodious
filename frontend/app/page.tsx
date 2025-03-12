@@ -1,12 +1,131 @@
 "use client";
+import ConnectWallet from "@/components/ConnectWallet";
 import { AlignJustify, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useRouter } from "next/navigation";
+import { useActiveWalletConnectionStatus } from "thirdweb/react";
+import { useMelodiousContext } from "@/contexts/melodious";
+import { getDeviceInfo } from "@/lib/getDeviceInfo";
+import { initializeSocket } from "@/lib/testSocket";
+import { error } from "console";
 
 export default function Home() {
   const [isMobileNavActive, setIsMobileNavActive] = useState(false);
+  // const { userData } = useMelodiousContext();
+  // const router = useRouter();
+  // const [redirect, setRedirect] = useState(false);
+
+  // useEffect(() => {
+  //   console.log("userData", userData);
+  //   if (userData !== null) {
+  //     setRedirect(true);
+  //   }
+  // }, [userData]);
+
+  // useEffect(() => {
+  //   console.log("redirect", redirect);
+  //   if (redirect && userData) {
+  //     if (userData.listener) {
+  //       router.push("/listener/dashboard");
+  //     }
+  //     if (userData.artist) {
+  //       router.push("/artist/dashboard");
+  //     }
+  //   }
+  // }, [redirect, userData, router]);
+
+  // const { socket, isConnected, connect, setConditionFulfilled } =
+  //   useMelodiousContext();
+
+  // Set up socket event listeners
+  // useEffect(() => {
+  //   // Example: Only allow socket in chat route
+  //   setConditionFulfilled(true);
+
+  //   let data = localStorage.getItem("xx-mu") as any;
+  //   //     console.log("token gotten", JSON.parse(data));
+
+  //   data = JSON.parse(data) ?? null;
+
+  //   // console.log("error", data);
+  //   const token = data ? data["tokens"]["token"].access.token : null;
+  //   // Example: Connect with token from storage
+  //   // const token = localStorage.getItem("authToken");
+  //   if (token) {
+  //     connect(token);
+  //   }
+
+  //   if (!socket) return;
+
+  //   // Handle incoming messages
+  //   const handleStartPlaying = () => {
+  //     const payload: any = {
+  //       trackId: 1,
+  //       artistId: 1,
+  //       deviceInfo: getDeviceInfo(),
+  //       duration: 180000,
+  //     };
+
+  //     // sendEvent({ event: "startPlaying", payload });
+  //   };
+
+  //   // Subscribe to events
+  //   socket.on("startPlaying", handleStartPlaying);
+
+  //   // Cleanup subscriptions
+  //   return () => {
+  //     socket.off("startPlaying", handleStartPlaying);
+
+  //     setConditionFulfilled(false);
+  //   };
+  // }, [socket]);
+
+  useEffect(() => {
+    let data = localStorage.getItem("xx-mu") as any;
+    //     console.log("token gotten", JSON.parse(data));
+
+    data = JSON.parse(data) ?? null;
+
+    // console.log("error", data);
+    const token = data ? data["tokens"]["token"].access.token : null;
+    const socket = initializeSocket(token);
+
+    // Handle connection success
+    socket.on("connect", () => {
+      //  setStatus("Connected");
+      console.log("connected to socket successfully");
+      //  setStatusColor("green");
+    });
+
+    // Handle connection errors
+    socket.on("connect_error", (error) => {
+      console.log("error", error.message);
+      //  setStatus("Connection Error");
+      //  setStatusColor("red");
+    });
+
+    // Handle unauthorized errors (if sent by the server)
+    socket.on("unauthorized", (error) => {
+      //  setStatus("Authentication Failed");
+      console.log("Unauthorized socket", error.message);
+      //  setStatusColor("red");
+    });
+
+    // Handle disconnection
+    socket.on("disconnect", () => {
+      //  setStatus("Disconnected");
+      //  setStatusColor("orange");
+    });
+
+    // Cleanup on component unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <>
@@ -19,7 +138,7 @@ export default function Home() {
             alt="melodious logo"
             className="p-0 m-0"
           />
-          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap">
+          <div className="hidden md:flex md:items-center md:gap-8 flex-wrap z-10">
             <nav className="space-x-14 text-white">
               <Link href="">Home</Link>
               <Link href="">About Us</Link>
@@ -27,10 +146,10 @@ export default function Home() {
               <Link href="">FAQs</Link>
               <Link href="">FAQs</Link>
             </nav>
-
-            <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+            {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
               Connect Wallet
-            </button>
+            </button> */}
+            <ConnectWallet />
           </div>
 
           <button
@@ -85,9 +204,10 @@ export default function Home() {
                 </Link>
               </nav>
 
-              <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
+              {/* <button className="bg-[#950944] text-white px-6 py-3 rounded-lg">
                 Connect Wallet
-              </button>
+              </button> */}
+              <ConnectWallet />
             </div>
           )}
         </div>

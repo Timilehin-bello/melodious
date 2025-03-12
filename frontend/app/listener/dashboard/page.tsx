@@ -9,51 +9,51 @@ import Link from "next/link";
 import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
-import useOnPlay from "@/hooks/useOnPlay";
 import { twMerge } from "tailwind-merge";
-import usePlayer from "@/hooks/usePlayer";
+import { useCallback, useEffect, useState } from "react";
+import fetchMethod from "@/lib/readState";
+import { useMelodiousContext } from "@/contexts/melodious";
+import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+// import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
-  const songs = [
-    {
-      id: "1",
-      user_id: "string",
-      artist: "string",
-      title: "string",
-      song_path: "/audio/song1.mp3",
-      image_path: "/images/artist.svg",
-    },
-  ];
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
+    useMusicPlayer();
+
+  useEffect(() => {
+    const loadTracks = async () => {
+      try {
+        const trackList = await await fetchMethod("get_tracks");
+        console.log("tracklist", trackList);
+        setTracks(trackList);
+        setIsLoading(false);
+      } catch (error) {
+        console.log("Failed to fetch tracks:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTracks();
+  }, []);
+
+  const handlePlayTrack = (track: Track, index: number) => {
+    if (currentTrack?.id === track.id) {
+      togglePlay();
+    } else if (tracks.length === 1) {
+      playTrack(track); // Play a single track if there's only one
+    } else {
+      playPlaylist(tracks, index); // Allow playing from any index
+    }
+  };
+
   const { connect } = useConnectModal();
-  const onPlay = useOnPlay(songs);
+  // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
-  const data = [
-    {
-      songTitle: "Song Title 1",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 2",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 3",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-    },
-    {
-      songTitle: "Song Title 4",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/artist.svg",
-    },
-    {
-      songTitle: "Song Title 1",
-      songDetails: "189 songs, 2hr 40min",
-      imageUrl: "/images/woman-with-headphone-front.png",
-    },
-  ];
+  const { setConditionFulfilled } = useMelodiousContext();
 
   const genres = [
     {
@@ -79,29 +79,7 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Pop",
-      songs: [
-        {
-          title: "Song 4",
-          totalListen: "19,900,000",
-          duration: "3:30",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 5",
-          totalListen: "19,900,000",
-          duration: "4:00",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 6",
-          totalListen: "19,900,000",
-          duration: "3:50",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
+
     {
       name: "Jazz",
       songs: [
@@ -125,29 +103,7 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Country",
-      songs: [
-        {
-          title: "Song 10",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 11",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 12",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
+
     {
       name: "Raggae",
       songs: [
@@ -217,29 +173,6 @@ export default function Page() {
         },
       ],
     },
-    {
-      name: "Karaoke",
-      songs: [
-        {
-          title: "Song 22",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 23",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 24",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
   ];
 
   const recentlyPlayed = [
@@ -274,34 +207,11 @@ export default function Page() {
       duration: "2 mins",
     },
     {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
+      title: "Feel Something",
+      artistName: "Jaymes Young",
+      duration: "2 mins",
     },
   ];
-
-  const playSong = async (id: string) => {
-    if (status === "disconnected") {
-      await connect({ client, size: "compact" }); // opens the connect modal
-    }
-    // alert("Play Song ");
-    onPlay(id);
-  };
 
   const likeSong = async () => {
     if (status === "disconnected") {
@@ -310,19 +220,24 @@ export default function Page() {
 
     alert("Like Song ");
   };
-  const player = usePlayer();
+
+  const [isConnected, setIsConnected] = useState(false);
+
   return (
     <div
       className={twMerge(
-        `grid md:grid-cols-4 mt-[-65px] w-full h-full`,
-        player.activeId && "h-[calc(100%-85px)] pb-[75px]"
+        `relative grid gap-0 md:grid-cols-4 mt-[-35px] w-full h-full`,
+        currentTrack && "h-[calc(100%-40px)] pb-[90px]"
       )}
     >
       {/* First column (75% width on medium screens and above)  */}
-      <div className="md:col-span-3  px-4 pt-[80px] ">
+      <div className="md:col-span-3 px-4 pt-[80px] h-full">
         <h2 className="text-white font-bold text-3xl mb-4">
           Good Morning Guest!
         </h2>
+        {/* <p className="text-white">
+          Status: {isConnected ? "Connected" : "Disconnected"}
+        </p> */}
         {/* Banner */}
         <div className="rounded-lg bg-cover bg-center bg-no-repeat bg-[url('/images/icons/banner.svg')] h-25  w-full">
           <div className="flex justify-between items-center">
@@ -360,14 +275,15 @@ export default function Page() {
             </p>
           </div>
           <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {data.slice(0, 4).map((album, index) => (
+            {tracks.slice(0, 4).map((track, index) => (
               <TrendingSoundItem
                 key={index}
-                imageUrl={album.imageUrl}
-                songTitle={album.songTitle}
-                songDetails={album.songDetails}
-                playSong={(id: string) => playSong(id)}
+                imageUrl={track.imageUrl}
+                songTitle={track.title}
+                songDetails={String(track.duration)}
+                playSong={() => handlePlayTrack(track, index)}
                 likeSong={likeSong}
+                isLoading={isLoading}
               />
             ))}
           </div>
@@ -385,14 +301,16 @@ export default function Page() {
               See All
             </Link>
           </div>
-          <div className=" pt-2">
+          <div className="pt-2">
             <GenreItem genres={genres} />
           </div>
         </div>
         {/* End of Genre */}
       </div>
       {/* Second column (25% width on medium screens and above) */}
-      <div className="relative md:col-span-1  px-4 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center ">
+      <div
+        className={`md:col-span-1 px-2 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center h-full pb-[20px]`}
+      >
         {/* <p>Content for the second column</p> */}
         <div>
           <div className="flex justify-between mb-3 px-2">

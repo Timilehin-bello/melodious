@@ -14,14 +14,20 @@ class CreateTrackRoute extends AdvanceRoute {
   }
   public execute = (request: any) => {
     this._parse_request(request);
+
+    let { signer, ...request_payload } = this.request_args;
+    if (!signer) {
+      signer = this.msg_sender;
+    }
+
     try {
       const track = this.track.createTrack(
         {
-          walletAddress: this.msg_sender,
+          walletAddress: signer,
           createdAt: new Date(request.metadata.timestamp * 1000),
           updatedAt: new Date(request.metadata.timestamp * 1000),
           releaseDate: new Date(request.metadata.timestamp * 1000),
-          ...this.request_args,
+          ...request_payload,
         },
         true
       ) as Notice | Error_out;
@@ -47,12 +53,17 @@ class UpdateTrackRoute extends AdvanceRoute {
   public execute = (request: any) => {
     this._parse_request(request);
     try {
+      let { signer, ...request_payload } = this.request_args;
+      if (!signer) {
+        signer = this.msg_sender;
+      }
+
       console.log("Executing Update track request");
       const updatedTrack = this.track.updateTrack(
         {
-          walletAddress: this.msg_sender,
+          walletAddress: signer,
           updatedAt: new Date(request.metadata.timestamp * 1000),
-          ...this.request_args,
+          ...request_payload,
         },
         true
       ) as Notice | Error_out;
@@ -127,6 +138,12 @@ class TrackRoute extends InspectRoute {
   };
 }
 
+class TrackByWalletAddressRoute extends InspectRoute {
+  execute = (request: any): Output => {
+    return this.track.getTracksByArtistWalletAddress(request as string);
+  };
+}
+
 export {
   UpdateTrackRoute,
   DeleteTrackRoute,
@@ -134,4 +151,5 @@ export {
   CreateTrackRoute,
   TracksRoute,
   TrackRoute,
+  TrackByWalletAddressRoute,
 };

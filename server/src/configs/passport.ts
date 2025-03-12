@@ -18,9 +18,12 @@ const jwtVerify = async (
       throw new Error("Invalid token type");
     }
 
-    // console.log("payload", payload);
+    console.log("payload", payload);
 
-    const user = await userService.getUserByUniqueValue({ id: payload.sub });
+    const user = await userService.getUserByUniqueValue(
+      { id: payload.sub },
+      { listener: true, artist: true }
+    );
     if (!user) {
       return done(null, false);
     }
