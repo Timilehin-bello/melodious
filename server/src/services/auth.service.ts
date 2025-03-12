@@ -34,9 +34,12 @@ const logout = async (accessToken: string): Promise<boolean> => {
 const refreshAuth = async (refreshToken: string): Promise<Object> => {
   try {
     const refreshTokenDoc = await tokenService.verifyToken(refreshToken);
-    const user = await userService.getUserByUniqueValue({
-      id: refreshTokenDoc.userId,
-    });
+    const user = await userService.getUserByUniqueValue(
+      {
+        id: refreshTokenDoc.userId,
+      },
+      { listener: true, artist: true }
+    );
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found");
     }

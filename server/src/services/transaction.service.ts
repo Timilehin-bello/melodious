@@ -7,7 +7,11 @@ import { prisma, userService } from ".";
 import { title } from "process";
 import { getUserByUniqueValue } from "./user.service";
 import { convertDurationToSeconds } from "../utils/helper";
-import { IMethodHandlers, ITransaction, ITransactionPayload } from "../types";
+import {
+  IMethodHandlers,
+  ITransaction,
+  ITransactionPayload,
+} from "../interfaces";
 
 const addTransactionRequest = async (payload: IPayload) => {
   try {
