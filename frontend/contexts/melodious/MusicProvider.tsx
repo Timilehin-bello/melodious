@@ -68,7 +68,16 @@ export const useMusicPlayer = () => {
 
 // Helper function to get device info
 const getDeviceInfo = () => {
-  const ua = navigator.userAgent;
+  if (typeof window === "undefined") {
+    return {
+      type: "unknown",
+      browser: "unknown",
+      os: "unknown",
+      networkType: "unknown",
+    };
+  }
+
+  const ua = window.navigator.userAgent;
 
   // Detect browser
   let browser = "unknown";
@@ -121,7 +130,17 @@ export const MusicPlayerProvider = ({
   const [networkStrength, setNetworkStrength] = useState<
     "good" | "medium" | "poor" | "offline"
   >("good");
-  const [deviceInfo, setDeviceInfo] = useState(getDeviceInfo());
+  const [deviceInfo, setDeviceInfo] = useState({
+    type: "unknown",
+    browser: "unknown",
+    os: "unknown",
+    networkType: "unknown",
+  });
+
+  // Update device info after mount
+  useEffect(() => {
+    setDeviceInfo(getDeviceInfo());
+  }, []);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -197,8 +216,10 @@ export const MusicPlayerProvider = ({
 
   // Monitor network conditions
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const checkNetworkCondition = () => {
-      if (!navigator.onLine) {
+      if (!window.navigator.onLine) {
         setNetworkStrength("offline");
         return;
       }
