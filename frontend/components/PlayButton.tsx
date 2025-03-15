@@ -1,9 +1,9 @@
 "use client";
 
-import { Track } from "@/contexts/melodious/MusicProvider";
-import { Play } from "lucide-react";
+import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { Pause, Play } from "lucide-react";
+import { twMerge } from "tailwind-merge";
 
-// import { Song } from "@/types";
 export interface Song {
   id: string;
   user_id: string;
@@ -16,17 +16,75 @@ export interface Song {
 interface PlayButtonProps {
   data: Track;
   onClick: (song: Track, id: string) => void;
+  className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
-const PlayButton = ({ onClick, data }: PlayButtonProps) => {
+const PlayButton = ({
+  onClick,
+  data,
+  className,
+  size = "md",
+}: PlayButtonProps) => {
+  const { currentTrack, isPlaying } = useMusicPlayer();
+
+  const isCurrentTrack = currentTrack?.id === data.id;
+
+  const sizeClasses = {
+    sm: "p-2",
+    md: "p-3",
+    lg: "p-4",
+  };
+
+  const iconSizes = {
+    sm: "w-4 h-4",
+    md: "w-5 h-5",
+    lg: "w-6 h-6",
+  };
+
   return (
     <button
-      className="transition opacity-0 rounded-full flex items-center bg-slate-500 
-      p-4 drop-shadow-md translate translate-y-1/4 group-hover:opacity-100 
-      group-hover:translate-y-0 hover:scale-110"
+      className={twMerge(
+        `
+        transition-all duration-300 ease-out
+        rounded-full flex items-center justify-center
+        bg-[#950944] hover:bg-[#b30d52]
+        shadow-lg hover:shadow-[#950944]/25
+        transform hover:scale-110 active:scale-95
+        group-hover:opacity-100 group-hover:translate-y-0
+        ${sizeClasses[size]}
+        ${isCurrentTrack ? "opacity-100" : "opacity-0 translate-y-1/4"}
+        `,
+        className
+      )}
       onClick={() => onClick(data, data.id)}
     >
-      <Play className="text-black" />
+      <div className="relative">
+        {isCurrentTrack && isPlaying ? (
+          <Pause
+            className={`
+              ${iconSizes[size]} 
+              text-white 
+              transform transition-transform duration-200
+              hover:scale-105
+            `}
+          />
+        ) : (
+          <Play
+            className={`
+              ${iconSizes[size]} 
+              text-white 
+              transform transition-transform duration-200
+              hover:scale-105
+            `}
+          />
+        )}
+
+        {/* Optional: Add a ripple effect when playing */}
+        {isCurrentTrack && isPlaying && (
+          <div className="absolute inset-0 animate-ping rounded-full bg-white/20" />
+        )}
+      </div>
     </button>
   );
 };

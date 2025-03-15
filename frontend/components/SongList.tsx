@@ -108,7 +108,8 @@
 import type React from "react";
 import { Play, Pause } from "lucide-react";
 import Image from "next/image";
-import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
 interface SongListProps {
   songList: Track[];
@@ -121,8 +122,7 @@ const SongList: React.FC<SongListProps> = ({
   onPlayPause,
   isLoading,
 }) => {
-  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
-    useMusicPlayer();
+  const { currentTrack, isPlaying } = useMusicPlayer();
 
   const handlePlayPauseClick = (track: Track, index: number) => {
     // e.preventDefault(); // Prevent default browser behavior
@@ -131,15 +131,18 @@ const SongList: React.FC<SongListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="animate-pulse">
+      <div className="animate-pulse space-y-4">
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center gap-4 p-2 rounded-md mb-2">
-            <div className="w-10 h-10 bg-zinc-700 rounded"></div>
+          <div
+            key={i}
+            className="flex items-center gap-4 p-4 rounded-lg bg-zinc-800/50"
+          >
+            <div className="w-12 h-12 bg-zinc-700 rounded-md"></div>
             <div className="flex-1">
-              <div className="h-4 bg-zinc-700 rounded w-1/3 mb-2"></div>
+              <div className="h-4 bg-zinc-700 rounded w-1/3 mb-3"></div>
               <div className="h-3 bg-zinc-700 rounded w-1/4"></div>
             </div>
-            <div className="w-10 h-4 bg-zinc-700 rounded"></div>
+            <div className="w-16 h-4 bg-zinc-700 rounded"></div>
           </div>
         ))}
       </div>
@@ -147,27 +150,46 @@ const SongList: React.FC<SongListProps> = ({
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-6 rounded-xl bg-zinc-900/40 p-4">
       <table className="w-full text-white">
         <thead>
-          <tr className="border-b border-gray-700">
-            <th className="text-left pb-2">#</th>
-            <th className="text-left pb-2">Title</th>
-            <th className="text-left pb-2">Artist</th>
-            <th className="text-left pb-2">Album</th>
-            <th className="text-right pb-2">Duration</th>
+          <tr className="border-b border-zinc-700/50 text-zinc-400 text-sm">
+            <th className="text-left pb-4 pl-4">S/N</th>
+            <th className="text-left pb-4">Title</th>
+            <th className="text-left pb-4">Date</th>
+            <th className="text-right pb-4 pr-4">Duration</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-zinc-800">
           {!Array.isArray(songList) ? (
-            <tr>No songs found</tr>
+            <tr>
+              <td colSpan={4} className="text-center py-8 text-zinc-400">
+                No songs found
+              </td>
+            </tr>
           ) : (
             songList.map((song, index) => (
-              <tr key={song.id} className="hover:bg-[#950944]">
-                <td className="py-2">{index + 1}</td>
-                <td className="py-2">
+              // <tr
+              //   key={song.id}
+              //   className={`
+              //     group hover:bg-zinc-800/50 transition-colors duration-200 cursor-pointer
+              //     ${currentTrack?.id === song.id ? "bg-zinc-800/80" : ""}
+              //   `}
+              //   onClick={() => handlePlayPauseClick(song, index)}
+              // >
+
+              <tr
+                key={song.id}
+                className={`
+                  group hover:bg-[#950944]/50 transition-colors duration-200 cursor-pointer
+                  ${currentTrack?.id === song.id ? "bg-[#950944]/80" : ""}
+                `}
+                onClick={() => handlePlayPauseClick(song, index)}
+              >
+                <td className="py-3 pl-4 text-sm text-zinc-400">{song.id}</td>
+                <td className="py-3">
                   <div className="flex items-center">
-                    <div className="relative w-10 h-10 mr-3">
+                    <div className="relative w-12 h-12 mr-4">
                       <Image
                         src={
                           song.imageUrl || "/placeholder.svg?height=40&width=40"
@@ -175,27 +197,37 @@ const SongList: React.FC<SongListProps> = ({
                         alt={song.title}
                         layout="fill"
                         objectFit="cover"
-                        className="rounded"
+                        className="rounded-md"
                       />
                       <button
-                        onClick={() =>
-                          handlePlayPauseClick(song, Number(song.id))
-                        }
-                        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity"
+                        onClick={() => handlePlayPauseClick(song, index)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-md"
                       >
                         {currentTrack?.id === song.id && isPlaying ? (
-                          <Pause className="w-5 h-5 text-white" />
+                          <Pause className="w-6 h-6 text-white" />
                         ) : (
-                          <Play className="w-5 h-5 text-white" />
+                          <Play className="w-6 h-6 text-white" />
                         )}
                       </button>
                     </div>
-                    <span>{song.title}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{song.title}</span>
+                      <span className="text-sm text-zinc-400">
+                        {song.artist}
+                      </span>
+                    </div>
                   </div>
                 </td>
-                <td className="py-2">{song.artist}</td>
-                <td className="py-2">{song.album}</td>
-                <td className="py-2 text-right">{song.duration}</td>
+                <td className="py-3 text-sm text-zinc-400">
+                  {new Intl.DateTimeFormat("en-US", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  }).format(new Date(song.createdAt))}
+                </td>
+                <td className="py-3 pr-4 text-right text-sm text-zinc-400">
+                  {song.duration} mins
+                </td>
               </tr>
             ))
           )}

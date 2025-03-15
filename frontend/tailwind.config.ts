@@ -18,6 +18,15 @@ export default {
         "right-sidebar-gradient":
           'linear-gradient(45deg, rgba(126, 57, 240, 0.5), rgba(0, 0, 0, 0.43)), url("/images/main_background.svg")',
       },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+      },
+      animation: {
+        fadeIn: "fadeIn 0.3s ease-out",
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

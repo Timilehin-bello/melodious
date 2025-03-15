@@ -65,7 +65,7 @@ export function PopularArtistCarousel() {
     <div className="flex flex-col">
       <Carousel
         plugins={[plugin.current]}
-        className="w-full max-w-xs"
+        className="w-full "
         onMouseEnter={plugin.current.stop}
         onMouseLeave={plugin.current.reset}
         setApi={setCarouselApi}

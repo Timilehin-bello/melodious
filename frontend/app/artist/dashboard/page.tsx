@@ -12,6 +12,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 export interface IUser {
   id: string;
   walletAddress: string;
@@ -184,10 +189,39 @@ export default function Page() {
               Release music to over 150 digital storefronts around the world and
               keep up to 100% of the sales royalties.
             </p>
+
             <div className="mx-auto text-center mt-4 mb-4">
-              <button className="bg-[#8D184E] px-6 py-2 rounded-lg text-center text-white">
-                Create
-              </button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="bg-[#8D184E] px-6 py-2 rounded-lg text-center text-white">
+                    Create
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[110px]">
+                  <div className="grid gap-4">
+                    <Link
+                      href="/artist/release/single"
+                      className="hover:text-[#950944]"
+                    >
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          Single
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/artist/release/album"
+                      className="hover:text-[#950944]"
+                    >
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          Album
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
         </div>

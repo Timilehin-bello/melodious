@@ -41,12 +41,14 @@ const ConnectWallet = () => {
       const status = await checkLoginStatus();
       console.log("Login status:", status);
 
+      console.log("status:", status);
+
       // Redirect if login failed
       if (!status) {
-        localStorage.clear();
         toast.loading("Please connect your wallet to sign in or register", {
           duration: 3000,
         });
+        localStorage.clear();
         router.replace("/");
       }
     };
@@ -82,6 +84,7 @@ const ConnectWallet = () => {
   return (
     <div>
       <ConnectButton
+        chain={localhostChain}
         client={client}
         connectButton={{
           label: "Connect Wallet",
@@ -143,6 +146,11 @@ const ConnectWallet = () => {
                 thirdwebToken: thirdwebToken,
               },
             });
+
+            if (!response) {
+              localStorage.clear();
+              return false;
+            }
             setUserData(data.user);
             console.log("isLoggedIn", response);
             setSuccessfulLogin(response);

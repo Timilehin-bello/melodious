@@ -54,6 +54,8 @@ interface BalanceProps {
   account: Account | null;
   inspectCall: InspectCallFunction;
   transactionStatus: boolean; // Indicates if a transaction has occurred
+  userDetails: any;
+  fetchData: (user: any) => Promise<void>;
 }
 
 export type { DecodedReports, Account, InspectCallFunction, BalanceProps };

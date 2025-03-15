@@ -313,7 +313,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
   const uploadToIPFS = async (file: File): Promise<string> => {
     try {
       console.log("Uploading file to IPFS...", file);
-      toast.success("Uploading file to IPFS...");
+      // toast.success("Uploading file to IPFS...");
       const formData = new FormData();
       formData.append("file", file!);
 
@@ -329,7 +329,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       console.log("File uploaded to IPFS:", res.data.IpfsHash);
-      toast.success("File uploaded to IPFS \n" + res.data.IpfsHash);
+      toast.success("File uploaded to IPFS!");
       const subdomain = process.env.NEXT_PUBLIC_PINATA_SUBDOMAIN;
       if (!subdomain) {
         throw new Error("PINATA_SUBDOMAIN is not defined");
@@ -337,7 +337,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       return `${subdomain}/ipfs/${res.data.IpfsHash}`;
     } catch (error) {
       console.log("Error uploading to Pinata:", error);
-      toast.error("Error uploading to Pinata: \n" + error);
+      toast.error("Error uploading to Pinata");
 
       throw error;
     }
@@ -365,9 +365,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       const txhash = await signMessages(userPayload);
 
       console.log("txhash", txhash);
-      toast.success(
-        `Transaction successful! Hash: ${txhash.data.isTxComplete.transactionHash}`
-      );
+      toast.success(`Transaction successfull`);
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
@@ -385,9 +383,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(userPayload);
-      toast.success(
-        "User created successfully \n" + "Transaction hash is: " + txhash
-      );
+      toast.success("User created successfully");
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {
@@ -413,15 +409,10 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const txhash = await signMessages(genrePayload);
       if (txhash) {
-        toast.success(
-          "Genre created successfully \n" + "Transaction hash is: " + txhash
-        );
-
         console.log(`Transaction hash is: ${txhash}`);
         return txhash;
       }
     } catch (error) {
-      toast.error("Error creating genre: " + error);
       console.log("Error creating genre:", error);
     }
   };
@@ -436,9 +427,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
     try {
       const txhash = await signMessages(genrePayload);
-      toast.success(
-        "Withdrawal successful. To complete the withdrawal to your wallet, you need to execute a voucher."
-      );
+
       console.log(`Transaction hash is: ${txhash}`);
       return txhash;
     } catch (error) {
@@ -473,9 +462,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       const txhash = await signMessages(trackPayload);
       if (txhash) {
         // console.log(`Transaction hash is: ${txhash}`);
-        toast.success(
-          "Track created successfully \n" + "Transaction hash is: " + txhash
-        );
+        toast.success("Track created successfully");
         return txhash;
       }
     } catch (error) {

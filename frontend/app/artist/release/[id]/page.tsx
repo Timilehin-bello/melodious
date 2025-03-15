@@ -14,7 +14,7 @@ const MusicUpload = () => {
             <h2 className="text-5xl">Create {route.id} Release</h2>
           </div>
           <p className="text-gray-400 px-6">
-            Rlease all your music in one place Add new songs or manage released
+            Release all your music in one place Add new songs or manage released
             ones. Control your song data, rights holders, song splits and more
             from one convenient place.
           </p>

@@ -18,7 +18,7 @@ const FileInputWithDragDrop: React.FC<Props> = ({ onDrop }) => {
     accept: {
       "image/*": [".jpeg", ".png", ".jpg"],
     },
-    maxSize: 5000000,
+    maxSize: 6000000,
   });
 
   const formSchema = z.object({
@@ -45,7 +45,7 @@ const FileInputWithDragDrop: React.FC<Props> = ({ onDrop }) => {
 
           <div
             {...getRootProps()}
-            className={`p-6 border-2 border-dashed rounded ${
+            className={`  border-2 border-dashed border-gray-200 hover:border-[#950944] p-6 rounded-lg text-center cursor-pointer transition-colors ${
               isDragActive ? "border-blue-500" : "border-gray-300"
             }`}
           >
@@ -54,9 +54,11 @@ const FileInputWithDragDrop: React.FC<Props> = ({ onDrop }) => {
               <p>Drop the files here ...</p>
             ) : (
               <div className="text-center">
-                <UploadCloudIcon size={48} className="mx-auto" />
-                <p>Drag 'n' drop some files here, or Browse</p>
-                <p className="text-sm text-gray-500">
+                <UploadCloudIcon size={48} className="mx-auto text-gray-400" />
+                <p className="mt-2 text-sm text-gray-600">
+                  Drag 'n' drop some files here, or Browse
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
                   Supported File Format: png, jpg, etc
                 </p>
               </div>

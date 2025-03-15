@@ -15,6 +15,7 @@ import fetchMethod from "@/lib/readState";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import SongList from "@/components/SongList";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
@@ -218,7 +219,7 @@ export default function Page() {
       await connect({ client, size: "compact" }); // opens the connect modal
     }
 
-    alert("Like Song ");
+    // alert("Like Song ");
   };
 
   const [isConnected, setIsConnected] = useState(false);
@@ -226,123 +227,135 @@ export default function Page() {
   return (
     <div
       className={twMerge(
-        `relative grid gap-0 md:grid-cols-4 mt-[-35px] w-full h-full`,
-        currentTrack && "h-[calc(100%-40px)] pb-[90px]"
+        `relative grid  w-full h-screen
+      grid-cols-1 md:grid-cols-4 lg:grid-cols-4 
+       `,
+        currentTrack && "pb-[90px]"
       )}
     >
-      {/* First column (75% width on medium screens and above)  */}
-      <div className="md:col-span-3 px-4 pt-[80px] h-full">
-        <h2 className="text-white font-bold text-3xl mb-4">
-          Good Morning Guest!
-        </h2>
-        {/* <p className="text-white">
-          Status: {isConnected ? "Connected" : "Disconnected"}
-        </p> */}
-        {/* Banner */}
-        <div className="rounded-lg bg-cover bg-center bg-no-repeat bg-[url('/images/icons/banner.svg')] h-25  w-full">
-          <div className="flex justify-between items-center">
-            <div className="px-8 z-10">
-              <Image
-                src="/images/melodious_text.svg"
-                height={37}
-                width={149}
-                alt="melodious text"
-              />
+      {/* Main Content Column - Scrollable */}
+      <div className="md:col-span-3 h-screen overflow-hidden px-4">
+        <div className="h-full overflow-y-auto  pt-4 pb-8">
+          {/* Header Section */}
+          <header className="space-y-1 mb-8">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              Good Morning Guest!
+            </h2>
+            <p className="text-zinc-400 text-sm sm:text-base">
+              Discover your favorite music
+            </p>
+          </header>
 
-              <h2 className="lg:text-5xl md:text-base font-bold mt-4 text-white">
-                New Released Sounds
+          {/* Banner Section */}
+          <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#950944] to-[#1C1C32] mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-center p-6 sm:p-8">
+              <div className="z-10 space-y-4 text-center sm:text-left mb-6 sm:mb-0">
+                <Image
+                  src="/images/melodious_text.svg"
+                  height={37}
+                  width={149}
+                  alt="melodious text"
+                  className="mx-auto sm:mx-0"
+                />
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+                  New Released Sounds
+                </h2>
+              </div>
+              <div className="relative w-full sm:w-auto h-[200px] sm:h-auto">
+                <Image
+                  src="/images/woman-with-headphone-front.png"
+                  width={410}
+                  height={357}
+                  alt="woman with headphone"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Trending Songs Section */}
+          <section className="space-y-4 mb-8">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
+                Trending Songs
               </h2>
             </div>
-            <div className="">
-              <Image
-                src="/images/woman-with-headphone-front.png"
-                width={410}
-                height={357}
-                alt="woman with headpone"
-                className=""
-              />
+            <div className="overflow-x-auto  pb-4">
+              <div className="flex gap-4 min-w-min">
+                {tracks.map((track, index) => (
+                  <div key={track.id} className="w-[250px] flex-shrink-0">
+                    <TrendingSoundItem
+                      song={track}
+                      imageUrl={track.imageUrl}
+                      songTitle={track.title}
+                      songDetails={String(track.duration)}
+                      playSong={() => handlePlayTrack(track, index)}
+                      likeSong={likeSong}
+                      isLoading={isLoading}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-        {/* End of Banner */}
+          </section>
 
-        {/* Trending Sound */}
-        <div className="mt-16">
-          <div className="flex justify-between text-white px-2">
-            <h2 className="font-bold text-2xl">Trending Songs</h2>
-            <p className="hover:text-white text-gray-300 transition-all">
-              See All
-            </p>
-          </div>
-          <div className="grid auto-rows-min gap-4 md:grid-cols-4 mt-5">
-            {tracks.slice(0, 4).map((track, index) => (
-              <TrendingSoundItem
-                key={index}
-                imageUrl={track.imageUrl}
-                songTitle={track.title}
-                songDetails={String(track.duration)}
-                playSong={() => handlePlayTrack(track, index)}
-                likeSong={likeSong}
+          {/* Song List Section */}
+          <section className="space-y-4">
+            <div className="pt-2">
+              <SongList
+                songList={tracks}
+                onPlayPause={handlePlayTrack}
                 isLoading={isLoading}
               />
-            ))}
-          </div>
-        </div>
-        {/* End of Trending Sound */}
-
-        {/* Genre */}
-        <div className="mt-10">
-          <div className="flex justify-between text-white mb-4 px-2">
-            <h2 className="font-bold text-2xl">Genre</h2>
-            <Link
-              href={`/listener/genres`}
-              className="hover:text-white text-gray-300 transition-all"
-            >
-              See All
-            </Link>
-          </div>
-          <div className="pt-2">
-            <GenreItem genres={genres} />
-          </div>
-        </div>
-        {/* End of Genre */}
-      </div>
-      {/* Second column (25% width on medium screens and above) */}
-      <div
-        className={`md:col-span-1 px-2 pt-[120px] bg-right-sidebar-gradient bg-cover bg-center h-full pb-[20px]`}
-      >
-        {/* <p>Content for the second column</p> */}
-        <div>
-          <div className="flex justify-between mb-3 px-2">
-            <h3 className="text-white text-lg">Popular Artist</h3>
-            <p className="text-[#910a43] cursor-pointer hover:text-gray-300">
-              See All
-            </p>
-          </div>
-          <PopularArtistCarousel />
-        </div>
-
-        <div className="mt-12 p-2">
-          <div className="flex justify-between items-center flex-wrap text-white mb-6">
-            <h3 className="text-lg">Recently Played</h3>
-            <p className="hover:text-gray-300 transition-all font-semibold text-[#950944] cursor-pointer">
-              See All
-            </p>
-          </div>
-          {/* <ScrollArea className="h-[550px] pr-2"> */}
-          <div className="flex flex-col gap-3">
-            {recentlyPlayed.map((item, index) => (
-              <RecentItem
-                key={index}
-                title={item.title}
-                artistName={item.artistName}
-                duration={item.duration}
-              />
-            ))}
-          </div>
-          {/* </ScrollArea> */}
+            </div>
+          </section>
         </div>
       </div>
+
+      {/* Sidebar - Scrollable */}
+      <aside className="md:col-span-1 h-screen w-full">
+        <div className="h-full w-full overflow-y-auto  pt-[9px] pb-8 pr-4">
+          {/* Popular Artists Section */}
+          <section className="w-full mb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                Popular Artist
+              </h3>
+              <button className="text-[#910a43] hover:text-gray-300 transition-colors text-sm">
+                See All
+              </button>
+            </div>
+            <div className="w-full bg-zinc-900/30 rounded-xl p-4">
+              <PopularArtistCarousel />
+            </div>
+          </section>
+
+          {/* Recently Played Section */}
+          <section className="w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                Recently Played
+              </h3>
+              <button className="text-[#950944] hover:text-gray-300 transition-colors text-sm font-medium">
+                See All
+              </button>
+            </div>
+            <div className="w-full bg-zinc-900/30 rounded-xl p-4">
+              <div className="space-y-3">
+                {recentlyPlayed.map((item, index) => (
+                  <RecentItem
+                    key={index}
+                    title={item.title}
+                    artistName={item.artistName}
+                    duration={item.duration}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        </div>
+      </aside>
     </div>
   );
 }

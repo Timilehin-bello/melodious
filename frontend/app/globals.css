@@ -4,6 +4,21 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+  position: relative;
+  background-color: black;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: conic-gradient(
+    from 180deg at center bottom,
+    rgba(126, 57, 240, 0.43),
+    rgba(0, 0, 0, 0.43)
+  );
+  z-index: -1;
+  pointer-events: none;
 }
 
 @layer base {
@@ -137,4 +152,85 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Universal scrollbar styles */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(12, 4, 7, 0.6) transparent;
+}
+
+/* Hide scrollbar for mobile devices */
+@media (max-width: 768px) {
+  .scrollbar-thin::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-thin {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Add to your global CSS file */
+.form-input:focus,
+.form-select:focus {
+  border-color: #950944;
+  outline-color: #950944;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.loader-gradient {
+  background: linear-gradient(90deg, #950944, #ff1675, #950944);
+  background-size: 200% 200%;
+  animation: gradient 2s ease infinite;
 }
