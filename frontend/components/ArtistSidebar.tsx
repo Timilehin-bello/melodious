@@ -24,7 +24,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
@@ -58,10 +58,16 @@ const items = [
 ];
 
 export function ArtistSidebar() {
-  const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const pathname = usePathname();
   const { state } = useSidebar();
   const router = useRouter();
   const { currentTrack } = useMusic();
+
+  // Add this function to determine if a menu item is active
+  const isActiveRoute = (itemUrl: string) => {
+    return pathname === itemUrl;
+  };
+
   return (
     <Sidebar
       collapsible="icon"
@@ -105,11 +111,10 @@ export function ArtistSidebar() {
                   <SidebarMenuButton
                     asChild
                     className={
-                      activeMenu === item.title
+                      isActiveRoute(item.url)
                         ? "hover:bg-[#950944] bg-[#950944] text-white py-6"
                         : "hover:bg-[#950944] hover:text-white py-6 text-white"
                     }
-                    onClick={() => setActiveMenu(item.title)}
                   >
                     <Link
                       href={item.url}

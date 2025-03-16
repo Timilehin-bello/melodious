@@ -40,7 +40,7 @@ const DropZone: React.FC<DropZoneProps> = ({
       "image/*": [".jpeg", ".png", ".jpg"],
       "audio/*": [".mp3", ".wav", ".ogg", ".m4a"],
     },
-    maxSize: 5000000,
+    maxSize: 6000000,
   });
   return (
     <div className="flex items-center justify-center">

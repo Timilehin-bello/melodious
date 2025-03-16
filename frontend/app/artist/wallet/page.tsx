@@ -1,4 +1,5 @@
 "use client";
+
 import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
 import { Button } from "@/components/ui/button";
 import Balance from "@/components/Wallet/Cartesi/Balance";
@@ -13,6 +14,15 @@ import { client } from "@/lib/client";
 import { localhostChain } from "@/components/ConnectWallet";
 import WithdrawModal from "@/components/Wallet/Withdraw";
 import WithdrawCTSIModal from "@/components/Wallet/WithdrawCTSI";
+import {
+  ArrowUpRight,
+  Wallet as WalletIcon,
+  ArrowDownLeft,
+  Coins,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import fetchMethod from "@/lib/readState";
+import { IUser } from "../dashboard/page";
 
 const Wallet = () => {
   const account = useActiveAccount();
@@ -22,6 +32,8 @@ const Wallet = () => {
   const [isWithdrawalCTSModalOpen, setIsWithdrawalCTSModalOpen] =
     useState(false);
   const { reports, decodedReports, inspectCall } = useInspectCall();
+  const [isLoading, setIsLoading] = useState(false);
+  const [userDetails, setUserDetails] = useState<any>(null);
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
@@ -58,55 +70,117 @@ const Wallet = () => {
     setProviderInstance(provider);
   }, [account]);
 
+  const fetchData = async (user: IUser) => {
+    setIsLoading(true);
+    try {
+      const getUserDetails = await fetchMethod(
+        "get_user_info/" + user.walletAddress
+      );
+      if (getUserDetails) {
+        setUserDetails(getUserDetails);
+      }
+    } catch (error) {
+      console.error("Error fetching user details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let user = localStorage.getItem("xx-mu") as any;
+    user = JSON.parse(user) ?? null;
+    user = user?.user;
+    if (user) {
+      fetchData(user);
+    }
+  }, []);
+
   useEffect(() => {
     getData();
   }, [getData]);
 
-  return (
-    <div className="max-w-screen-2xl mx-auto ">
-      <div className="mb-6 w-full flex flex-wrap  items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-between md:justify-between justify-between text-white">
-        <div className="w-full flex justify-center">
-          <div className="w-2/3 h-75">
-            <div className="mb-3 py-4 px-6">
-              <h3 className="text-3xl">Wallet</h3>
+  const actionButtons = [
+    {
+      label: "Withdraw CTSI Reward",
+      icon: <Coins className="w-4 h-4" />,
+      onClick: () => setIsWithdrawalCTSModalOpen(true),
+      className: "bg-zinc-800 hover:bg-zinc-700 text-[#1f9d55]",
+    },
+    {
+      label: "Transfer",
+      icon: <ArrowUpRight className="w-4 h-4" />,
+      onClick: () => setIsTransferModalOpen(true),
+      className: "bg-zinc-800 hover:bg-zinc-700 text-blue-300",
+    },
+    {
+      label: "Withdraw",
+      icon: <ArrowDownLeft className="w-4 h-4" />,
+      onClick: () => setIsWithdrawModalOpen(true),
+      className: "bg-zinc-800 hover:bg-zinc-700 text-green-300",
+    },
+  ];
 
-              <Balance
-                account={account ? account : null}
-                transactionStatus={transactionStatus}
-                inspectCall={inspectCall}
-                reports={reports}
-                decodedReports={decodedReports}
-              />
-              <div>
-                <div className="flex gap-4 flex-wrap mt-8">
+  return (
+    <div className="min-h-screen ">
+      <div className="max-w-screen-2xl mx-auto px-4 py-8">
+        {/* Wallet Header */}
+        <div className="mb-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
+              {/* Title */}
+              <div className="flex items-center gap-3 mb-6">
+                <WalletIcon className="w-8 h-8 text-[#950844]" />
+                <h1 className="text-3xl font-semibold text-white">Wallet</h1>
+              </div>
+
+              {/* Balance Section */}
+              <div className="mb-8">
+                <Balance
+                  account={account ? account : null}
+                  transactionStatus={transactionStatus}
+                  inspectCall={inspectCall}
+                  reports={reports}
+                  decodedReports={decodedReports}
+                  userDetails={userDetails}
+                  fetchData={fetchData}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-4">
+                {actionButtons.map((button, index) => (
                   <Button
-                    onClick={() => setIsWithdrawalCTSModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-white `}
+                    key={index}
+                    onClick={button.onClick}
+                    className={cn(
+                      "h-12 px-6 rounded-lg",
+                      "transition-all duration-200",
+                      "flex items-center gap-2",
+                      "font-medium",
+                      button.className
+                    )}
                   >
-                    Withdraw CTSI Reward
+                    {button.icon}
+                    {button.label}
                   </Button>
-                  <Button
-                    onClick={() => setIsTransferModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-blue-300    `}
-                  >
-                    Transfer
-                  </Button>
-                  <Button
-                    onClick={() => setIsWithdrawModalOpen(true)}
-                    className={`h-[45px] px-4 py-2 rounded-md text-green-300 `}
-                  >
-                    Withdraw
-                  </Button>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="px-8 mt-2 text-white">
-        <Transfers dappAddress={dappAddress} />
+
+        {/* Transfers Section */}
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
+            <h2 className="text-xl font-semibold text-white mb-6">
+              Recent Transactions
+            </h2>
+            <Transfers dappAddress={dappAddress} />
+          </div>
+        </div>
       </div>
 
+      {/* Modals */}
       <DepositModal
         isOpen={isTransferModalOpen}
         onClose={() => setIsTransferModalOpen(false)}
@@ -129,6 +203,7 @@ const Wallet = () => {
         isOpen={isWithdrawalCTSModalOpen}
         onClose={() => setIsWithdrawalCTSModalOpen(false)}
         updateTransactionStatus={setTransactionStatus}
+        userDetails={userDetails}
       />
     </div>
   );

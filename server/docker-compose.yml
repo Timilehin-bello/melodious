@@ -1,13 +1,14 @@
+# Description: This file is used to define the services that will be used in the docker container.
 version: "3.8"
 
 services:
   app:
     build: .
     ports:
-      - "8888:8888"
+      - "8088:8088"
     environment:
       - NODE_ENV=production
-      - PORT=8888
+      - PORT=${PORT}
       - DATABASE_URL=${DATABASE_URL}
       - RPC_URL=${RPC_URL}
       - PRIVATE_KEY=${PRIVATE_KEY}
@@ -20,30 +21,39 @@ services:
       - THIRDWEB_SECRET_KEY=${THIRDWEB_SECRET_KEY}
       - ADMIN_PRIVATE_KEY=${ADMIN_PRIVATE_KEY}
       - THIRDWEB_CLIENT_DOMAIN=${THIRDWEB_CLIENT_DOMAIN}
-      - LOG_FOLDER=/app/logs/
-      - LOG_FILE=%DATE%-app-log.log
-      - LOG_LEVEL=error
+      - LOG_FOLDER=${LOG_FOLDER}
+      - LOG_FILE=${LOG_FILE}
+      - LOG_LEVEL=${LOG_LEVEL}
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PROTOCOL=${REDIS_PROTOCOL}
       - REDIS_USER_PASSWORD=no
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+    restart: always
     depends_on:
-      - redis
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - pm2-logs:/root/.pm2/logs
-      - app-logs:/app/logs
+      redis:
+        condition: service_started
+    networks:
+      - app-network
 
   redis:
     image: redis:alpine
-    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   redis-data:
-  pm2-logs:
-  app-logs:

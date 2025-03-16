@@ -3,12 +3,10 @@ import http from "http";
 import { config } from "./configs/config";
 import logger from "./configs/logger";
 import { rootSocket } from "./configs/rootSocket";
-// import { scheduleCronJobs } from "./cronJob";
 import { Server } from "socket.io";
 import redisClient from "./configs/redisClient";
 import { TrackListeningService } from "./services/trackListening.service";
 import { prisma } from "./services";
-import Redis from "ioredis";
 import socketAuth from "./middlewares/socketAuth";
 import {
   distributeRewardToArtistsBasedOnTotalTrackListens,
@@ -18,6 +16,7 @@ import {
 // scheduleCronJobs();
 // updateArtistListeningTimeOnCartesi();
 // distributeRewardToArtistsBasedOnTotalTrackListens();
+
 redisClient.on("connect", () => {
   logger.info(`Redis connected ${config.redis.host}:${config.redis.port}`);
   redisClient.set("try", "Hello Welcome to Redis Client");
@@ -29,7 +28,6 @@ redisClient.on("disconnect", () => {
 
 redisClient.on("error", (err) => {
   logger.error("redis error", err);
-  redisClient.quit();
 });
 
 const server = http.createServer(app);
@@ -39,17 +37,16 @@ const io = new Server(server, {
     origin: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${
       process.env.CLIENT_DOMAIN ?? "localhost:3000"
     }`,
-    methods: ["GET", "POST"], // Allow specific methods if needed
+    methods: ["GET", "POST"],
   },
   path: "/v1/socket.io",
 });
 
 globalThis.io = io;
-const redis = new Redis();
 
 io.use(socketAuth());
 
-new TrackListeningService(io, prisma, redis);
+new TrackListeningService(io, prisma, redisClient);
 rootSocket(io);
 
 server.listen(config.port, () => {
