@@ -1,19 +1,25 @@
 import express from "express";
 import { Router } from "express";
 import auth from "../middlewares/auth";
-import { authController } from "../controllers";
+import { authController, userController } from "../controllers";
 
 import validate from "../middlewares/validate";
-import { authValidation } from "../validations";
+import { authValidation, userValidation } from "../validations";
 
 const router: Router = express.Router();
 
-router.route("/").get(
-  auth(),
-  // validate(authValidation.register),
-  authController.test
-);
+// router.route("/").get(
+//   auth(),
+//   // validate(authValidation.register),
+//   authController.test
+// );
 
+router
+  .route("/isRegistered")
+  .get(
+    validate(userValidation.checkIfUserAlreadyExists),
+    userController.checkIfUserAlreadyExists
+  );
 // router
 //   .route("/login/request")
 //   .get(validate(authValidation.loginRequest), authController.loginRequest);

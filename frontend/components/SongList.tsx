@@ -186,7 +186,7 @@ const SongList: React.FC<SongListProps> = ({
                 `}
                 onClick={() => handlePlayPauseClick(song, index)}
               >
-                <td className="py-3 pl-4 text-sm text-zinc-400">{song.id}</td>
+                <td className="py-3 pl-4 text-sm text-zinc-400">{index + 1}</td>
                 <td className="py-3">
                   <div className="flex items-center">
                     <div className="relative w-12 h-12 mr-4">

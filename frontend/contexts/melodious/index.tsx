@@ -365,7 +365,6 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       const txhash = await signMessages(userPayload);
 
       console.log("txhash", txhash);
-      toast.success(`Transaction successfull`);
       console.log(`Transaction hash is: ${JSON.stringify(txhash)}`);
       return txhash;
     } catch (error) {

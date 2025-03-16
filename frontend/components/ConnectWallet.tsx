@@ -45,9 +45,9 @@ const ConnectWallet = () => {
 
       // Redirect if login failed
       if (!status) {
-        toast.loading("Please connect your wallet to sign in or register", {
-          duration: 3000,
-        });
+        // toast.loading("Please connect your wallet to sign in or register", {
+        //   duration: 3000,
+        // });
         localStorage.clear();
         router.replace("/");
       }

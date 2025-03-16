@@ -234,3 +234,12 @@ body::before {
   background-size: 200% 200%;
   animation: gradient 2s ease infinite;
 }
+
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(
+      circle at center,
+      var(--tw-gradient-stops)
+    );
+  }
+}
