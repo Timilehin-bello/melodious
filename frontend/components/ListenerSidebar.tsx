@@ -29,26 +29,26 @@ const items = [
     url: "/listener/dashboard",
     icon: Home,
   },
-  {
-    title: "Playlist",
-    url: "/listener/playlist",
-    icon: Inbox,
-  },
-  {
-    title: "Explore",
-    url: "/listener/explore",
-    icon: Search,
-  },
-  {
-    title: "Liked Songs",
-    url: "/listener/liked-songs",
-    icon: Calendar,
-  },
-  {
-    title: "Settings",
-    url: "/listener/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Playlist",
+  //   url: "/listener/playlist",
+  //   icon: Inbox,
+  // },
+  // {
+  //   title: "Explore",
+  //   url: "/listener/explore",
+  //   icon: Search,
+  // },
+  // {
+  //   title: "Liked Songs",
+  //   url: "/listener/liked-songs",
+  //   icon: Calendar,
+  // },
+  // {
+  //   title: "Settings",
+  //   url: "/listener/settings",
+  //   icon: Settings,
+  // },
 ];
 
 export function ListenerSidebar() {

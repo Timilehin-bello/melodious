@@ -127,6 +127,18 @@ export default function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.clear();
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
   return (
     <>
       <section className="bg-[url('/images/landing/background1.svg')] bg-cover bg-center h-[700px] px-10 py-6">

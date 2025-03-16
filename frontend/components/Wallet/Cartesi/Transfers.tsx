@@ -1,186 +1,132 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
-import { useRollups } from "../../../cartesi/hooks/useRollups";
-
-import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
+import { Tab } from "@headlessui/react";
 import { Vouchers } from "./Vouchers";
-
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-
-import {
-  sendAddress,
-  depositErc20ToPortal,
-  depositEtherToPortal,
-  withdrawErc20,
-  withdrawErc721,
-  withdrawEther,
-  transferNftToPortal,
-  transferErc1155BatchToPortal,
-} from "@/cartesi/Portals";
-import { client } from "@/lib/client";
-import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
-import toast from "react-hot-toast";
-import { localhostChain } from "@/components/ConnectWallet";
-import { useActiveWallet } from "thirdweb/react";
-import { ethers } from "ethers";
-import Notices from "./Notices";
 import Reports from "./Reports";
+import { useRollups } from "@/cartesi/hooks/useRollups";
+import { sendAddress } from "@/cartesi/Portals";
+import { toast } from "react-hot-toast";
+import { useActiveAccount } from "thirdweb/react";
+import { cn } from "@/lib/utils";
+import { Ticket, Bell, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 
 interface IProps {
   dappAddress: string;
 }
 
-const Transfers: React.FC<IProps> = ({ dappAddress }: IProps) => {
+const Transfers: React.FC<IProps> = ({ dappAddress }) => {
+  const [dappRelayedAddress, setDappRelayedAddress] = useState(false);
+  const [isRelaying, setIsRelaying] = useState(false);
   const account = useActiveAccount();
-  const chain = useActiveWalletChain();
   const rollups = useRollups(dappAddress);
-  const [providerInstance, setProviderInstance] = useState<
-    ethers.providers.JsonRpcProvider | undefined
-  >();
 
-  const provider = ethers5Adapter.provider.toEthers({
-    client,
-    chain: localhostChain!,
-  });
-  const wallet = useActiveWallet();
+  const tabs = [
+    {
+      name: "Vouchers",
+      icon: <Ticket className="w-4 h-4" />,
+      content: (
+        <div className="space-y-6">
+          <div className="bg-[#950944]/10 border border-[#950944]/20 rounded-lg p-4">
+            <div className="flex gap-3">
+              <AlertCircle className="w-5 h-5 text-[#950944] flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-zinc-300 leading-relaxed">
+                After the withdrawal request, the user must execute a voucher to
+                transfer assets from the Cartesi dApp to their account.
+              </p>
+            </div>
+          </div>
 
-  const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
-
-  const getData = React.useCallback(async () => {
-    const getSigner = ethers5Adapter.signer.toEthers({
-      client,
-      chain: localhostChain!,
-      account: account!,
-    });
-
-    setSignerInstance(await getSigner);
-
-    console.log("await signer", await getSigner);
-    // const getAddress = (await getSigner).getAddress();
-    // console.log("getAddress", getAddress);
-    const provider = (await getSigner).provider;
-
-    const signer = provider.getSigner();
-    const signerAddress = await signer?.getAddress();
-    console.log("signerAddress", signerAddress);
-
-    console.log("provider", provider);
-
-    setProviderInstance(provider);
-  }, [account]);
-
-  useEffect(() => {
-    getData();
-  }, [getData]);
-
-  // const provider = getProvider;
-  const [dappRelayedAddress, setDappRelayedAddress] = useState<boolean>(false);
-  const [erc20Amount, setErc20Amount] = useState<string>("");
-  const [erc20Token, setErc20Token] = useState<string>("");
-  const [erc721Id, setErc721Id] = useState<string>("");
-  const [erc721, setErc721] = useState<string>("");
-  const [etherAmount, setEtherAmount] = useState<string>("");
-
-  const [erc1155, setErc1155] = useState<string>("");
-  const [erc1155Id, setErc1155Id] = useState<string>("");
-  const [erc1155Amount, setErc1155Amount] = useState<string>("");
-  const [erc1155Ids, setErc1155Ids] = useState<number[]>([]);
-  const [erc1155Amounts, setErc1155Amounts] = useState<number[]>([]);
-  const [erc1155IdsStr, setErc1155IdsStr] = useState<string>("[]");
-  const [erc1155AmountsStr, setErc1155AmountsStr] = useState<string>("[]");
-  const [loadEther, setLoadEther] = useState(false);
-  const [loadERC20, setLoadERC20] = useState(false);
-  const [loadWithdrawEther, setLoadWithdrawEther] = useState(false);
-  const [loadWithdrawERC20, setLoadWithdrawERC20] = useState(false);
-  const [loadTransferNFT, setLoadTransferNFT] = useState(false);
-  const [loadWithdrawERC721, setLoadWithdrawERC721] = useState(false);
-  const [loadERC1155, setLoadERC1155] = useState(false);
-  const [loadERC1155Batch, setLoadERC1155Batch] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
-
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsChecked(e.target.checked);
-  };
-  const addTo1155Batch = () => {
-    const newIds = erc1155Ids;
-    newIds.push(Number(erc1155Id!));
-    setErc1155Ids(newIds);
-    const newAmounts = erc1155Amounts;
-    newAmounts.push(Number(erc1155Amount!));
-    setErc1155Amounts(newAmounts);
-    setErc1155IdsStr("[" + erc1155Ids.join(",") + "]");
-    setErc1155AmountsStr("[" + erc1155Amounts.join(",") + "]");
-  };
-
-  const clear1155Batch = () => {
-    setErc1155IdsStr("[]");
-    setErc1155AmountsStr("[]");
-    setErc1155Ids([]);
-    setErc1155Amounts([]);
-  };
+          {!dappRelayedAddress ? (
+            <div className="bg-zinc-900/50 rounded-lg p-6 text-center">
+              <p className="text-zinc-300 mb-4">
+                Let the dApp know its address!
+              </p>
+              <button
+                onClick={async () => {
+                  setIsRelaying(true);
+                  try {
+                    const tx = await sendAddress(rollups, dappAddress);
+                    setDappRelayedAddress(true);
+                    toast.success("Address relayed successfully");
+                  } catch (err) {
+                    toast.error(`Failed to relay address: ${String(err)}`);
+                  } finally {
+                    setIsRelaying(false);
+                  }
+                }}
+                disabled={!rollups || isRelaying}
+                className={cn(
+                  "px-6 py-3 rounded-lg font-medium transition-all duration-200",
+                  "bg-gradient-to-r from-[#950844] to-[#7e0837]",
+                  "hover:from-[#7e0837] hover:to-[#950844]",
+                  "text-white flex items-center justify-center gap-2",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {isRelaying ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Relaying...
+                  </>
+                ) : (
+                  <>
+                    <ExternalLink className="w-4 h-4" />
+                    Relay Address
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <Vouchers dappAddress={dappAddress} />
+          )}
+        </div>
+      ),
+    },
+    {
+      name: "Activity",
+      icon: <Bell className="w-4 h-4" />,
+      content: (
+        <div className="space-y-6">
+          <Reports />
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden w-full mx-auto  shadow-md">
-      <TabGroup>
-        <TabList className="flex space-x-2 border-b border-gray-300 ">
-          {["🎟️ Vouchers", "🔔 Activity"].map((tab, index) => (
-            <Tab
-              key={index}
-              className={({ selected }) =>
-                `px-4 py-2 text-sm font-medium rounded-t-lg transition-all ${
-                  selected
-                    ? "border-b-2 border-blue-500 text-blue-600"
-                    : "text-gray-500"
-                }`
-              }
-            >
-              {tab}
-            </Tab>
-          ))}
-        </TabList>
-        <TabPanels className="p-4">
-          <TabPanel>
-            <p className="text-sm text-gray-200 font-bold">
-              After the withdrawal request, the user must execute a voucher to
-              transfer assets from the Cartesi dApp to their account.
-            </p>
-            <div className="mt-4  p-4 rounded">
-              <br />
-              {!dappRelayedAddress && (
-                <div className="">
-                  Let the dApp know its address! <br />
-                  <button
-                    className="mt-4 text-sm text-white rounded p-2 bg-[#950944]  hover:bg-[#7e0837]"
-                    onClick={async () => {
-                      try {
-                        const tx = await sendAddress(rollups, dappAddress);
-                        setDappRelayedAddress(true);
-                        toast.success(String(tx));
-                      } catch (err) {
-                        toast.error(`sendAddress ${String(err)}`);
-                      }
-                    }}
-                    disabled={!rollups}
-                  >
-                    Relay Address
-                  </button>
-                  <br />
-                  <br />
-                </div>
-              )}
-              {dappRelayedAddress && <Vouchers dappAddress={dappAddress} />}
-            </div>
-          </TabPanel>
+    <div className="bg-zinc-900/30 rounded-xl backdrop-blur-sm border border-zinc-800/50">
+      <Tab.Group>
+        <div className="border-b border-zinc-800/50">
+          <Tab.List className="flex">
+            {tabs.map((tab) => (
+              <Tab
+                key={tab.name}
+                className={({ selected }) =>
+                  cn(
+                    "px-6 py-4 text-sm font-medium outline-none",
+                    "flex items-center gap-2 transition-all duration-200",
+                    selected
+                      ? "text-[#950944] border-b-2 border-[#950944]"
+                      : "text-zinc-400 hover:text-zinc-300"
+                  )
+                }
+              >
+                {tab.icon}
+                {tab.name}
+              </Tab>
+            ))}
+          </Tab.List>
+        </div>
 
-          <TabPanel className="">
-            <div className="mt-4  p-4 rounded">
-              {/* <Notices /> */}
-              <br />
-              <Reports />
-            </div>
-          </TabPanel>
-        </TabPanels>
-      </TabGroup>
+        <Tab.Panels className="p-6">
+          {tabs.map((tab, idx) => (
+            <Tab.Panel key={idx} className={cn("focus:outline-none")}>
+              {tab.content}
+            </Tab.Panel>
+          ))}
+        </Tab.Panels>
+      </Tab.Group>
     </div>
   );
 };

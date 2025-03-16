@@ -15,7 +15,8 @@ import SongList from "@/components/SongList";
 import BlockLoader from "@/components/BlockLoader";
 import fetchMethod from "@/lib/readState";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useActiveAccount } from "thirdweb/react";
 
 const Release = () => {

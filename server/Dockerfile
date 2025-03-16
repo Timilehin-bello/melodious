@@ -1,32 +1,39 @@
-# Use Node.js base image
+# Base image
 FROM node:18-alpine
 
-# Install necessary packages
-RUN apk add --no-cache yarn python3 make g++
+# Create app directory
+WORKDIR /usr/src/app
 
-# Set working directory
-WORKDIR /app
-
-# Create logs directory
-RUN mkdir -p logs
+# Install necessary tools including netcat
+RUN apk add --no-cache python3 make g++ netcat-openbsd
 
 # Copy package files
 COPY package.json yarn.lock ./
 
+# Copy Prisma schema
+COPY prisma ./prisma/
+
 # Install dependencies
 RUN yarn install --frozen-lockfile
 
-# Copy source code, prisma schema, and PM2 config
+# Generate Prisma Client
+RUN yarn prisma generate
+
+# Copy source code
 COPY . .
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Make wait script executable
+RUN chmod +x src/scripts/wait-for-redis.sh
 
 # Build TypeScript
 RUN yarn build
 
-# Expose port
-EXPOSE 8888
+# Copy the wait script to the dist folder so it's accessible after build
+RUN mkdir -p dist/scripts && \
+    cp src/scripts/wait-for-redis.sh dist/scripts/
 
-# Start the application using PM2
-CMD ["yarn", "start"]
+# Expose port
+EXPOSE 8088
+
+# Start the application with wait script
+CMD ["./dist/scripts/wait-for-redis.sh", "yarn", "start"]

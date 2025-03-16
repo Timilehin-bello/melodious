@@ -19,8 +19,14 @@
     "build": "tsc",
     "docker:build": "docker-compose build",
     "docker:start": "docker-compose up",
+    "docker:prun": "docker volume prune",
     "docker:dev": "docker-compose -f docker-compose.dev.yml up",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "docker:up": "docker-compose up -d",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart",
+    "docker:prisma:migrate": "docker-compose exec app yarn prisma migrate deploy",
+    "docker:prisma:studio": "docker-compose exec app yarn prisma studio"
   },
   "_moduleAliases": {
     "@": ".",
