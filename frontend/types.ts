@@ -27,7 +27,7 @@ export type Albums = {
   }>;
 };
 
-export type Playlist = {};
+// export type Playlist = {};
 
 import { BigNumber } from "ethers";
 
