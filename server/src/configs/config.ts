@@ -39,9 +39,10 @@ const envVarsSchema = Joi.object()
     LOG_LEVEL: Joi.string().required(),
     REDIS_HOST: Joi.string().default("127.0.0.1"),
     REDIS_PROTOCOL: Joi.string().default("redis"),
-
     REDIS_USER_PASSWORD: Joi.string().default("no"),
     REDIS_PASSWORD: Joi.string(),
+    REDIS_PORT: Joi.number().default(6379),
+    REDIS_USERNAME: Joi.string().default(""),
   })
   .unknown();
 
@@ -84,6 +85,7 @@ export const config = {
 
   redis: {
     protocol: envVars.REDIS_PROTOCOL,
+    username: envVars.REDIS_USERNAME,
     host: envVars.REDIS_HOST,
     port: envVars.REDIS_PORT,
     userPassword: envVars.REDIS_USER_PASSWORD,
