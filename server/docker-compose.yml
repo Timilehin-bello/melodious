@@ -1,10 +1,8 @@
-version: "3.8"
-
 services:
   app:
     build: .
     ports:
-      - "8088:8088"
+      - ${PORT}:${PORT}
     environment:
       - NODE_ENV=production
       - PORT=${PORT}
@@ -39,7 +37,7 @@ services:
   redis:
     image: redis:alpine
     ports:
-      - "6379:6379"
+      - ${REDIS_PORT}:${REDIS_PORT}
     volumes:
       - redis-data:/data
     environment:
