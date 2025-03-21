@@ -7,7 +7,7 @@ const envVarsSchema = Joi.object()
       .valid("development", "production", "local", "test")
       .required(),
     DATABASE_URL: Joi.string().required().description("Database URL"),
-    PORT: Joi.number().default(8888).description("Port number"),
+    PORT: Joi.number().default(8080).description("Port number"),
     RPC_URL: Joi.string().required().description("RPC URL"),
     PRIVATE_KEY: Joi.string()
       .required()
