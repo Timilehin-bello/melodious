@@ -1,27 +1,15 @@
 import { config } from "./config";
 import Redis from "ioredis";
 
-const redisConfig = {
-  host: process.env.REDIS_HOST || config.redis.host || "127.0.0.1",
-  port: parseInt(process.env.REDIS_PORT || config.redis.port || "6379"),
-  retryStrategy: (times: number) => {
-    // Retry connection every 5 seconds for 10 times
-    if (times <= 10) {
-      return 5000;
-    }
-    return null;
-  },
-};
+const url = `${config.redis.protocol}://${config.redis.host}:${config.redis.port}`;
 
-console.log("Redis connection config:", redisConfig);
+const prodUrl = `${config.redis.protocol}://${config.redis.username}:${config.redis.password}@${config.redis.host}:${config.redis.port}`;
 
-const redisClient: Redis = new Redis(redisConfig);
+console.log("redisURL: " + url);
+const redisClient = new Redis(config.env === "production" ? prodUrl : url);
 
-if (
-  config.redis.userPassword?.toUpperCase() === "YES" &&
-  config.redis.password
-) {
-  redisClient.auth(config.redis.password);
-}
+redisClient.on("error", (err) => {
+  console.error("redis error", err);
+});
 
 export default redisClient;

@@ -10,6 +10,7 @@
     "kill-server": "pm2 kill",
     "start:prod": "node -r module-alias/register ./dist/index.js",
     "start:dev": "npx prisma migrate reset && npx prisma db push && ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/index.ts",
+    "start:dev2": "ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/index.ts",
     "start:restart-dev": "ts-node-dev --respawn --transpile-only --exit-child -r tsconfig-paths/register src/index.ts",
     "dev": "npx tsc && cross-env NODE_ENV=development nodemon -r tsconfig-paths/register src/index.ts",
     "build:docker": "docker compose up -d",
