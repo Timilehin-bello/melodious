@@ -1,4 +1,3 @@
-# Description: This file is used to define the services that will be used in the docker container.
 version: "3.8"
 
 services:
@@ -24,13 +23,12 @@ services:
       - LOG_FOLDER=${LOG_FOLDER}
       - LOG_FILE=${LOG_FILE}
       - LOG_LEVEL=${LOG_LEVEL}
-      - REDIS_HOST=redis
+      - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_PROTOCOL=${REDIS_PROTOCOL}
-      - REDIS_USER_PASSWORD=no
+      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_USERNAME=${REDIS_USERNAME}
-
     restart: always
     depends_on:
       redis:
@@ -44,6 +42,13 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+    environment:
+      # Pass NODE_ENV and REDIS_PASSWORD to the container.
+      - NODE_ENV=${NODE_ENV}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    # Conditionally require a password only in production.
+    command: >
+      sh -c "if [ \"$NODE_ENV\" = \"production\" ]; then redis-server --requirepass ${REDIS_PASSWORD}; else redis-server; fi"
     restart: always
     networks:
       - app-network
