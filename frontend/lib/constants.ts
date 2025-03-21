@@ -1,4 +1,4 @@
-import { localhostChain } from "@/components/ConnectWallet";
+import { networkChain } from "@/components/ConnectWallet";
 import { client } from "./client";
 import { getContract } from "thirdweb";
 
@@ -10,7 +10,7 @@ export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL as string;
 export const erc20TokenContract = (erc20Address: string) => {
   return getContract({
     client,
-    chain: localhostChain!,
+    chain: networkChain!,
     address: erc20Address,
     abi: [
       {

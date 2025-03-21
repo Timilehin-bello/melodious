@@ -6,6 +6,7 @@ import { get, post } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useEffect, useState } from "react";
+import { networkChain } from "./ConnectWallet";
 
 interface User {
   artist?: boolean;
@@ -52,7 +53,7 @@ const ConnectButtonAuth = () => {
             address: string;
           }): Promise<LoginPayload> => {
             const response = await fetch(
-              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=31337`
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=${networkChain.id}`
             );
 
             if (!response.ok) {

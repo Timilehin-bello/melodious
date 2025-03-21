@@ -1,6 +1,5 @@
 import Joi from "joi";
 import { ethAddress, objectId } from "./custom.validation";
-import { add } from "date-fns";
 
 const socialMediaSchema = Joi.object({
   twitter: Joi.string().uri().optional(),
@@ -20,9 +19,7 @@ const baseUserSchema = {
       .pattern(/^[a-zA-Z0-9_]+$/),
     userType: Joi.string().valid("LISTENER", "ARTIST").required(),
     walletAddress: Joi.string().custom(ethAddress).required(),
-    chainId: Joi.string()
-      .valid("1", "137", "43114", "31337", "11155111")
-      .required(),
+    chainId: Joi.string().valid("31337", "84532").required(),
   }),
 };
 
@@ -61,20 +58,14 @@ const register = {
       //    ARTIST: Joi.string().valid("ARTIST"),
       //  })
       .required(),
-    chainId: Joi.string()
-      .valid("1", "137", "43114", "31337", "11155111")
-      .required()
-      .custom(ethAddress),
+    chainId: Joi.string().valid("31337", "84532").required().custom(ethAddress),
   }),
 };
 
 const loginRequest = {
   query: Joi.object().keys({
     walletAddress: Joi.string().required(),
-    chainId: Joi.string()
-      .valid("1", "137", "43114", "31337", "11155111", "11155111")
-      .required()
-      .custom(ethAddress),
+    chainId: Joi.string().valid("31337", "84532").required().custom(ethAddress),
   }),
 };
 

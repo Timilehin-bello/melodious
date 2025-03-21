@@ -11,7 +11,7 @@ import { useRollups } from "@/cartesi/hooks/useRollups";
 import { ethers } from "ethers";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { client } from "@/lib/client";
-import { localhostChain } from "@/components/ConnectWallet";
+import { networkChain } from "@/components/ConnectWallet";
 import WithdrawModal from "@/components/Wallet/Withdraw";
 import WithdrawCTSIModal from "@/components/Wallet/WithdrawCTSI";
 import {
@@ -44,14 +44,14 @@ const Wallet = () => {
 
   const provider = ethers5Adapter.provider.toEthers({
     client,
-    chain: localhostChain!,
+    chain: networkChain!,
   });
   const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
 
   const getData = React.useCallback(async () => {
     const getSigner = ethers5Adapter.signer.toEthers({
       client,
-      chain: localhostChain!,
+      chain: networkChain!,
       account: account!,
     });
 

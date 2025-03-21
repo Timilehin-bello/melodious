@@ -26,7 +26,7 @@ import {
   ERC1155BatchPortal__factory,
 } from "../generated/rollups";
 import configFile from "../config.json";
-import { localhostChain } from "@/components/ConnectWallet";
+import { networkChain } from "@/components/ConnectWallet";
 const config: any = configFile;
 
 export interface RollupsContracts {
@@ -52,7 +52,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
     const connect = async (chain: ChainOptions): Promise<RollupsContracts> => {
       const signer = await ethers5Adapter.signer.toEthers({
         client: client,
-        chain: localhostChain!,
+        chain: networkChain!,
         account: account!,
       });
 

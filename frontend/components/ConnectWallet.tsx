@@ -7,15 +7,19 @@ import { usePathname, useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useCallback, useEffect, useState } from "react";
 import { defineChain } from "thirdweb";
+import { baseSepolia } from "thirdweb/chains";
 import { useMelodiousContext } from "@/contexts/melodious";
 import toast from "react-hot-toast";
 import fetchMethod from "@/lib/readState";
 
-export const localhostChain = defineChain({
-  id: 31337,
-  name: "localhost",
-  rpc: "http://127.0.0.1:8545",
-});
+export const networkChain =
+  process.env.NEXT_PUBLIC_NODE_ENV === "development"
+    ? defineChain({
+        id: 31337,
+        name: "localhost",
+        rpc: "http://127.0.0.1:8545",
+      })
+    : baseSepolia;
 
 interface User {
   artist?: boolean;
@@ -84,7 +88,7 @@ const ConnectWallet = () => {
   return (
     <div>
       <ConnectButton
-        chain={localhostChain}
+        chain={networkChain}
         client={client}
         connectButton={{
           label: "Connect Wallet",
@@ -99,7 +103,7 @@ const ConnectWallet = () => {
             address: string;
           }): Promise<LoginPayload> => {
             const response = await fetch(
-              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=31337`
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=${networkChain.id}`
             );
 
             if (!response.ok) {
