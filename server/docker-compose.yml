@@ -29,6 +29,8 @@ services:
       - REDIS_PROTOCOL=${REDIS_PROTOCOL}
       - REDIS_USER_PASSWORD=no
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+
     restart: always
     depends_on:
       redis:
