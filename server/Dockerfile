@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # Install necessary tools including netcat
 RUN apk add --no-cache python3 make g++ netcat-openbsd
 
-# Copy package files
+# Copy package files =
 COPY package.json yarn.lock ./
 
 # Copy Prisma schema
