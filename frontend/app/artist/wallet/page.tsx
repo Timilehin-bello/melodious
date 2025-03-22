@@ -62,6 +62,7 @@ const Wallet = () => {
     const provider = (await getSigner).provider;
 
     const signer = provider.getSigner();
+    console.log("wallet test signer", signer);
     const signerAddress = await signer?.getAddress();
     console.log("signerAddress", signerAddress);
 
