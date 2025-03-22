@@ -6,6 +6,9 @@ import { privateKeyToAccount } from "thirdweb/wallets";
 import moment from "moment";
 
 const secretKey = config.thirdweb.secretKey!;
+if (!secretKey) {
+  throw new Error("No secret key provided");
+}
 
 export const thirdwebClient = createThirdwebClient({ secretKey });
 
