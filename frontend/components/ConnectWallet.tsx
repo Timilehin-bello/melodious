@@ -50,6 +50,11 @@ const ConnectWallet = () => {
       process.env.NEXT_PUBLIC_SERVER_ENDPOINT
     );
 
+    console.log(
+      "process.env.NEXT_PUBLIC_SOCKET_URL:",
+      process.env.NEXT_PUBLIC_SOCKET_URL
+    );
+
     console.log("networkChain", networkChain);
     const checkLogin = async () => {
       console.log("Checking login status..."); // Debug log
@@ -114,6 +119,7 @@ const ConnectWallet = () => {
             address: string;
           }): Promise<LoginPayload> => {
             let response;
+
             try {
               response = await axios.get(
                 process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login/request",
