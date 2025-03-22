@@ -20,11 +20,13 @@ const genarateThirdwebAuth = async (
   chainId: string | undefined
 ) => {
   try {
+    console.log("genarateThirdwebAuth", walletAddress, chainId);
     return await thirdwebAuth.generatePayload({
       address: walletAddress,
       chainId: chainId ? parseInt(chainId) : undefined,
     });
   } catch (error) {
+    console.log("genarateThirdwebAuth error", error);
     throw error;
   }
 };
