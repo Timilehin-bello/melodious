@@ -81,6 +81,8 @@ const loginRequest = catchAsync(async (req: any, res: any) => {
     }
   );
 
+  console.log("user", user);
+
   if (!user) {
     return res.status(httpStatus.NOT_FOUND).json({
       status: "error",
