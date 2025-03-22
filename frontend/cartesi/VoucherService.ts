@@ -53,7 +53,7 @@ interface VoucherWithProof {
 
 const createUrqlClient = (): Client => {
   return createClient({
-    url: "http://localhost:8080/graphql",
+    url: process.env.NEXT_PUBLIC_GRAPHQL_URI as string,
     exchanges: [fetchExchange],
   });
 };

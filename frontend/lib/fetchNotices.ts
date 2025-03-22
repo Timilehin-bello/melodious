@@ -3,7 +3,7 @@ import { hexToString } from "viem";
 // Initialize Apollo Client
 async function fetchNotices(request: string) {
   console.log("request", request);
-  const url = "http://localhost:8080/graphql";
+  const url = process.env.NEXT_PUBLIC_GRAPHQL_URI as string;
   const query = `
       query notices {
         notices {

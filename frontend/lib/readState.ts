@@ -5,11 +5,14 @@ async function fetchMethod(data: any) {
   console.log("Inspecting state from Cartesi........");
   try {
     // const response = await axios.get( `https://nebuladuel.fly.dev/inspect/${data}`, {
-    const response = await axios.get(`http://localhost:8080/inspect/${data}`, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_INSPECT_URI}/inspect/${data}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     // console.log("Transaction successful:", response.data);
     // const { Status, request_payload } = destructureResponse(
     //   response.data.reports,
