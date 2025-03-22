@@ -45,6 +45,10 @@ const ConnectWallet = () => {
       "process.env.NEXT_PUBLIC_NODE_ENV:",
       process.env.NEXT_PUBLIC_NODE_ENV
     );
+    console.log(
+      "process.env.NEXT_PUBLIC_SERVER_ENDPOINT:",
+      process.env.NEXT_PUBLIC_SERVER_ENDPOINT
+    );
 
     console.log("networkChain", networkChain);
     const checkLogin = async () => {

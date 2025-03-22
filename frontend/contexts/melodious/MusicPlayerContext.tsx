@@ -99,7 +99,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
     const token = data ? data["tokens"]["token"].access.token : null;
     if (token) {
-      const newSocket = io("http://localhost:8088", {
+      const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL as string, {
         path: "/v1/socket.io",
         auth: { token },
       });

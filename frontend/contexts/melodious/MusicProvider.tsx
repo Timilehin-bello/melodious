@@ -172,7 +172,7 @@ export const MusicPlayerProvider = ({
       const token = parsedData.tokens?.token?.access?.token;
       if (!token) return;
 
-      socketRef.current = io("http://localhost:8088", {
+      socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL as string, {
         path: "/v1/socket.io",
         auth: { token },
         autoConnect: false,
