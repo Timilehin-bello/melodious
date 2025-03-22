@@ -6,7 +6,7 @@ async function fetchMethod(data: any) {
   try {
     // const response = await axios.get( `https://nebuladuel.fly.dev/inspect/${data}`, {
     const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_INSPECT_URI}/inspect/${data}`,
+      `${process.env.NEXT_PUBLIC_INSPECT_URI}/${data}`,
       {
         headers: {
           "Content-Type": "application/json",
