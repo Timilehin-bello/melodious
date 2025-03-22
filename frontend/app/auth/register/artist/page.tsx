@@ -176,7 +176,7 @@ const RegisterArtist = () => {
             data.data.isTxComplete.transactionHash
           );
 
-          toast.success(`Transaction submitted successful}`);
+          toast.success(`Transaction submitted successful`);
         })
         .finally(() => {
           setLoading(false);
