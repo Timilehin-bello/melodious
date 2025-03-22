@@ -49,7 +49,7 @@ export const addInput = async (
 
 export const depositEtherToPortal = async (
   rollups: RollupsContracts | undefined,
-  provider: ethers.providers.JsonRpcProvider | undefined,
+  signer: any,
   amount: number,
   dappAddress: string
 ) => {
@@ -59,14 +59,14 @@ export const depositEtherToPortal = async (
       "rollups",
       rollups,
       "provider",
-      provider,
+      signer,
       "amount",
       amount
     );
-    const signer = provider?.getSigner();
+    const signerInstance = signer;
     const signerAddress = await signer?.getAddress();
     console.log("signerAddress", signerAddress);
-    if (rollups && provider) {
+    if (rollups && signerInstance) {
       const data = ethers.utils.toUtf8Bytes(`Deposited (${amount}) ether.`);
       const txOverrides = { value: ethers.utils.parseEther(`${amount}`) };
       console.log("Ether to deposit: ", txOverrides);

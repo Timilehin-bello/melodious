@@ -56,7 +56,7 @@ export default function DepositModal({
     try {
       const res = await depositEtherToPortal(
         rollups,
-        provider,
+        signerInstance,
         Number(etherAmount),
         dappAddress
       );
