@@ -33,6 +33,6 @@ export const thirdwebAuth = createAuth({
 
   adminAccount: privateKeyToAccount({
     client: thirdwebClient,
-    privateKey: process.env.ADMIN_PRIVATE_KEY!,
+    privateKey: config.adminPrivateKey!,
   }),
 });
