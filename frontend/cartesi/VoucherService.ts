@@ -127,19 +127,19 @@ const getVoucherWithProof = async (
     }
   `;
 
-  // const result = await client
-  //   .query(query, {
-  //     voucherIndex,
-  //     inputIndex,
-  //   })
-  //   .toPromise();
-
   const result = await client.query({
-    fetchPolicy: "network-only",
     query,
-    variables: { voucherIndex, inputIndex },
+    variables: {
+      voucherIndex,
+      inputIndex,
+    },
   });
-
+  // const result = await client.query({
+  //   fetchPolicy: "network-only",
+  //   query,
+  //   variables: { voucherIndex, inputIndex },
+  // });
+  console.log("result getVoucherWithProof test", result);
   return result.data?.voucher || null;
 };
 

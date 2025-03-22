@@ -496,6 +496,7 @@ export const executeVoucher = async (
 
     console.log("voucher.input.index", voucher.input.index);
     console.log("voucher.index", voucher.index);
+    // ethers.BigNumber.from(voucher.input.index);
     const isExecuted = await rollups.dappContract.wasVoucherExecuted(
       BigInt(voucher.input.index),
       BigInt(voucher.index)
