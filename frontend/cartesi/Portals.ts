@@ -54,6 +54,15 @@ export const depositEtherToPortal = async (
   dappAddress: string
 ) => {
   try {
+    console.log(
+      "Depositing ether",
+      "rollups",
+      rollups,
+      "provider",
+      provider,
+      "amount",
+      amount
+    );
     const signer = provider?.getSigner();
     const signerAddress = await signer?.getAddress();
     console.log("signerAddress", signerAddress);
