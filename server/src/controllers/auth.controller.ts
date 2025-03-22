@@ -54,10 +54,22 @@ const loginRequest = catchAsync(async (req: any, res: any) => {
   const { walletAddress: walletAddressQuery, chainId: chainIdQuery } =
     req.query;
 
+  console.log(
+    "req.query",
+    req.query,
+    "walletAddressQuery",
+    walletAddressQuery,
+    "chainIdQuery",
+    chainIdQuery
+  );
+
   const walletAddress =
     typeof walletAddressQuery === "string" ? walletAddressQuery : "string";
 
+  console.log("walletAddress", walletAddress);
+
   const chainId = typeof chainIdQuery === "string" ? chainIdQuery : undefined;
+  console.log("chainId", chainId);
 
   const user = await userService.getUserByUniqueValue(
     {

@@ -133,6 +133,7 @@ const getUserByUniqueValue = async (
   where: Prisma.UserWhereUniqueInput,
   include: Prisma.UserInclude
 ) => {
+  console.log("where", where);
   return await prisma.user.findUnique({ where, include });
 };
 
