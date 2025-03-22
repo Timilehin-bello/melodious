@@ -42,10 +42,11 @@ const Wallet = () => {
     ethers.providers.JsonRpcProvider | undefined
   >();
 
-  const provider = ethers5Adapter.provider.toEthers({
-    client,
-    chain: networkChain!,
-  });
+  // const provider = ethers5Adapter.provider.toEthers({
+  //   client,
+  //   chain: networkChain!,
+  // });
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
   const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
 
   const getData = React.useCallback(async () => {
@@ -59,9 +60,14 @@ const Wallet = () => {
 
     console.log("await signer", await getSigner);
 
-    const provider = (await getSigner).provider;
+    // const provider = (await getSigner).provider;
 
+    // const signer = provider.getSigner();
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
+
     console.log("wallet test signer", signer);
     const signerAddress = await signer?.getAddress();
     console.log("signerAddress", signerAddress);
