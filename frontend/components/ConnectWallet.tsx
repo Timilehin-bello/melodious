@@ -40,6 +40,12 @@ const ConnectWallet = () => {
 
   // Step 1: Ensure `checkLoginStatus` runs first and updates state
   useEffect(() => {
+    console.log(
+      "process.env.NEXT_PUBLIC_NODE_ENV:",
+      process.env.NEXT_PUBLIC_NODE_ENV
+    );
+
+    console.log("networkChain", networkChain);
     const checkLogin = async () => {
       console.log("Checking login status..."); // Debug log
       const status = await checkLoginStatus();
