@@ -42,11 +42,11 @@ const Wallet = () => {
     ethers.providers.JsonRpcProvider | undefined
   >();
 
-  // const provider = ethers5Adapter.provider.toEthers({
-  //   client,
-  //   chain: networkChain!,
-  // });
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  const provider = ethers5Adapter.provider.toEthers({
+    client,
+    chain: networkChain!,
+  });
+  // const provider = new ethers.providers.Web3Provider(window.ethereum);
   const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
 
   const getData = React.useCallback(async () => {
