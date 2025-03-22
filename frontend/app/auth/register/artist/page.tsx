@@ -42,14 +42,19 @@ import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { client } from "@/lib/client";
 import axios from "axios";
+import { generateRandomLetter } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
+  username: z
+    .string()
+    .min(4)
+    .regex(/^[a-zA-Z]+$/, {
+      message:
+        "Username must be at least 4 characters and can only contain letters.",
+    }),
   displayName: z.string().min(2, {
     message: "Display name must be at least 2 characters.",
   }),
@@ -145,37 +150,46 @@ const RegisterArtist = () => {
     // const chainId = "31337";
     // console.log(walletAddress);
 
-    createUser({
-      name: values.name,
-      displayName: values.displayName,
-      username: values.username,
-      userType: "ARTIST",
-      country: values.country,
-      biography: values.biography,
-      socialMediaLinks: {
-        twitter: values.socialMediaLinks.twitter,
-        instagram: values.socialMediaLinks.instagram,
-        facebook: values.socialMediaLinks.facebook,
-      },
-    })
-      .then((data) => {
-        // console.log("User created with transaction hash:", data);
-        // router.push("/auth/login");
-        localStorage.clear();
-        setLoading(false);
-        // window.location.href = "/auth/login";
-
-        console.log(
-          "User created with transaction hash:",
-          data.data.isTxComplete.transactionHash
-        );
-
-        toast.success(`Transaction submitted successful}`);
+    try {
+      createUser({
+        name: values.name,
+        displayName: values.displayName,
+        username: values.username + generateRandomLetter(),
+        userType: "ARTIST",
+        country: values.country,
+        biography: values.biography,
+        socialMediaLinks: {
+          twitter: values.socialMediaLinks.twitter,
+          instagram: values.socialMediaLinks.instagram,
+          facebook: values.socialMediaLinks.facebook,
+        },
       })
-      .finally(() => {
-        setLoading(false);
-        window.location.href = "/";
-      });
+        .then((data) => {
+          // console.log("User created with transaction hash:", data);
+          // router.push("/auth/login");
+          localStorage.clear();
+          setLoading(false);
+          // window.location.href = "/auth/login";
+
+          console.log(
+            "User created with transaction hash:",
+            data.data.isTxComplete.transactionHash
+          );
+
+          toast.success(`Transaction submitted successful}`);
+        })
+        .finally(() => {
+          setLoading(false);
+          window.location.href = "/";
+        })
+        .catch((error) => {
+          console.log(error);
+          toast.error("Failed to create user. Please try again.");
+        });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to create user. Please try again.");
+    }
 
     // console.log(values);
   }

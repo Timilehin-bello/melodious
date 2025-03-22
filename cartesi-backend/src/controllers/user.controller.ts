@@ -24,12 +24,12 @@ class UserController {
       return new Error_out("User with wallet address already exists");
     }
 
-    if (
-      this.getUserByUniqueValue({ key: "username", value: userBody.username })
-    ) {
-      console.log("User with username already exists");
-      return new Error_out("User with wallet address already exists");
-    }
+    // if (
+    //   this.getUserByUniqueValue({ key: "username", value: userBody.username })
+    // ) {
+    //   console.log("User with username already exists");
+    //   return new Error_out("User with wallet address already exists");
+    // }
 
     try {
       const user = new User(

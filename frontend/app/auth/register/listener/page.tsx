@@ -31,14 +31,19 @@ import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 import { User, AtSign, MapPin, Music, Headphones } from "lucide-react";
 import axios from "axios";
+import { generateRandomLetter } from "@/lib/utils";
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
+  username: z
+    .string()
+    .min(4)
+    .regex(/^[a-zA-Z]+$/, {
+      message:
+        "Username must be at least 4 characters and can only contain letters.",
+    }),
   displayName: z.string().min(2, {
     message: "Display name must be at least 2 characters.",
   }),
@@ -115,7 +120,7 @@ const RegisterListener = () => {
     const isUserRegistered = createUser({
       name: values.name,
       displayName: values.displayName,
-      username: values.username,
+      username: values.username + generateRandomLetter(),
       userType: "LISTENER",
       country: values.country,
     })

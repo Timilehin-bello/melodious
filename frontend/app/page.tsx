@@ -129,10 +129,16 @@ export default function Home() {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.clear();
+      // Only clear localStorage if at the root path and user is not signed in (i.e. "xx-mu" does not exist)
+      if (location.pathname === "/" && !localStorage.getItem("xx-mu")) {
+        localStorage.clear();
+      }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    // Attach the event listener only if conditions are met
+    if (location.pathname === "/" && !localStorage.getItem("xx-mu")) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);

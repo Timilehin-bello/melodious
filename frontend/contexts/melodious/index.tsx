@@ -508,7 +508,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       const address = await signer.getAddress();
       return { address, signature };
     } catch (err: any) {
-      console.log(err.message);
+      console.log("Error signing message:signMessage", err.message);
       throw err;
     }
   };

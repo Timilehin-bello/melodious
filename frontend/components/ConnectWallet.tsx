@@ -11,6 +11,7 @@ import { baseSepolia } from "thirdweb/chains";
 import { useMelodiousContext } from "@/contexts/melodious";
 import toast from "react-hot-toast";
 import fetchMethod from "@/lib/readState";
+import axios from "axios";
 
 export const networkChain =
   process.env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -108,36 +109,47 @@ const ConnectWallet = () => {
           getLoginPayload: async (params: {
             address: string;
           }): Promise<LoginPayload> => {
-            const response = await fetch(
-              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request?walletAddress=${params.address}&chainId=${networkChain.id}`
-            );
-
-            if (!response.ok) {
-              // throw new Error(`HTTP error! status: ${response.status}`);
-              console.log("Error fetching login payload:", response);
+            let response;
+            try {
+              response = await axios.get(
+                `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request`,
+                {
+                  params: {
+                    walletAddress: params.address,
+                    chainId: networkChain.id,
+                  },
+                }
+              );
+            } catch (err) {
+              console.log("Error fetching login payload:", err);
               toast.error("User not found redirecting to register...");
-            }
-            localStorage.setItem("walletAddress", params.address);
-            const request = await response.json();
-            // console.log("getLoginPayload", request);
-            if (request.status === "error") {
               router.push("/auth/register");
+              throw new Error("Failed to fetch login payload");
             }
-            return request.data.payload;
+
+            if (response && response.data) {
+              localStorage.setItem("walletAddress", params.address);
+              console.log("getLoginPayload last", response);
+              return response.data.data.payload;
+            } else {
+              throw new Error(
+                "Failed to fetch login payload: No payload received."
+              );
+            }
           },
           /**
            * 	`doLogin` performs any logic necessary to log the user in using the signed payload.
            * 	In this case, this means sending the payload to the server for it to set a JWT cookie for the user.
            */
           doLogin: async (params: VerifyLoginPayloadParams) => {
-            const response = await post({
-              url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login",
-              params,
-            });
+            const response = await axios.post(
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login`,
+              params
+            );
 
-            localStorage.setItem("xx-mu", JSON.stringify(response.data));
+            localStorage.setItem("xx-mu", JSON.stringify(response.data.data));
 
-            return response;
+            return response.data.data;
           },
           /**
            * 	`isLoggedIn` returns true or false to signal if the user is logged in.
@@ -149,24 +161,33 @@ const ConnectWallet = () => {
             const accessToken = data["tokens"]["token"].access.token;
             const thirdwebToken = data["tokens"]["token"].thirdWeb.token;
 
-            const response = await get({
-              url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
-              params: {
-                accessToken: accessToken,
-                thirdwebToken: thirdwebToken,
-              },
-            });
+            // const response = await get({
+            //   url: process.env.NEXT_PUBLIC_SERVER_ENDPOINT + `/auth/isLoggedIn`,
+            //   params: {
+            //     accessToken: accessToken,
+            //     thirdwebToken: thirdwebToken,
+            //   },
+            // });
+            const response = await axios.get(
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/isLoggedIn`,
+              {
+                params: {
+                  accessToken,
+                  thirdwebToken,
+                },
+              }
+            );
 
-            if (!response) {
+            if (response.data.status === "error") {
               localStorage.clear();
               return false;
             }
             setUserData(data.user);
-            console.log("isLoggedIn", response);
-            setSuccessfulLogin(response);
+            console.log("isLoggedIn", response.data.data);
+            setSuccessfulLogin(response.data);
 
             console.log("successfulLogin", successfulLogin);
-            return response;
+            return response.data.data;
           },
           /**
            * 	`doLogout` performs any logic necessary to log the user out.
@@ -175,25 +196,26 @@ const ConnectWallet = () => {
           doLogout: async () => {
             let data = localStorage.getItem("xx-mu") as any | null;
             data = JSON.parse(data) ?? null;
-            await fetch(
-              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/logout",
-              {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
+            axios
+              .post(
+                process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/logout",
+                {
                   accessToken: data["tokens"]["token"].access.token,
-                }),
-              }
-            ).then(() => {
-              localStorage.clear();
-              // router.push("/");
-              // router.refresh();
-              // window.location.href = "/";
-              window.location.replace("/");
-            });
+                },
+                {
+                  withCredentials: true, // This ensures cookies are sent with the request
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              )
+              .then(() => {
+                localStorage.clear();
+                window.location.replace("/");
+              })
+              .catch((error) => {
+                console.error("Error during logout:", error);
+              });
           },
         }}
       />
