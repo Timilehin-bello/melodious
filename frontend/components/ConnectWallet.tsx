@@ -116,7 +116,7 @@ const ConnectWallet = () => {
             let response;
             try {
               response = await axios.get(
-                `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request`,
+                process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login/request",
                 {
                   params: {
                     walletAddress: params.address,
@@ -147,7 +147,7 @@ const ConnectWallet = () => {
            */
           doLogin: async (params: VerifyLoginPayloadParams) => {
             const response = await axios.post(
-              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login`,
+              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login",
               params
             );
 
@@ -173,7 +173,7 @@ const ConnectWallet = () => {
             //   },
             // });
             const response = await axios.get(
-              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/isLoggedIn`,
+              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/isLoggedIn",
               {
                 params: {
                   accessToken,
