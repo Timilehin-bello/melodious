@@ -32,7 +32,7 @@ if (config.env !== "test") {
 app.use(
   cors({
     origin: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${
-      process.env.CLIENT_DOMAIN ?? "localhost:3000"
+      process.env.THIRDWEB_CLIENT_DOMAIN ?? "localhost:3000"
     }`,
 
     credentials: true,
