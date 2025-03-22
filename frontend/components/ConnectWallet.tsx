@@ -41,19 +41,19 @@ const ConnectWallet = () => {
 
   // Step 1: Ensure `checkLoginStatus` runs first and updates state
   useEffect(() => {
-    console.log(
-      "process.env.NEXT_PUBLIC_NODE_ENV:",
-      process.env.NEXT_PUBLIC_NODE_ENV
-    );
-    console.log(
-      "process.env.NEXT_PUBLIC_SERVER_ENDPOINT:",
-      process.env.NEXT_PUBLIC_SERVER_ENDPOINT
-    );
+    // console.log(
+    //   "process.env.NEXT_PUBLIC_NODE_ENV:",
+    //   process.env.NEXT_PUBLIC_NODE_ENV
+    // );
+    // console.log(
+    //   "process.env.NEXT_PUBLIC_SERVER_ENDPOINT:",
+    //   process.env.NEXT_PUBLIC_SERVER_ENDPOINT
+    // );
 
-    console.log(
-      "process.env.NEXT_PUBLIC_SOCKET_URL:",
-      process.env.NEXT_PUBLIC_SOCKET_URL
-    );
+    // console.log(
+    //   "process.env.NEXT_PUBLIC_SOCKET_URL:",
+    //   process.env.NEXT_PUBLIC_SOCKET_URL
+    // );
 
     console.log("networkChain", networkChain);
     const checkLogin = async () => {
@@ -122,7 +122,7 @@ const ConnectWallet = () => {
 
             try {
               response = await axios.get(
-                process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login/request",
+                `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login/request`,
                 {
                   params: {
                     walletAddress: params.address,
@@ -153,7 +153,7 @@ const ConnectWallet = () => {
            */
           doLogin: async (params: VerifyLoginPayloadParams) => {
             const response = await axios.post(
-              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/login",
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/login`,
               params
             );
 
@@ -179,7 +179,7 @@ const ConnectWallet = () => {
             //   },
             // });
             const response = await axios.get(
-              process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/isLoggedIn",
+              `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/isLoggedIn`,
               {
                 params: {
                   accessToken,
@@ -208,7 +208,7 @@ const ConnectWallet = () => {
             data = JSON.parse(data) ?? null;
             axios
               .post(
-                process.env.NEXT_PUBLIC_SERVER_ENDPOINT + "/auth/logout",
+                `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/logout`,
                 {
                   accessToken: data["tokens"]["token"].access.token,
                 },
