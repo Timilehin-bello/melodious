@@ -35,7 +35,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: `${process.env.NODE_ENV === "development" ? "http" : "https"}://${
-      process.env.CLIENT_DOMAIN ?? "localhost:3000"
+      process.env.THIRDWEB_CLIENT_DOMAIN ?? "localhost:3000"
     }`,
     methods: ["GET", "POST"],
   },
