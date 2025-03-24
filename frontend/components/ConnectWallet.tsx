@@ -224,6 +224,7 @@ const ConnectWallet = () => {
                 window.location.replace("/");
               })
               .catch((error) => {
+                localStorage.clear();
                 console.error("Error during logout:", error);
               });
           },
