@@ -14,8 +14,8 @@ import {
 } from "./cronJob";
 
 // scheduleCronJobs();
-// updateArtistListeningTimeOnCartesi();
-// distributeRewardToArtistsBasedOnTotalTrackListens();
+updateArtistListeningTimeOnCartesi();
+distributeRewardToArtistsBasedOnTotalTrackListens();
 
 redisClient.on("connect", () => {
   logger.info(`Redis connected ${config.redis.host}:${config.redis.port}`);

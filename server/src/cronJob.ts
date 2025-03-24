@@ -7,6 +7,9 @@ import { cronService } from "./services";
 const CRON_SCHEDULES = {
   EVERY_MINUTE: "* * * * *",
   EVERY_5_MINUTES: "*/5 * * * *",
+  EVERY_10_MINUTES: "*/10 * * * *",
+  EVERY_15_MINUTES: "*/15 * * * *",
+  EVERY_30_MINUTES: "*/30 * * * *",
   EVERY_HOUR: "0 * * * *",
   EVERY_DAY: "0 0 * * *",
   EVERY_WEEK: "0 0 * * 0",
@@ -21,7 +24,7 @@ const CRON_SCHEDULES = {
 // };
 
 export const updateArtistListeningTimeOnCartesi = (
-  schedule = CRON_SCHEDULES.EVERY_MINUTE
+  schedule = CRON_SCHEDULES.EVERY_10_MINUTES
 ) => {
   logger.info("Initializing artist listening stats cron job", { schedule });
   // Validate cron schedule
@@ -50,7 +53,7 @@ export const updateArtistListeningTimeOnCartesi = (
 };
 
 export const distributeRewardToArtistsBasedOnTotalTrackListens = (
-  schedule = CRON_SCHEDULES.EVERY_MINUTE
+  schedule = CRON_SCHEDULES.EVERY_15_MINUTES
 ) => {
   logger.info("Initializing artist listening stats cron job", { schedule });
   // Validate cron schedule

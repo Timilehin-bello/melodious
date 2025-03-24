@@ -65,7 +65,23 @@ export const getArtistsListeningStats = async (): Promise<
 };
 
 export const updateArtistListeningTimeForReward = async () => {
-  const payload = await getArtistsListeningStats();
+  let payload = await getArtistsListeningStats();
+
+  // Filter out artists with zero listening time
+  payload = payload.filter((artist) => artist.totalListeningTime > 0);
+
+  // Only proceed if there are artists with non-zero listening time
+  if (payload.length === 0) {
+    console.log(
+      "No artists with listening time > 0 found. Skipping transaction."
+    );
+    return {
+      success: false,
+      message:
+        "No artists with listening time > 0 found. Skipping transaction.",
+      artists: payload.length,
+    };
+  }
 
   const userPayload = {
     method: "update_artist_listening_time",
@@ -78,13 +94,28 @@ export const updateArtistListeningTimeForReward = async () => {
 
   const txhash = await transactionService.signMessages(userPayload);
 
-  console.log("txhas", txhash);
+  console.log("txhash", txhash);
 
   return txhash;
 };
 
 export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
-  const payload = await getArtistsListeningStats();
+  let payload = await getArtistsListeningStats();
+
+  // Filter out artists with zero listening time
+  payload = payload.filter((artist) => artist.totalListeningTime > 0);
+
+  // Check if we have at least 4 artists with non-zero listening time
+  const MIN_REQUIRED_ARTISTS = 4;
+  if (payload.length < MIN_REQUIRED_ARTISTS) {
+    const message = `Insufficient artists with listening time (${payload.length}/${MIN_REQUIRED_ARTISTS}). Skipping reward distribution.`;
+    console.log(message);
+    return {
+      success: false,
+      message,
+      artists: payload.length,
+    };
+  }
 
   const userPayload = {
     method: "distribute_reward_to_artists",
@@ -97,7 +128,11 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
 
   const txhash = await transactionService.signMessages(userPayload);
 
-  console.log("txhas", txhash);
+  console.log("txhash", txhash);
 
-  return txhash;
+  return {
+    success: true,
+    txhash,
+    artists: payload.length,
+  };
 };
