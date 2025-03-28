@@ -118,7 +118,7 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
   payload = payload.filter((artist) => artist.totalListeningTime > 0);
 
   // Check if we have at least 4 artists with non-zero listening time
-  const MIN_REQUIRED_ARTISTS = 2;
+  const MIN_REQUIRED_ARTISTS = 1;
   if (payload.length < MIN_REQUIRED_ARTISTS) {
     const message = `Insufficient artists with listening time (${payload.length}/${MIN_REQUIRED_ARTISTS}). Skipping reward distribution.`;
     console.log(message);
