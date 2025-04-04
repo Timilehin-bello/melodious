@@ -108,7 +108,46 @@ export const updateArtistListeningTimeForReward = async () => {
 
   console.log("txhash", txhash);
 
+  if (txhash !== false) {
+    const clearResult = await clearAllListeningTimeRecords();
+    console.log("Listening time records cleared:", clearResult);
+
+    return {
+      ...txhash,
+      clearingResult: clearResult,
+    };
+  }
+
   return txhash;
+};
+
+export const clearAllListeningTimeRecords = async () => {
+  try {
+    console.log("Starting to clear all listening time records...");
+
+    // Delete all records from the ListeningTime table
+    const deletedRecords = await prisma.listeningTime.deleteMany({});
+
+    console.log(
+      `Successfully cleared ${deletedRecords.count} listening time records`
+    );
+
+    return {
+      success: true,
+      message: `Successfully cleared ${deletedRecords.count} listening time records`,
+      count: deletedRecords.count,
+    };
+  } catch (error) {
+    console.error("Error clearing listening time records:", error);
+
+    return {
+      success: false,
+      message: `Failed to clear listening time records: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      error: error,
+    };
+  }
 };
 
 export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
