@@ -108,17 +108,22 @@ export const updateArtistListeningTimeForReward = async () => {
 
   console.log("txhash", txhash);
 
-  if (txhash !== false) {
-    const clearResult = await clearAllListeningTimeRecords();
-    console.log("Listening time records cleared:", clearResult);
+  // if (txhash !== false) {
+  //   const clearResult = await clearAllListeningTimeRecords();
+  //   console.log("Listening time records cleared:", clearResult);
 
-    return {
-      ...txhash,
-      clearingResult: clearResult,
-    };
-  }
+  //   return {
+  //     ...txhash,
+  //     clearingResult: clearResult,
+  //   };
+  // }
 
-  return txhash;
+  return {
+    success: true,
+    message: "Transaction successful",
+    artists: payload.length,
+    txhash: txhash,
+  };
 };
 
 export const clearAllListeningTimeRecords = async () => {
@@ -186,4 +191,38 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
     txhash,
     artists: payload.length,
   };
+};
+
+export const runRewardUpdateCycle = async () => {
+  try {
+    // Run both processes concurrently
+    const [updateResult, rewardResult] = await Promise.all([
+      updateArtistListeningTimeForReward(),
+      distributeRewardToArtistsBasedOnTotalTrackListens(),
+    ]);
+
+    // Check that both operations are successful
+    if (updateResult.success && rewardResult.success) {
+      const clearResult = await clearAllListeningTimeRecords();
+      console.log("Listening time records cleared:", clearResult);
+      return {
+        success: true,
+        message: "Both operations successful and listening times cleared.",
+        updateResult,
+        rewardResult,
+        clearResult,
+      };
+    } else {
+      console.log("One or both operations did not complete successfully");
+      return {
+        success: false,
+        message: "One or both operations did not complete successfully.",
+        updateResult,
+        rewardResult,
+      };
+    }
+  } catch (error) {
+    console.error("Error running reward update cycle:", error);
+    throw error;
+  }
 };

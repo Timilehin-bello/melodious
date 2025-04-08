@@ -81,4 +81,29 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = (
   return job;
 };
 
+export const runRewardUpdateCycle = (
+  schedule = CRON_SCHEDULES.EVERY_10_MINUTES
+) => {
+  logger.info("Initializing reward update cron job", { schedule });
+  // Validate cron schedule
+  if (!cron.validate(schedule)) {
+    logger.error("Invalid cron schedule provided", { schedule });
+    throw new Error("Invalid cron schedule provided");
+  }
+
+  // Schedule the cron job
+  const job = cron.schedule(schedule, cronService.runRewardUpdateCycle, {
+    scheduled: false,
+    timezone: "UTC",
+  });
+
+  // Start the cron job
+  job.start();
+
+  logger.info("Reward update cron job initialized", { schedule });
+
+  // Return the job instance for external control if needed
+  return job;
+};
+
 // updateArtistListeningTimeOnCartesi();

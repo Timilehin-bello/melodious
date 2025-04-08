@@ -11,11 +11,13 @@ import socketAuth from "./middlewares/socketAuth";
 import {
   distributeRewardToArtistsBasedOnTotalTrackListens,
   updateArtistListeningTimeOnCartesi,
+  runRewardUpdateCycle,
 } from "./cronJob";
 
 // scheduleCronJobs();
-updateArtistListeningTimeOnCartesi();
-distributeRewardToArtistsBasedOnTotalTrackListens();
+// updateArtistListeningTimeOnCartesi();
+// distributeRewardToArtistsBasedOnTotalTrackListens();
+runRewardUpdateCycle();
 
 redisClient.on("connect", () => {
   logger.info(`Redis connected ${config.redis.host}:${config.redis.port}`);
