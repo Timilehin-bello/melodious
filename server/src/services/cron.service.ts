@@ -208,6 +208,10 @@ export const runRewardUpdateCycle = async () => {
       };
     }
 
+    // Add a delay between operations to ensure the first transaction is fully processed
+    console.log("Waiting for first transaction to settle...");
+    await new Promise((resolve) => setTimeout(resolve, 10000)); // 10-second delay
+
     // Step 2: Distribute rewards only if step 1 succeeded
     console.log(
       "Starting distributeRewardToArtistsBasedOnTotalTrackListens..."
