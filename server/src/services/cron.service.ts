@@ -195,34 +195,58 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
 
 export const runRewardUpdateCycle = async () => {
   try {
-    // Run both processes concurrently
-    const [updateResult, rewardResult] = await Promise.all([
-      updateArtistListeningTimeForReward(),
-      distributeRewardToArtistsBasedOnTotalTrackListens(),
-    ]);
+    // Step 1: Update artist listening time for reward
+    console.log("Starting updateArtistListeningTimeForReward...");
+    const updateResult = await updateArtistListeningTimeForReward();
 
-    // Check that both operations are successful
-    if (updateResult.success && rewardResult.success) {
-      const clearResult = await clearAllListeningTimeRecords();
-      console.log("Listening time records cleared:", clearResult);
-      return {
-        success: true,
-        message: "Both operations successful and listening times cleared.",
-        updateResult,
-        rewardResult,
-        clearResult,
-      };
-    } else {
-      console.log("One or both operations did not complete successfully");
+    if (!updateResult.success) {
+      console.log("Artist listening time update failed:", updateResult.message);
       return {
         success: false,
-        message: "One or both operations did not complete successfully.",
+        message: "Artist listening time update failed.",
+        updateResult,
+      };
+    }
+
+    // Step 2: Distribute rewards only if step 1 succeeded
+    console.log(
+      "Starting distributeRewardToArtistsBasedOnTotalTrackListens..."
+    );
+    const rewardResult =
+      await distributeRewardToArtistsBasedOnTotalTrackListens();
+
+    if (!rewardResult.success) {
+      console.log("Reward distribution failed:", rewardResult.message);
+      return {
+        success: false,
+        message: "Reward distribution failed.",
         updateResult,
         rewardResult,
       };
     }
+
+    // Step 3: Clear listening time records only if both steps succeeded
+    console.log(
+      "Both operations successful, clearing listening time records..."
+    );
+    const clearResult = await clearAllListeningTimeRecords();
+    console.log("Listening time records cleared:", clearResult);
+
+    return {
+      success: true,
+      message: "Both operations successful and listening times cleared.",
+      updateResult,
+      rewardResult,
+      clearResult,
+    };
   } catch (error) {
     console.error("Error running reward update cycle:", error);
-    throw error;
+    return {
+      success: false,
+      message: `Error running reward update cycle: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
+      error,
+    };
   }
 };
