@@ -359,20 +359,22 @@ export const MusicPlayerProvider = ({
   // Update audio source ONLY when current track changes
   useEffect(() => {
     if (audioRef.current && currentTrack) {
-      audioRef.current.src = currentTrack.audioUrl;
-      audioRef.current.load();
-
-      // Only emit track_changed when actually changing tracks
-      if (currentTrack.id !== audioRef.current.dataset.currentTrackId) {
-        emitSocketEvent("track_changed", { trackId: currentTrack.id });
+      const shouldLoad = currentTrack.id !== audioRef.current.dataset.currentTrackId;
+  
+      if (shouldLoad) {
+        audioRef.current.src = currentTrack.audioUrl;
+        audioRef.current.load();
         audioRef.current.dataset.currentTrackId = currentTrack.id;
+        emitSocketEvent("track_changed", { trackId: currentTrack.id });
+        // When a new track is loaded, we should also reset the progress
+        setProgress(0);
       }
-
+  
       if (isPlaying) {
         playAudio();
       }
     }
-  }, [currentTrack, isPlaying]); // Remove isPlaying from the dependency array
+  }, [currentTrack, emitSocketEvent, setProgress]);
 
   // Handle play/pause state changes separately
   useEffect(() => {
@@ -383,7 +385,7 @@ export const MusicPlayerProvider = ({
         audioRef.current.pause();
       }
     }
-  }, [isPlaying]);
+  }, [isPlaying, playAudio]);
 
   // Play next track
   const nextTrack = useCallback(() => {
