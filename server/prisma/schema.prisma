@@ -41,6 +41,7 @@ model Listener {
   listeningSession  ListeningSession[]
   playbackQuality   PlaybackQuality[]
   playbackSession   PlaybackSession[]
+  subscriptions     UserSubscription[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -346,4 +347,67 @@ model PlaybackSession {
 
   @@index([trackId, startTime])
   @@index([listenerId, startTime])
+}
+
+// Subscription Models
+model SubscriptionPlan {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  level       String   // FREE, PREMIUM
+  price       Float
+  duration    Int      // Duration in days
+  features    Json     // JSON object containing plan features
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  subscriptions UserSubscription[]
+  payments      SubscriptionPayment[]
+}
+
+model UserSubscription {
+  id                String   @id @default(cuid())
+  listenerId        Int
+  planId            Int
+  status            String   // ACTIVE, EXPIRED, CANCELLED, PENDING
+  startDate         DateTime
+  endDate           DateTime
+  autoRenew         Boolean  @default(false)
+  paymentReference  String?  // Reference to payment transaction
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  listener Listener        @relation(fields: [listenerId], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments SubscriptionPayment[]
+  
+  @@index([listenerId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model SubscriptionPayment {
+  id               String   @id @default(cuid())
+  subscriptionId   String?
+  amount           Float
+  currency         String   @default("ETH")
+  status           String   // PENDING, COMPLETED, FAILED, executed, failed
+  transactionHash  String?
+  vaultDepositId   String?  // Reference to vault deposit
+  voucherId        String?  @unique // Voucher ID for Cartesi tracking
+  walletAddress    String?  // User's wallet address
+  subscriptionPlanId Int?   // Direct reference to subscription plan
+  paymentDate      DateTime @default(now())
+  executedAt       DateTime? // When voucher was executed
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  subscription UserSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  subscriptionPlan SubscriptionPlan? @relation(fields: [subscriptionPlanId], references: [id])
+  
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([transactionHash])
+  @@index([voucherId])
+  @@index([walletAddress])
 }
