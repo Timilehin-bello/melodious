@@ -5,13 +5,11 @@ import { AlbumController } from "./album.controller";
 import { GenreController } from "./genre.controller";
 import { TrackController } from "./track.controller";
 import { VaultController } from "./vault.controller";
-import { VoucherController } from "./voucher.controller";
 import {
   ListeningRewardController,
   ReferralRewardController,
 } from "./reward.controller";
 import { ConfigController } from "./config.controller";
-import { SubscriptionController } from "./subscription.controller";
 
 export {
   ArtistController,
@@ -21,9 +19,7 @@ export {
   GenreController,
   TrackController,
   VaultController,
-  VoucherController,
   ListeningRewardController,
   ReferralRewardController,
   ConfigController,
-  SubscriptionController,
 };

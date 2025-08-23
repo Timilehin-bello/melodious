@@ -2,8 +2,6 @@ import express, { Router } from "express";
 import authRoute from "./auth.route";
 import userRoute from "./user.route";
 import transactionRoute from "./transaction.route";
-import subscriptionRoute from "./subscription.route";
-import paymentTrackingRoute from "./paymentTracking.route";
 
 const router: Router = express.Router();
 
@@ -28,14 +26,6 @@ const defaultRoutes: IRoute[] = [
   {
     path: "/transactions",
     route: transactionRoute,
-  },
-  {
-    path: "/subscriptions",
-    route: subscriptionRoute,
-  },
-  {
-    path: "/payment-tracking",
-    route: paymentTrackingRoute,
   },
 ];
 
