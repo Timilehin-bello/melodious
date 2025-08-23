@@ -1,4 +1,5 @@
 import * as Model from "../models";
+import { SubscriptionPlan } from "../models/subscriptionPlan.model";
 
 class RepositoryService {
   static users: Model.User[] = [];
@@ -7,6 +8,8 @@ class RepositoryService {
   static tracks: Model.Track[] = [];
   static artists: Model.Artist[] = [];
   static listeners: Model.Listener[] = [];
+  static subscriptions: Model.Subscription[] = []; // Add subscription storage
+  static subscriptionPlans: SubscriptionPlan[] = []; // Add subscription plans storage
   static config: Model.Config | null = null;
 }
 

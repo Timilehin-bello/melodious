@@ -1,6 +1,0 @@
-[
-  {
-    "type": "sqlite",
-    "path": "/home/timmy/cartesi-project/melodious/server/prisma/dev.db"
-  }
-]

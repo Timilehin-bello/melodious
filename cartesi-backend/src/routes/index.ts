@@ -50,6 +50,29 @@ import {
   ConfigsRoute,
 } from "./config.route";
 
+import {
+  CreateSubscriptionPlanRoute,
+  SubscriptionPaymentRoute,
+  RenewSubscriptionRoute,
+  CancelSubscriptionRoute,
+  GetSubscriptionPlansRoute,
+  GetSubscriptionRoute,
+  GetListenerSubscriptionRoute,
+  GetActiveSubscriptionsRoute,
+  GetExpiredSubscriptionsRoute,
+  InitializeDefaultPlansRoute,
+} from "./subscription.route";
+
+import {
+  RegisterVoucherRoute,
+  UpdateVoucherStatusRoute,
+  GetVoucherStatusRoute,
+  GetPendingVouchersRoute,
+  GetWalletVoucherHistoryRoute,
+  GetVoucherStatisticsRoute,
+  CleanupOldVouchersRoute
+} from "./voucher.route";
+
 export {
   // User
   CreateUserRoute,
@@ -94,8 +117,27 @@ export {
   UpdateArtistListeningTimeForRewardRoute,
   ReferralRewardRoute,
 
-  // Config
+  // Config routes
   CreateConfigRoute,
   UpdateConfigRoute,
   ConfigsRoute,
+  // Subscription routes
+  CreateSubscriptionPlanRoute,
+  SubscriptionPaymentRoute,
+  RenewSubscriptionRoute,
+  CancelSubscriptionRoute,
+  GetSubscriptionPlansRoute,
+  GetSubscriptionRoute,
+  GetListenerSubscriptionRoute,
+  GetActiveSubscriptionsRoute,
+  GetExpiredSubscriptionsRoute,
+  InitializeDefaultPlansRoute,
+  // Voucher routes
+  RegisterVoucherRoute,
+  UpdateVoucherStatusRoute,
+  GetVoucherStatusRoute,
+  GetPendingVouchersRoute,
+  GetWalletVoucherHistoryRoute,
+  GetVoucherStatisticsRoute,
+  CleanupOldVouchersRoute,
 };
