@@ -192,8 +192,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [userData, setUserData] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const rollups = useRollups();
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS || "";
+  const rollups = useRollups(dappAddress);
 
   const checkLoginStatus = async () => {
     let data = localStorage.getItem("xx-mu") as any | null;
