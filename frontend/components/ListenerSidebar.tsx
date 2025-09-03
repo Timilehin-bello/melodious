@@ -1,5 +1,5 @@
 "use client";
-import { Calendar, Home, Inbox, LogOut, Search, Settings } from "lucide-react";
+import { Calendar, Home, Inbox, LogOut, Search, Settings,CreditCard } from "lucide-react";
 
 import {
   Sidebar,
@@ -28,6 +28,11 @@ const items = [
     title: "Home",
     url: "/listener/dashboard",
     icon: Home,
+  },
+  {
+    title: "Subscription",
+    url: "/listener/subscription",
+    icon: CreditCard,
   },
   // {
   //   title: "Playlist",
