@@ -297,14 +297,14 @@ export const MusicPlayerProvider = ({
   // }, [currentTrack, emitSocketEvent]);
 
   // Update the playAudio function to distinguish between initial play and resume
-  const playAudio = async () => {
+  const playAudio = useCallback(async () => {
     if (audioRef.current) {
       try {
         await audioRef.current.play();
         setIsPlaying(true);
 
         // Check if this is a resume (progress > 0) or a new start
-        if (audioRef.current.currentTime > 0) {
+        if (audioRef.current.currentTime > 1) {
           emitSocketEvent("resumePlaying", {
             trackId: currentTrack?.id,
             position: audioRef.current.currentTime,
@@ -330,7 +330,7 @@ export const MusicPlayerProvider = ({
         }
       }
     }
-  };
+  }, [currentTrack, emitSocketEvent]);
 
   // Pause audio safely
   const pauseAudio = useCallback(() => {
@@ -359,8 +359,9 @@ export const MusicPlayerProvider = ({
   // Update audio source ONLY when current track changes
   useEffect(() => {
     if (audioRef.current && currentTrack) {
-      const shouldLoad = currentTrack.id !== audioRef.current.dataset.currentTrackId;
-  
+      const shouldLoad =
+        currentTrack.id !== audioRef.current.dataset.currentTrackId;
+
       if (shouldLoad) {
         audioRef.current.src = currentTrack.audioUrl;
         audioRef.current.load();
@@ -369,7 +370,7 @@ export const MusicPlayerProvider = ({
         // When a new track is loaded, we should also reset the progress
         setProgress(0);
       }
-  
+
       if (isPlaying) {
         playAudio();
       }
