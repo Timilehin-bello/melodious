@@ -152,7 +152,7 @@ async function handle_advance(data: any) {
     const payloadStr = hexToString(payload);
     console.log("payloadStr is", payloadStr);
 
-    const payloadObj = JSON.parse(JSON.stringify(payloadStr));
+    const payloadObj = JSON.parse(payloadStr);
     console.log("payloadObj is", payloadObj);
 
     // console.log("payloadObj.args.signer is", payloadObj.args.signer);
