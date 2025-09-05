@@ -152,18 +152,6 @@ async function handle_advance(data: any) {
     const payloadStr = hexToString(payload);
     console.log("payloadStr is", payloadStr);
 
-    const payloadObj = JSON.parse(payloadStr);
-    console.log("payloadObj is", payloadObj);
-
-    // console.log("payloadObj.args.signer is", payloadObj.args.signer);
-
-    if (payloadObj?.args?.signer !== undefined) {
-      console.log(
-        `The original message sender: ${data.metadata.msg_sender} has been updated to: ${payloadObj.args.signer}`
-      );
-      data.metadata.msg_sender = payloadObj.args.signer.toLowerCase();
-    }
-
     let msg_sender: string = data.metadata.msg_sender;
 
     console.log("msg sender is", msg_sender.toLowerCase());
@@ -219,6 +207,14 @@ async function handle_advance(data: any) {
       const jsonpayload = JSON.parse(payloadStr);
       console.log("json payload is ", jsonpayload.method);
       console.log("payload is ", data);
+
+      // Handle signer override for JSON payloads
+      if (jsonpayload?.args?.signer !== undefined) {
+        console.log(
+          `The original message sender: ${data.metadata.msg_sender} has been updated to: ${jsonpayload.args.signer}`
+        );
+        data.metadata.msg_sender = jsonpayload.args.signer.toLowerCase();
+      }
 
       return router.process(jsonpayload.method, data);
     } catch (e) {
