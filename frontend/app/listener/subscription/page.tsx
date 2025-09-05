@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useActiveAccount } from "thirdweb/react";
-import { depositErc20ToPortal } from "@/cartesi/Portals";
+import { depositErc20ToPortal, depositErc20ToVault } from "@/cartesi/Portals";
 import toast from "react-hot-toast";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { client } from "@/lib/client";
@@ -81,7 +81,7 @@ const subscriptionPlans: SubscriptionPlan[] = [
 ];
 
 const SubscriptionPage = () => {
-  const { rollups, dappAddress, signMessages } = useMelodiousContext();
+  const { rollups, dappAddress } = useMelodiousContext();
   const activeAccount = useActiveAccount();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -185,9 +185,9 @@ const SubscriptionPage = () => {
         id: "subscription",
       });
 
-      // Step 1: Deposit ERC20 tokens to portal
+      // Direct vault deposit (bypassing relayer)
       if (rollups && signerInstance) {
-        const depositResult = await depositErc20ToPortal(
+        const depositResult = await depositErc20ToVault(
           rollups,
           signerInstance,
           tokenAddress,
@@ -195,33 +195,20 @@ const SubscriptionPage = () => {
           dappAddress
         );
 
-        if (depositResult && (depositResult as any).transactionHash) {
-          // Step 2: Create vault deposit payload
-          const vaultPayload = {
-            method: "vault_deposit",
-            args: {
-              amount,
-            },
-          };
-
-          // Step 3: Sign and send to server relayer
-          const relayResult = await signMessages(vaultPayload);
-
-          if (relayResult?.status) {
-            toast.success(
-              `Successfully subscribed to ${plan.name} plan! Please execute the voucher below to activate your subscription.`,
-              { id: "subscription" }
-            );
-            setCurrentSubscription(plan.id);
-            setSubscriptionTxHash((depositResult as any).transactionHash);
-            setShowVouchers(true);
-          } else {
-            toast.error("Vault deposit failed. Please try again.", {
-              id: "subscription",
-            });
-          }
+        if (
+          depositResult &&
+          depositResult.depositReceipt &&
+          depositResult.inputReceipt
+        ) {
+          toast.success(
+            `Successfully subscribed to ${plan.name} plan! Please execute the voucher below to activate your subscription.`,
+            { id: "subscription" }
+          );
+          setCurrentSubscription(plan.id);
+          setSubscriptionTxHash((depositResult as any).transactionHash);
+          setShowVouchers(true);
         } else {
-          toast.error("Token deposit failed. Please try again.", {
+          toast.error("Vault deposit failed. Please try again.", {
             id: "subscription",
           });
         }

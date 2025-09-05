@@ -86,6 +86,180 @@ export const depositEtherToPortal = async (
   }
 };
 
+export const depositErc20ToVault = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  token: string,
+  amount: number,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) {
+      throw new Error("Rollups contracts not initialized");
+    }
+    if (!signer) {
+      throw new Error("Signer not provided");
+    }
+    if (!token || !ethers.utils.isAddress(token)) {
+      throw new Error("Invalid token address");
+    }
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress)) {
+      throw new Error("Invalid DApp address");
+    }
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
+
+    console.log(
+      "Depositing to vault:",
+      "rollups",
+      rollups,
+      "signer",
+      signer,
+      "token",
+      token,
+      "amount",
+      amount,
+      "dappAddress",
+      dappAddress
+    );
+
+    const signerAddress = await signer.getAddress();
+    const amountInWei = ethers.utils.parseEther(`${amount}`);
+    const erc20PortalAddress = rollups.erc20PortalContract.address;
+    const tokenContract = IERC20__factory.connect(token, signer);
+
+    console.log("signerAddress", signerAddress);
+    console.log("erc20PortalAddress", erc20PortalAddress);
+    console.log("amountInWei", amountInWei.toString());
+
+    // Check user's token balance
+    const userBalance = await tokenContract.balanceOf(signerAddress);
+    console.log("userBalance", userBalance.toString());
+
+    if (userBalance.lt(amountInWei)) {
+      throw new Error(
+        `Insufficient balance. You have ${ethers.utils.formatEther(
+          userBalance
+        )} tokens, but trying to deposit ${amount}`
+      );
+    }
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.allowance(
+      signerAddress,
+      erc20PortalAddress
+    );
+    console.log("currentAllowance", currentAllowance.toString());
+
+    // Approve tokens if needed
+    if (currentAllowance.lt(amountInWei)) {
+      console.log("Approving tokens...");
+      try {
+        const approveTx = await tokenContract.approve(
+          erc20PortalAddress,
+          amountInWei
+        );
+        console.log("Approval transaction submitted:", approveTx.hash);
+        const approveReceipt = await approveTx.wait(1);
+        console.log("Approval transaction confirmed:", approveReceipt.transactionHash);
+      } catch (approveError: any) {
+        console.error("Token approval failed:", approveError);
+        throw new Error(`Token approval failed: ${approveError?.message || approveError}`);
+      }
+    }
+
+    // Create vault deposit payload matching backend expected format
+    const vaultPayload = JSON.stringify({
+      method: "vault_deposit",
+      args: {
+        amount: amount,
+      },
+    });
+
+    const data = ethers.utils.toUtf8Bytes(vaultPayload);
+
+    // Deposit tokens to portal with vault payload
+    console.log("Depositing tokens to vault...");
+    console.log("Deposit parameters:", {
+      token,
+      dappAddress,
+      amount: amountInWei.toString(),
+      dataLength: data.length
+    });
+    
+    let depositTx;
+    try {
+      depositTx = await rollups.erc20PortalContract.depositERC20Tokens(
+        token,
+        dappAddress,
+        amountInWei,
+        data
+      );
+      console.log("Deposit transaction submitted:", depositTx.hash);
+    } catch (depositError: any) {
+      console.error("ERC20 portal deposit failed:", depositError);
+      throw new Error(`ERC20 portal deposit failed: ${depositError?.message || depositError}`);
+    }
+
+    let receipt;
+    try {
+      receipt = await depositTx.wait(1);
+      console.log("Vault deposit transaction confirmed:", receipt.transactionHash);
+    } catch (receiptError: any) {
+      console.error("Deposit transaction confirmation failed:", receiptError);
+      throw new Error(`Deposit transaction confirmation failed: ${receiptError?.message || receiptError}`);
+    }
+
+    // Send additional input after ERC20 portal deposit
+    console.log("Sending additional input after deposit...");
+    
+    let inputTx;
+    try {
+      inputTx = await rollups.inputContract.addInput(dappAddress, data);
+      console.log("Input transaction submitted:", inputTx.hash);
+    } catch (inputError: any) {
+      console.error("Add input failed:", inputError);
+      throw new Error(`Add input failed: ${inputError?.message || inputError}`);
+    }
+    
+    let inputReceipt;
+    try {
+      inputReceipt = await inputTx.wait(1);
+      console.log("Input transaction confirmed:", inputReceipt.transactionHash);
+    } catch (inputReceiptError: any) {
+      console.error("Input transaction confirmation failed:", inputReceiptError);
+      throw new Error(`Input transaction confirmation failed: ${inputReceiptError?.message || inputReceiptError}`);
+    }
+
+    return { depositReceipt: receipt, inputReceipt };
+  } catch (e: any) {
+    console.error("Vault deposit error:", e);
+    
+    // Provide more detailed error information
+    let errorMessage = "Unknown error occurred during vault deposit";
+    
+    if (e?.message) {
+      errorMessage = e.message;
+    } else if (e?.reason) {
+      errorMessage = e.reason;
+    } else if (e?.data?.message) {
+      errorMessage = e.data.message;
+    } else if (typeof e === 'string') {
+      errorMessage = e;
+    }
+    
+    console.error("Detailed error message:", errorMessage);
+    
+    // Create a new error with better context
+    const enhancedError = new Error(`Vault deposit failed: ${errorMessage}`);
+    enhancedError.cause = e;
+    
+    throw enhancedError;
+  }
+};
+
 export const depositErc20ToPortal = async (
   rollups: RollupsContracts | undefined,
   signer: any,
