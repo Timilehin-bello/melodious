@@ -118,7 +118,9 @@ export const useVouchers = () => {
               }
             }
           } catch (e) {
-            console.log(e);
+            console.log("Error decoding payload:", e);
+            // If decoding fails, show the raw payload as hex
+            payload = `Raw Payload: ${payload}`;
           }
         } else {
           payload = "(empty)";
@@ -128,13 +130,13 @@ export const useVouchers = () => {
           index: parseInt(n?.index),
           destination: `${n?.destination ?? ""}`,
           payload: `${payload}`,
-          input: n ? { index: n.input.index, payload: inputPayload } : {},
+          input: n ? { index: n.input.index, payload: inputPayload, msgSender: n.input.msgSender } : {},
           proof: null,
           executed: null,
         };
       })
-      .sort((b: any, a: any) => {
-        if (a.input.index === b.input.index) {
+      .sort((a: any, b: any) => {
+        if (b.input.index === a.input.index) {
           return b.index - a.index;
         } else {
           return b.input.index - a.input.index;

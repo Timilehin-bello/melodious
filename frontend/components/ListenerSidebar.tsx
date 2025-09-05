@@ -1,5 +1,14 @@
 "use client";
-import { Calendar, Home, Inbox, LogOut, Search, Settings,CreditCard } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  LogOut,
+  Search,
+  Settings,
+  CreditCard,
+  Wallet,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -22,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { title } from "process";
 // Menu items.
 const items = [
   {
@@ -30,10 +40,16 @@ const items = [
     icon: Home,
   },
   {
+    title: "Wallet",
+    url: "/listener/wallet",
+    icon: Wallet,
+  },
+  {
     title: "Subscription",
     url: "/listener/subscription",
     icon: CreditCard,
   },
+
   // {
   //   title: "Playlist",
   //   url: "/listener/playlist",

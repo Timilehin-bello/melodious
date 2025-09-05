@@ -53,7 +53,6 @@ query noticesByInput($inputIndex: Int!) {
   }
 }
 
-
 # VOUCHERS
 
 query voucher($voucherIndex: Int!, $inputIndex: Int!) {
@@ -87,6 +86,7 @@ query vouchers {
         index
         input {
           index
+          msgSender
         }
         destination
         payload
@@ -103,6 +103,7 @@ query vouchersByInput($inputIndex: Int!) {
           index
           input {
             index
+            msgSender
           }
           destination
           payload
@@ -111,7 +112,6 @@ query vouchersByInput($inputIndex: Int!) {
     }
   }
 }
-
 
 # REPORTS
 

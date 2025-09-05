@@ -94,6 +94,23 @@ export const depositErc20ToPortal = async (
   dappAddress: string
 ) => {
   try {
+    // Input validation
+    if (!rollups) {
+      throw new Error("Rollups contracts not initialized");
+    }
+    if (!signer) {
+      throw new Error("Signer not provided");
+    }
+    if (!token || !ethers.utils.isAddress(token)) {
+      throw new Error("Invalid token address");
+    }
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress)) {
+      throw new Error("Invalid DApp address");
+    }
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
+
     console.log(
       "rollups",
       rollups,
@@ -106,51 +123,76 @@ export const depositErc20ToPortal = async (
       "dappAddress",
       dappAddress
     );
-    if (rollups && signer) {
-      const data = ethers.utils.toUtf8Bytes(
-        `Deposited (${amount}) of ERC20 (${token}).`
-      );
-      // const signer = await provider.getSigner();
-      // const signerAddress = await signer?.getAddress();
 
-      const erc20PortalAddress = rollups.erc20PortalContract.address;
-      const tokenContract = signer
-        ? IERC20__factory.connect(token, signer)
-        : IERC20__factory.connect(token, signer!);
+    const signerAddress = await signer.getAddress();
+    const amountInWei = ethers.utils.parseEther(`${amount}`);
+    const erc20PortalAddress = rollups.erc20PortalContract.address;
+    const tokenContract = IERC20__factory.connect(token, signer);
 
-      console.log("signerAddress", signer.getAddress());
-      console.log("erc20PortalAddress", erc20PortalAddress);
-      // query current allowance
-      const currentAllowance = await tokenContract.allowance(
-        signer.getAddress()!,
-        erc20PortalAddress
-      );
-      console.log("currentAllowance: ", currentAllowance.toString());
-      console.log(
-        "ethers.utils.parseEther(`${amount}`",
-        ethers.utils.parseEther(`${amount}`)
-      );
-      if (ethers.utils.parseEther(`${amount}`) > currentAllowance) {
-        // Allow portal to withdraw `amount` tokens from signer
-        const tx = await tokenContract.approve(
-          erc20PortalAddress,
-          ethers.utils.parseEther(`${amount}`)
-        );
-      }
+    console.log("signerAddress", signerAddress);
+    console.log("erc20PortalAddress", erc20PortalAddress);
+    console.log("amountInWei", amountInWei.toString());
 
-      console.log("token test", token);
-      const deposit = await rollups.erc20PortalContract.depositERC20Tokens(
-        token,
-        dappAddress,
-        ethers.utils.parseEther(`${amount}`),
-        "0x"
+    // Check user's token balance
+    const userBalance = await tokenContract.balanceOf(signerAddress);
+    console.log("userBalance", userBalance.toString());
+
+    if (userBalance.lt(amountInWei)) {
+      const balanceInEther = ethers.utils.formatEther(userBalance);
+      throw new Error(
+        `Insufficient token balance. You have ${balanceInEther} tokens but need ${amount} tokens.`
       );
-      const transReceipt = await deposit.wait(1);
-      return transReceipt;
     }
-  } catch (e) {
-    console.log(`${e}`);
-    return e;
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.allowance(
+      signerAddress,
+      erc20PortalAddress
+    );
+    console.log("currentAllowance", currentAllowance.toString());
+
+    // Approve tokens if allowance is insufficient
+    if (amountInWei.gt(currentAllowance)) {
+      console.log("Approving tokens for portal...");
+      const approveTx = await tokenContract.approve(
+        erc20PortalAddress,
+        amountInWei
+      );
+
+      // Wait for approval transaction to be mined
+      const approveReceipt = await approveTx.wait(1);
+      if (!approveReceipt.status) {
+        throw new Error("Token approval transaction failed");
+      }
+      console.log("Token approval successful", approveReceipt.transactionHash);
+    }
+
+    // Perform the deposit
+    console.log("Depositing tokens to portal...");
+    const deposit = await rollups.erc20PortalContract.depositERC20Tokens(
+      token,
+      dappAddress,
+      amountInWei,
+      "0x"
+    );
+
+    const transReceipt = await deposit.wait(1);
+    if (!transReceipt.status) {
+      throw new Error("Deposit transaction failed");
+    }
+
+    console.log("Deposit successful", transReceipt.transactionHash);
+    return transReceipt;
+  } catch (e: any) {
+    console.error("depositErc20ToPortal error:", e);
+    // Re-throw the error with a more user-friendly message if it's a generic error
+    if (e.message && e.message.includes("user rejected")) {
+      throw new Error("Transaction was rejected by user");
+    }
+    if (e.message && e.message.includes("insufficient funds")) {
+      throw new Error("Insufficient ETH for gas fees");
+    }
+    throw e;
   }
 };
 // export const depositErc20ToPortal = async (

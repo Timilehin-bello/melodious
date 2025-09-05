@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { initializeSocket } from "@/lib/testSocket";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
-import ListenerSubscription from "@/components/ListenerSubscription";
+// import ListenerSubscription from "@/components/ListenerSubscription";
 import Trending from "@/components/Trending";
 import FeaturedArtists from "@/components/FeaturedArtists";
 import Footer from "@/components/Footer";
@@ -60,7 +60,7 @@ export default function Home() {
       <HowItWorks />
       <Trending />
       <FeaturedArtists />
-      <ListenerSubscription />
+      {/* <ListenerSubscription /> */}
       <Footer />
     </>
   );

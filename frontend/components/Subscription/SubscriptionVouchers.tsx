@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { ethers } from "ethers";
-import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { useRollups } from "@/cartesi/hooks/useRollups";
 import { Voucher, useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher } from "@/cartesi/Portals";
@@ -17,24 +17,29 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface IVoucherProps {
+interface ISubscriptionVouchersProps {
   dappAddress: string;
 }
 
-export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
-  const { loading, error, vouchers, refetch, client } = useVouchers();
-  const [voucherToExecute, setVoucherToExecute] = useState<any>();
+export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
+  dappAddress,
+}) => {
+  const rollups = useRollups(dappAddress);
+  const account = useActiveAccount();
+  const {
+    loading,
+    error,
+    vouchers,
+    refetch: refetchVouchers,
+    client: apolloClient,
+  } = useVouchers();
+
+  const [voucherToExecute, setVoucherToExecute] = useState<Voucher>();
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [executionStatuses, setExecutionStatuses] = useState<{
     [key: string]: boolean;
   }>({});
-  const rollups = useRollups(dappAddress);
-  const account = useActiveAccount();
-
-  const getProof = async (voucher: Voucher) => {
-    setVoucher(voucher);
-    refetch({ requestPolicy: "network-only" });
-  };
 
   const setVoucher = useCallback(
     async (voucher: any) => {
@@ -80,134 +85,130 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
     [rollups]
   );
 
-  // Use vouchers directly from useVouchers hook (memoized to prevent unnecessary re-renders)
-  const vouchersList = useMemo(() => {
-    return vouchers || [];
-  }, [vouchers]);
-
-  useEffect(() => {
-    refetch({ requestPolicy: "network-only" });
-  }, [refetch]);
-
-  // Check execution status when vouchers are loaded
-  useEffect(() => {
-    if (vouchersList && vouchersList.length > 0) {
-      checkVoucherExecutionStatus(vouchersList);
+  const handleExecuteVoucher = async () => {
+    if (!voucherToExecute || !rollups || !apolloClient) {
+      toast.error("Missing required data for voucher execution");
+      return;
     }
-  }, [vouchersList, checkVoucherExecutionStatus]);
 
-  // Show all vouchers
-  const userVouchers = vouchersList;
+    setIsExecuting(true);
+    try {
+      await executeVoucher(apolloClient, voucherToExecute, rollups);
+      toast.success("Voucher executed successfully!");
+      setVoucherToExecute(undefined);
+      // Note: Manual refresh required - no automatic refetch
+    } catch (error) {
+      console.error("Error executing voucher:", error);
+      toast.error("Failed to execute voucher");
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
+  // Filter vouchers to show vault-related ones (ERC20 transfers to vault or subscription-related)
+  const subscriptionVouchers = vouchers?.filter((voucher: any) => {
+    // Show vouchers that are ERC20 transfers (vault deposits) or contain subscription-related keywords
+    return (
+      voucher.payload.includes("Erc20 Transfer") ||
+      voucher.payload.includes("vault") ||
+      voucher.payload.includes("subscription") ||
+      voucher.payload.includes("CTSI Transfer")
+    );
+  });
+
+  // Check execution status when vouchers change
+  useEffect(() => {
+    if (subscriptionVouchers && subscriptionVouchers.length > 0) {
+      checkVoucherExecutionStatus(subscriptionVouchers);
+    }
+  }, [subscriptionVouchers, checkVoucherExecutionStatus]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 text-zinc-400">
-        <Loader2 className="w-5 h-5 animate-spin mr-2" />
-        Loading vouchers...
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-[#950844]" />
+        <span className="ml-2 text-zinc-400">Loading vouchers...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-8 text-red-400">
-        <XCircle className="w-5 h-5 mr-2" />
-        {error.message}
-      </div>
-    );
-  }
-
-  if (!vouchersList.length) {
-    return (
-      <div className="flex items-center justify-center py-8 text-zinc-400">
-        <FileSearch className="w-5 h-5 mr-2" />
-        No vouchers found
-      </div>
-    );
-  }
-
-  if (!userVouchers.length) {
-    return (
-      <div className="flex items-center justify-center py-8 text-zinc-400">
-        <FileSearch className="w-5 h-5 mr-2" />
-        No vouchers found
+      <div className="flex items-center justify-center p-8">
+        <XCircle className="w-6 h-6 text-red-500" />
+        <span className="ml-2 text-red-400">Error loading vouchers</span>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Refresh Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-white">
-          Vouchers ({userVouchers?.length || 0})
+          Subscription Vouchers ({subscriptionVouchers?.length || 0})
         </h3>
         <button
-          onClick={() => refetch({ requestPolicy: "network-only" })}
+          onClick={async () => {
+            setIsRefreshing(true);
+            try {
+              await refetchVouchers({ requestPolicy: "network-only" });
+            } finally {
+              setIsRefreshing(false);
+            }
+          }}
+          disabled={isRefreshing}
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium",
             "bg-zinc-800 hover:bg-zinc-700",
             "text-zinc-300 hover:text-white",
+            "border border-zinc-700 hover:border-zinc-600",
             "transition-all duration-200",
-            "flex items-center gap-2"
+            "flex items-center gap-2",
+            isRefreshing && "cursor-not-allowed opacity-75"
           )}
         >
-          <RefreshCw className="w-4 h-4" />
-          Refresh
+          <RefreshCw
+            className={cn(
+              "w-4 h-4 transition-transform duration-200",
+              isRefreshing && "animate-spin"
+            )}
+          />
+          {isRefreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
-      {/* Selected Voucher */}
+      {/* Selected Voucher Execution */}
       {voucherToExecute && (
-        <div className="bg-zinc-900/50 rounded-lg border border-zinc-800/50 overflow-hidden">
-          <div className="px-6 py-4 border-b border-zinc-800/50">
-            <h4 className="text-sm font-medium text-zinc-400">
-              Selected Voucher
-            </h4>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500">Input Index</p>
-                <p className="text-sm text-white font-mono">
-                  {voucherToExecute.input.index}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-zinc-500">Voucher Index</p>
-                <p className="text-sm text-white font-mono">
-                  {voucherToExecute.index}
-                </p>
-              </div>
+        <div className="bg-zinc-800/50 rounded-lg border border-zinc-700/50 p-6">
+          <h4 className="text-lg font-semibold text-white mb-4">
+            Selected Voucher
+          </h4>
+          <div className="space-y-3">
+            <div>
+              <span className="text-sm text-zinc-400">Payload:</span>
+              <p className="text-sm text-zinc-300 break-all mt-1">
+                {voucherToExecute.payload}
+              </p>
+            </div>
+            <div>
+              <span className="text-sm text-zinc-400">Destination:</span>
+              <p className="text-sm text-zinc-300 break-all mt-1">
+                {voucherToExecute.destination}
+              </p>
             </div>
             <button
-              disabled={voucherToExecute.executed || isExecuting}
-              onClick={async () => {
-                setIsExecuting(true);
-                try {
-                  const res = await executeVoucher(
-                    client,
-                    voucherToExecute,
-                    rollups!
-                  );
-                  if (res) {
-                    toast.success("Voucher executed successfully");
-                  } else {
-                    toast.error("Failed to execute voucher");
-                  }
-                } catch (error) {
-                  toast.error("Error executing voucher");
-                } finally {
-                  setIsExecuting(false);
-                }
-              }}
+              onClick={handleExecuteVoucher}
+              disabled={isExecuting || voucherToExecute.executed}
               className={cn(
-                "w-full px-4 py-3 rounded-lg font-medium",
-                "flex items-center justify-center gap-2",
+                "px-6 py-3 rounded-lg text-sm font-medium",
                 "transition-all duration-200",
+                "flex items-center gap-2",
                 voucherToExecute.executed
-                  ? "bg-zinc-800 text-zinc-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-600 text-white"
+                  ? "bg-green-600/20 text-green-400 cursor-not-allowed"
+                  : isExecuting
+                  ? "bg-[#950844]/50 text-white cursor-not-allowed"
+                  : "bg-[#950844] hover:bg-[#7e0837] text-white"
               )}
             >
               {isExecuting ? (
@@ -249,28 +250,34 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/50">
-              {userVouchers && userVouchers.length === 0 ? (
+              {!subscriptionVouchers || subscriptionVouchers.length === 0 ? (
                 <tr>
                   <td
                     colSpan={3}
-                    className="px-6 py-4 text-center text-zinc-500"
+                    className="px-6 py-8 text-center text-zinc-500"
                   >
-                    No vouchers available
+                    <div className="flex flex-col items-center gap-2">
+                      <FileSearch className="w-8 h-8 text-zinc-600" />
+                      <p>No subscription vouchers available</p>
+                      <p className="text-sm text-zinc-600">
+                        Complete a subscription to generate vouchers
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (
-                userVouchers?.map((n: any) => {
-                  const voucherKey = `${n.input.index}-${n.index}`;
+                subscriptionVouchers.map((voucher: any) => {
+                  const voucherKey = `${voucher.input.index}-${voucher.index}`;
                   const isExecuted = executionStatuses[voucherKey] || false;
 
                   return (
                     <tr
-                      key={`${n.input.index}-${n.index}`}
+                      key={`${voucher.input.index}-${voucher.index}`}
                       className="hover:bg-zinc-800/50 transition-colors duration-200"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() => getProof(n)}
+                          onClick={() => setVoucher(voucher)}
                           disabled={isExecuted}
                           className={cn(
                             "px-4 py-2 rounded-lg text-sm font-medium",
@@ -289,24 +296,24 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
                           ) : (
                             <>
                               <FileSearch className="w-4 h-4" />
-                              Get Proof
+                              Select
                             </>
                           )}
                         </button>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-zinc-300 font-mono break-all">
-                          {n.input.msgSender}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-zinc-300 break-all">
-                          {n.payload}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                    <td className="px-6 py-4">
+                       <div className="text-sm text-zinc-300 break-all font-mono">
+                         {voucher.input.msgSender}
+                       </div>
+                     </td>
+                     <td className="px-6 py-4">
+                       <div className="text-sm text-zinc-300 break-all">
+                         {voucher.payload}
+                       </div>
+                     </td>
+                   </tr>
+                 );
+                 })
               )}
             </tbody>
           </table>

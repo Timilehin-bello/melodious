@@ -18,8 +18,62 @@ interface IProps {
 const Transfers: React.FC<IProps> = ({ dappAddress }) => {
   const [dappRelayedAddress, setDappRelayedAddress] = useState(false);
   const [isRelaying, setIsRelaying] = useState(false);
+  const [isCheckingRelayStatus, setIsCheckingRelayStatus] = useState(true);
   const account = useActiveAccount();
   const rollups = useRollups(dappAddress);
+
+  // Check relay status on component mount
+  useEffect(() => {
+    const checkRelayStatus = async () => {
+      try {
+        // Check localStorage first
+        const storedRelayStatus = localStorage.getItem(
+          `dapp_relayed_${dappAddress}`
+        );
+        if (storedRelayStatus === "true") {
+          setDappRelayedAddress(true);
+          setIsCheckingRelayStatus(false);
+          return;
+        }
+
+        // If not in localStorage, check if vouchers exist as an indicator
+        // This is a simple way to determine if the address has been relayed
+        const response = await fetch("/graphql", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            query: `
+              query {
+                vouchers(first: 1) {
+                  edges {
+                    node {
+                      id
+                    }
+                  }
+                }
+              }
+            `,
+          }),
+        });
+
+        const data = await response.json();
+        const hasVouchers = data?.data?.vouchers?.edges?.length > 0;
+
+        if (hasVouchers) {
+          setDappRelayedAddress(true);
+          localStorage.setItem(`dapp_relayed_${dappAddress}`, "true");
+        }
+      } catch (error) {
+        console.log("Error checking relay status:", error);
+      } finally {
+        setIsCheckingRelayStatus(false);
+      }
+    };
+
+    checkRelayStatus();
+  }, [dappAddress]);
 
   const tabs = [
     {
@@ -48,6 +102,8 @@ const Transfers: React.FC<IProps> = ({ dappAddress }) => {
                   try {
                     const tx = await sendAddress(rollups, dappAddress);
                     setDappRelayedAddress(true);
+                    // Store relay status in localStorage
+                    localStorage.setItem(`dapp_relayed_${dappAddress}`, "true");
                     toast.success("Address relayed successfully");
                   } catch (err) {
                     toast.error(`Failed to relay address: ${String(err)}`);

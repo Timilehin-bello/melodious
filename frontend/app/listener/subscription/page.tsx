@@ -1,455 +1,479 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useMelodiousContext } from "@/contexts/melodious";
+import { useActiveAccount } from "thirdweb/react";
+import { depositErc20ToPortal } from "@/cartesi/Portals";
 import toast from "react-hot-toast";
-import { addInput } from "@/cartesi/Portals";
-import { 
-  Crown, 
-  Star, 
-  Zap, 
-  Check, 
-  X, 
-  Clock, 
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { client } from "@/lib/client";
+import { networkChain } from "@/components/ConnectWallet";
+import { ethers } from "ethers";
+import {
   CreditCard,
-  Calendar,
-  Users,
+  Check,
+  Star,
   Music,
   Download,
-  HeadphonesIcon,
-  Gift,
-  TrendingUp
+  Headphones,
+  Crown,
+  Zap,
+  Shield,
+  Loader2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { SubscriptionVouchers } from "@/components/Subscription/SubscriptionVouchers";
+import { useVouchers } from "@/cartesi/hooks/useVouchers";
+import { executeVoucher } from "@/cartesi/Portals";
 
 interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
   duration: string;
-  icon: React.ReactNode;
-  color: string;
-  bgGradient: string;
   features: string[];
   popular?: boolean;
-  current?: boolean;
+  icon: React.ReactNode;
+  color: string;
+  gradient: string;
 }
 
-interface UserSubscription {
-  plan: string;
-  status: 'active' | 'expired' | 'cancelled';
-  startDate: string;
-  endDate: string;
-  nextBilling: string;
-  autoRenew: boolean;
-}
+const subscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: "free",
+    name: "Free",
+    price: 0,
+    duration: "Forever",
+    features: [
+      "Access to limited music library",
+      "Ad-supported listening",
+      "Standard audio quality",
+      "Basic playlist creation",
+    ],
+    icon: <Music className="w-6 h-6" />,
+    color: "text-zinc-400",
+    gradient: "from-zinc-600 to-zinc-700",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    price: 100,
+    duration: "per month",
+    popular: true,
+    features: [
+      "Ad-free listening",
+      "Access to full music library",
+      "High-fidelity audio (320kbps)",
+      "Offline downloads",
+      "Unlimited playlist creation",
+      "Enhanced artist support",
+      "Priority customer support",
+      "Exclusive content access",
+    ],
+    icon: <Crown className="w-6 h-6" />,
+    color: "text-purple-400",
+    gradient: "from-purple-500 to-purple-600",
+  },
+];
 
-const SubscriptionManagement = () => {
-  const { rollups, dappAddress } = useMelodiousContext();
-  const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+const SubscriptionPage = () => {
+  const { rollups, dappAddress, signMessages } = useMelodiousContext();
+  const activeAccount = useActiveAccount();
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentSubscription, setCurrentSubscription] = useState<string | null>(
+    null
+  );
+  const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
+  const [showVouchers, setShowVouchers] = useState(false);
+  const [subscriptionTxHash, setSubscriptionTxHash] = useState<string | null>(
+    null
+  );
+  const {
+    loading: vouchersLoading,
+    error: vouchersError,
+    data: vouchersData,
+    vouchers,
+    refetch: refetchVouchers,
+    client: apolloClient,
+  } = useVouchers();
 
-  // Mock current subscription - in real app, this would be fetched from API
+  // Get signer instance from thirdweb account
   useEffect(() => {
-    // Simulate fetching user's current subscription
-    setCurrentSubscription({
-      plan: "premium_listener",
-      status: "active",
-      startDate: "2024-01-01",
-      endDate: "2024-02-01",
-      nextBilling: "2024-02-01",
-      autoRenew: true
-    });
-  }, []);
-
-  const subscriptionPlans: SubscriptionPlan[] = [
-    {
-      id: "basic_listener",
-      name: "Basic",
-      price: 2.99,
-      duration: "month",
-      icon: <Music className="w-6 h-6" />,
-      color: "from-gray-500 to-gray-700",
-      bgGradient: "bg-gradient-to-br from-gray-800/90 to-gray-900/90",
-      features: [
-        "Ad-free music streaming",
-        "Access to full music library",
-        "Standard audio quality (320kbps)",
-        "Create up to 10 playlists",
-        "Mobile & desktop apps",
-        "Skip unlimited tracks"
-      ],
-      current: currentSubscription?.plan === "basic_listener"
-    },
-    {
-      id: "premium_listener",
-      name: "Premium",
-      price: 6.99,
-      duration: "month",
-      icon: <Star className="w-6 h-6" />,
-      color: "from-purple-500 to-purple-700",
-      bgGradient: "bg-gradient-to-br from-purple-800/90 to-purple-900/90",
-      features: [
-        "Everything in Basic",
-        "High-fidelity audio (Hi-Res)",
-        "Offline downloads",
-        "Unlimited playlists",
-        "Early access to new releases",
-        "Exclusive listener events",
-        "Advanced music discovery",
-        "Priority customer support"
-      ],
-      popular: true,
-      current: currentSubscription?.plan === "premium_listener"
-    },
-    {
-      id: "audiophile",
-      name: "Audiophile",
-      price: 12.99,
-      duration: "month",
-      icon: <Crown className="w-6 h-6" />,
-      color: "from-yellow-500 to-orange-600",
-      bgGradient: "bg-gradient-to-br from-yellow-600/90 to-orange-700/90",
-      features: [
-        "Everything in Premium",
-        "Lossless audio (FLAC)",
-        "Spatial audio support",
-        "Exclusive unreleased tracks",
-        "Direct artist support features",
-        "Premium customer support",
-        "Concert ticket pre-sales",
-        "Artist meet & greet opportunities"
-      ],
-      current: currentSubscription?.plan === "audiophile"
-    }
-  ];
-
-  const handleSubscription = async (plan: string, amount: number) => {
-    setIsLoading(true);
-    const jsonPayload = JSON.stringify({
-      method: "subscribe",
-      args: {
-        plan,
-        amount,
-        type: "listener",
-      },
-    });
-    
-    let processingToastId: string | undefined;
-    try {
-      processingToastId = toast.loading("Processing subscription request...");
-
-      const result = await addInput(rollups, jsonPayload, dappAddress);
-
-      if (result && typeof result === 'object' && 'transactionHash' in result && result.transactionHash) {
-        toast.success("Subscription updated successfully!", { id: processingToastId });
-        // Update local state to reflect new subscription
-        setCurrentSubscription({
-          plan,
-          status: 'active',
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          nextBilling: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          autoRenew: true
+    const getSigner = async () => {
+      if (activeAccount) {
+        const ethersSigner = ethers5Adapter.signer.toEthers({
+          client,
+          chain: networkChain!,
+          account: activeAccount,
         });
-      } else {
-        toast.error("Failed to update subscription. Please try again.", { id: processingToastId });
+        setSignerInstance(await ethersSigner);
       }
-    } catch (error) {
-      console.error("Error during subscription:", error);
-      if (processingToastId) {
-        toast.error("An error occurred while processing your subscription.", { id: processingToastId });
+    };
+    getSigner();
+  }, [activeAccount]);
+
+  useEffect(() => {
+    // TODO: Fetch current subscription status from backend or Cartesi
+    // This would typically involve checking the user's current subscription
+    setCurrentSubscription("free"); // Default to free for now
+  }, [activeAccount]);
+
+  const handleVoucherExecution = async (voucher: any) => {
+    if (!rollups || !apolloClient) {
+      toast.error("Unable to execute voucher. Please try again.");
+      return;
+    }
+
+    try {
+      toast.loading("Executing voucher...", { id: "voucher-execution" });
+
+      const result = await executeVoucher(apolloClient, voucher, rollups);
+
+      if (
+        result &&
+        typeof result === "string" &&
+        result.includes("successfully")
+      ) {
+        toast.success(
+          "Subscription activated successfully! You can now enjoy your premium features.",
+          {
+            id: "voucher-execution",
+          }
+        );
+        setShowVouchers(false);
       } else {
-        toast.error("An error occurred while processing your subscription.");
+        toast.error("Failed to execute voucher. Please try again.", {
+          id: "voucher-execution",
+        });
       }
-    } finally {
-      setIsLoading(false);
+    } catch (error: any) {
+      console.error("Voucher execution error:", error);
+      toast.error(
+        error?.message || "Error executing voucher. Please try again.",
+        {
+          id: "voucher-execution",
+        }
+      );
     }
   };
 
-  const handleCancelSubscription = async () => {
-    setIsLoading(true);
-    const jsonPayload = JSON.stringify({
-      method: "cancel_subscription",
-      args: {
-        type: "listener",
-      },
-    });
+  const handleSubscription = async (plan: SubscriptionPlan) => {
+    if (!activeAccount) {
+      toast.error("Please connect your wallet first");
+      return;
+    }
 
-    let processingToastId: string | undefined;
+    if (plan.price === 0) {
+      toast.success("You're already on the free plan!");
+      return;
+    }
+
+    setIsProcessing(true);
+    setSelectedPlan(plan.id);
+
     try {
-      processingToastId = toast.loading("Cancelling subscription...");
-      
-      const result = await addInput(rollups, jsonPayload, dappAddress);
+      // CTSI token address (Cartesi Token)
+      const tokenAddress = process.env.NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS!;
+      const amount = plan.price;
 
-      if (result && typeof result === 'object' && 'transactionHash' in result && result.transactionHash) {
-        toast.success("Subscription cancelled successfully!", { id: processingToastId });
-        setCurrentSubscription(prev => prev ? { ...prev, status: 'cancelled', autoRenew: false } : null);
-      } else {
-        toast.error("Failed to cancel subscription. Please try again.", { id: processingToastId });
+      toast.loading("Processing subscription payment...", {
+        id: "subscription",
+      });
+
+      // Step 1: Deposit ERC20 tokens to portal
+      if (rollups && signerInstance) {
+        const depositResult = await depositErc20ToPortal(
+          rollups,
+          signerInstance,
+          tokenAddress,
+          amount,
+          dappAddress
+        );
+
+        if (depositResult && (depositResult as any).transactionHash) {
+          // Step 2: Create vault deposit payload
+          const vaultPayload = {
+            method: "vault_deposit",
+            args: {
+              amount,
+            },
+          };
+
+          // Step 3: Sign and send to server relayer
+          const relayResult = await signMessages(vaultPayload);
+
+          if (relayResult?.status) {
+            toast.success(
+              `Successfully subscribed to ${plan.name} plan! Please execute the voucher below to activate your subscription.`,
+              { id: "subscription" }
+            );
+            setCurrentSubscription(plan.id);
+            setSubscriptionTxHash((depositResult as any).transactionHash);
+            setShowVouchers(true);
+          } else {
+            toast.error("Vault deposit failed. Please try again.", {
+              id: "subscription",
+            });
+          }
+        } else {
+          toast.error("Token deposit failed. Please try again.", {
+            id: "subscription",
+          });
+        }
       }
-    } catch (error) {
-      console.error("Error cancelling subscription:", error);
-      if (processingToastId) {
-        toast.error("An error occurred while cancelling your subscription.", { id: processingToastId });
-      } else {
-        toast.error("An error occurred while cancelling your subscription.");
+    } catch (error: any) {
+      console.error("Subscription error:", error);
+
+      // Format and display specific error messages
+      let errorMessage =
+        "An error occurred while processing your subscription.";
+
+      if (error?.message) {
+        // Handle specific error types from depositErc20ToPortal
+        if (error.message.includes("Insufficient token balance")) {
+          errorMessage =
+            "Insufficient CTSI token balance. Please add more tokens to your wallet.";
+        } else if (error.message.includes("User rejected")) {
+          errorMessage = "Transaction was cancelled. Please try again.";
+        } else if (error.message.includes("Transaction failed")) {
+          errorMessage =
+            "Transaction failed. Please check your wallet and try again.";
+        } else if (error.message.includes("Invalid parameters")) {
+          errorMessage =
+            "Invalid subscription parameters. Please refresh and try again.";
+        } else if (error.message.includes("Network error")) {
+          errorMessage =
+            "Network error. Please check your connection and try again.";
+        } else {
+          // Use the original error message if it's user-friendly
+          errorMessage = error.message;
+        }
       }
+
+      toast.error(errorMessage, {
+        id: "subscription",
+      });
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
+      setSelectedPlan(null);
     }
   };
 
   return (
-    <div className="min-h-screen text-white p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            Subscription Management
+    <div className="min-h-screen bg-main-content-gradient bg-cover bg-center p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="flex items-center justify-center mb-4">
+            <div className="p-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600">
+              <CreditCard className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Choose Your
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent ml-3">
+              Music Plan
+            </span>
           </h1>
-          <p className="text-gray-200 text-lg max-w-2xl mx-auto">
-            Manage your subscription, upgrade your plan, or explore new features
+          <p className="text-xl text-zinc-300 max-w-2xl mx-auto">
+            Unlock the full potential of Melodious with our subscription plans.
+            Support artists and enjoy premium features.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Current Subscription Card */}
-        {currentSubscription && (
-          <Card className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 border-purple-500/30 backdrop-blur-sm shadow-xl">
+        {/* Subscription Plans Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto"
+        >
+          {subscriptionPlans.map((plan, index) => (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              className="relative"
+            >
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
+                    <Star className="w-3 h-3 mr-1" />
+                    Most Popular
+                  </Badge>
+                </div>
+              )}
+
+              <Card
+                className={cn(
+                  "h-full bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm transition-all duration-300",
+                  "hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20",
+                  currentSubscription === plan.id &&
+                    "border-green-500/50 shadow-green-500/20",
+                  plan.popular && "border-purple-500/50 shadow-purple-500/20"
+                )}
+              >
+                <CardHeader className="text-center pb-4">
+                  <div
+                    className={cn(
+                      "inline-flex p-3 rounded-full mb-4 bg-gradient-to-r",
+                      plan.gradient
+                    )}
+                  >
+                    <div className="text-white">{plan.icon}</div>
+                  </div>
+                  <CardTitle className="text-2xl font-bold text-white mb-2">
+                    {plan.name}
+                  </CardTitle>
+                  <div className="text-center">
+                    <span className="text-4xl font-bold text-white">
+                      {plan.price === 0 ? "Free" : `${plan.price} CTSI`}
+                    </span>
+                    <span className="text-zinc-400 ml-2">{plan.duration}</span>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="flex-1 flex flex-col">
+                  <ul className="space-y-3 mb-6 flex-1">
+                    {plan.features.map((feature, featureIndex) => (
+                      <li key={featureIndex} className="flex items-start gap-3">
+                        <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-zinc-300 text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {currentSubscription === plan.id ? (
+                    <Button
+                      disabled
+                      className="w-full bg-green-600 hover:bg-green-600 text-white"
+                    >
+                      <Check className="w-4 h-4 mr-2" />
+                      Current Plan
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleSubscription(plan)}
+                      disabled={isProcessing}
+                      className={cn(
+                        "w-full transition-all duration-200",
+                        plan.price === 0
+                          ? "bg-zinc-700 hover:bg-zinc-600 text-white"
+                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
+                      )}
+                    >
+                      {isProcessing && selectedPlan === plan.id ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : plan.price === 0 ? (
+                        "Get Started"
+                      ) : (
+                        "Subscribe Now"
+                      )}
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Features Comparison */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="mb-12"
+        >
+          <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-white">
-                <CreditCard className="w-6 h-6" />
-                Current Subscription
+              <CardTitle className="text-2xl font-bold text-white text-center">
+                Why Choose Melodious Premium?
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                  <span className="text-gray-100 font-medium">Plan:</span>
-                  <Badge className="bg-purple-600 text-white border-0 font-semibold">
-                    {subscriptionPlans.find(p => p.id === currentSubscription.plan)?.name || 'Unknown'}
-                  </Badge>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Shield className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Support Artists Directly
+                  </h3>
+                  <p className="text-zinc-400">
+                    Your subscription directly supports the artists you love
+                    through our decentralized platform.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                  <span className="text-gray-100 font-medium">Status:</span>
-                  <Badge 
-                    className={`border-0 font-semibold ${
-                      currentSubscription.status === 'active' 
-                        ? 'bg-green-600 text-white' 
-                        : 'bg-red-600 text-white'
-                    }`}
-                  >
-                    {currentSubscription.status.charAt(0).toUpperCase() + currentSubscription.status.slice(1)}
-                  </Badge>
+                <div className="text-center">
+                  <div className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Zap className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Blockchain Powered
+                  </h3>
+                  <p className="text-zinc-400">
+                    Enjoy transparent, secure transactions powered by Cartesi
+                    technology.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                  <span className="text-gray-100 font-medium">Started:</span>
-                  <span className="text-white font-semibold">{new Date(currentSubscription.startDate).toLocaleDateString()}</span>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                  <span className="text-gray-100 font-medium">Next Billing:</span>
-                  <span className="text-white font-semibold">{new Date(currentSubscription.nextBilling).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                  <span className="text-gray-100 font-medium">Auto Renew:</span>
-                  <Badge className={`border-0 font-semibold ${
-                    currentSubscription.autoRenew 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-600 text-white'
-                  }`}>
-                    {currentSubscription.autoRenew ? 'On' : 'Off'}
-                  </Badge>
-                </div>
-                <div className="pt-2">
-                  <Button 
-                    onClick={handleCancelSubscription}
-                    className="bg-red-600 hover:bg-red-700 text-white font-semibold border-0"
-                    disabled={isLoading || currentSubscription.status !== 'active'}
-                  >
-                    {isLoading ? 'Processing...' : 'Cancel Subscription'}
-                  </Button>
+                <div className="text-center">
+                  <div className="p-4 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <Music className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-white mb-2">
+                    Premium Experience
+                  </h3>
+                  <p className="text-zinc-400">
+                    Access high-quality audio, exclusive content, and ad-free
+                    listening.
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Subscription Vouchers */}
+        {activeAccount && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+          >
+            <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold text-white">
+                  Your Subscription Vouchers
+                </CardTitle>
+                <p className="text-zinc-400">
+                  Execute your subscription vouchers to activate your plan
+                  benefits.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <SubscriptionVouchers dappAddress={dappAddress} />
+              </CardContent>
+            </Card>
+          </motion.div>
         )}
-
-        {/* Available Plans */}
-        <div className="space-y-6">
-          <div className="text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">Choose Your Plan</h2>
-            <p className="text-gray-200">Upgrade, downgrade, or switch your subscription anytime</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {subscriptionPlans.map((plan) => (
-              <Card 
-                key={plan.id} 
-                className={`relative overflow-hidden border-2 transition-all duration-300 hover:scale-105 shadow-xl backdrop-blur-sm ${
-                  plan.current 
-                    ? 'border-purple-500 bg-purple-900/30' 
-                    : plan.popular 
-                    ? 'border-purple-400 bg-purple-800/20' 
-                    : 'border-gray-600 bg-gray-900/40'
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 text-sm font-bold transform rotate-12 translate-x-4 -translate-y-2">
-                    POPULAR
-                  </div>
-                )}
-                
-                {plan.current && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-green-600 text-white border-0 font-semibold">
-                      <Check className="w-3 h-3 mr-1" />
-                      Current
-                    </Badge>
-                  </div>
-                )}
-
-                <CardHeader className="text-center pb-2">
-                  <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white bg-gradient-to-r ${plan.color} mb-4 shadow-lg`}>
-                    {plan.icon}
-                  </div>
-                  <CardTitle className="text-2xl font-bold text-white">{plan.name}</CardTitle>
-                  <div className="space-y-1">
-                    <div className="text-4xl font-bold text-white">
-                      ${plan.price}
-                      <span className="text-lg font-normal text-gray-300">/{plan.duration}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-6">
-                  <div className="space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <div key={index} className="flex items-start gap-3 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                        <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-100 text-sm leading-relaxed">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button 
-                    onClick={() => handleSubscription(plan.id, plan.price)}
-                    disabled={plan.current || isLoading}
-                    className={`w-full py-3 font-semibold transition-all border-0 ${
-                      plan.current 
-                        ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
-                        : `bg-gradient-to-r ${plan.color} hover:opacity-90 text-white`
-                    }`}
-                  >
-                    {isLoading 
-                      ? 'Processing...' 
-                      : plan.current 
-                      ? 'Current Plan' 
-                      : `Upgrade to ${plan.name}`
-                    }
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Usage Statistics */}
-        <Card className="bg-gradient-to-r from-slate-900/50 to-gray-900/50 border-gray-600/50 backdrop-blur-sm shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-white">
-              <TrendingUp className="w-6 h-6" />
-              Your Music Stats This Month
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center space-y-2 bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                <HeadphonesIcon className="w-8 h-8 text-purple-400 mx-auto" />
-                <div className="text-2xl font-bold text-white">127</div>
-                <div className="text-sm text-gray-300">Hours Listened</div>
-              </div>
-              <div className="text-center space-y-2 bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                <Music className="w-8 h-8 text-purple-400 mx-auto" />
-                <div className="text-2xl font-bold text-white">1,542</div>
-                <div className="text-sm text-gray-300">Songs Played</div>
-              </div>
-              <div className="text-center space-y-2 bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                <Download className="w-8 h-8 text-purple-400 mx-auto" />
-                <div className="text-2xl font-bold text-white">89</div>
-                <div className="text-sm text-gray-300">Downloads</div>
-              </div>
-              <div className="text-center space-y-2 bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                <Users className="w-8 h-8 text-purple-400 mx-auto" />
-                <div className="text-2xl font-bold text-white">12</div>
-                <div className="text-sm text-gray-300">Artists Supported</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Benefits Section */}
-        <Card className="bg-gradient-to-r from-indigo-900/30 to-purple-900/30 border-indigo-500/30 backdrop-blur-sm shadow-xl">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-white text-center justify-center">
-              <Gift className="w-6 h-6" />
-              Subscription Benefits
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-white">For You</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    Ad-free listening experience
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <HeadphonesIcon className="w-4 h-4 text-yellow-400" />
-                    Higher quality audio streams
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Download className="w-4 h-4 text-yellow-400" />
-                    Offline listening capabilities
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Star className="w-4 h-4 text-yellow-400" />
-                    Exclusive content access
-                  </li>
-                </ul>
-              </div>
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-white">For Artists</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <TrendingUp className="w-4 h-4 text-green-400" />
-                    Higher streaming revenues
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Users className="w-4 h-4 text-green-400" />
-                    Direct fan support
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Gift className="w-4 h-4 text-green-400" />
-                    Community reward pools
-                  </li>
-                  <li className="flex items-center gap-3 text-gray-200 bg-black/20 backdrop-blur-sm rounded-lg p-3 border border-white/10">
-                    <Crown className="w-4 h-4 text-green-400" />
-                    Priority platform features
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 };
 
-export default SubscriptionManagement;
+export default SubscriptionPage;
