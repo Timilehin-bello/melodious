@@ -32,6 +32,7 @@ import { twMerge } from "tailwind-merge";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { title } from "process";
+import { SidebarAd } from "@/components/ads";
 // Menu items.
 const items = [
   {
@@ -141,33 +142,9 @@ export function ListenerSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {/* <SidebarFooter className="bg-[#950944] text-white">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex align-middle items-center w-full">
-              <button
-                onClick={logOut}
-                className={
-                  state === "collapsed"
-                    ? "hidden"
-                    : "bg-[#950944] px-10 rounded-md py-2 text-md border-0 ml-10 mx-auto  hover:text-gray-400 "
-                }
-              >
-                Log out
-              </button>
-            </div>
-            <div
-              className={
-                state !== "collapsed"
-                  ? "hidden"
-                  : "bg-[#950944] px-1 rounded-full py-2 text-md border-0 mx-auto hover:text-gray-400 cursor-pointer"
-              }
-            >
-              <LogOut size={20} />
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter> */}
+      <SidebarFooter className="text-white p-2">
+        <SidebarAd className="w-full" />
+      </SidebarFooter>
     </Sidebar>
   );
 }

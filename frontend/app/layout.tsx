@@ -10,6 +10,7 @@ import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 import { Toaster as Toast } from "react-hot-toast";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { AdSenseScript } from "@/components/ads";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

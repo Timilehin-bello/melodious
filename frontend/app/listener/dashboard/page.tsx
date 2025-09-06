@@ -16,6 +16,7 @@ import { useMelodiousContext } from "@/contexts/melodious";
 import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
 import SongList from "@/components/SongList";
+import { SidebarAd } from "@/components/ads";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
@@ -329,6 +330,11 @@ export default function Page() {
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
               <PopularArtistCarousel />
             </div>
+          </section>
+
+          {/* Ad Section */}
+          <section className="w-full mb-8">
+            <SidebarAd className="w-full" />
           </section>
 
           {/* Recently Played Section */}
