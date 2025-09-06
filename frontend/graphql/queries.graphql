@@ -90,6 +90,19 @@ query vouchers {
         }
         destination
         payload
+        proof {
+          validity {
+            inputIndexWithinEpoch
+            outputIndexWithinInput
+            outputHashesRootHash
+            vouchersEpochRootHash
+            noticesEpochRootHash
+            machineStateHash
+            outputHashInOutputHashesSiblings
+            outputHashesInEpochSiblings
+          }
+          context
+        }
       }
     }
   }

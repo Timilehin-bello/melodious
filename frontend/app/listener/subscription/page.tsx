@@ -23,76 +23,67 @@ import {
   Zap,
   Shield,
   Loader2,
+  AlertCircle,
+  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { SubscriptionVouchers } from "@/components/Subscription/SubscriptionVouchers";
 import { useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher } from "@/cartesi/Portals";
+import {
+  useDepositFirstSubscription,
+  useManualVoucherExecution,
+  DepositWorkflowState,
+  DepositWorkflowStatus,
+  DepositFirstSubscriptionRequest,
+} from "@/hooks/useDepositFirstSubscription";
+import {
+  useSubscriptionPlans,
+  useSubscriptionStatus,
+} from "@/hooks/useSubscription";
+import { SubscriptionPlan } from "@/types/subscription";
 
-interface SubscriptionPlan {
-  id: string;
-  name: string;
-  price: number;
-  duration: string;
-  features: string[];
-  popular?: boolean;
-  icon: React.ReactNode;
-  color: string;
-  gradient: string;
-}
-
-const subscriptionPlans: SubscriptionPlan[] = [
-  {
-    id: "free",
-    name: "Free",
-    price: 0,
-    duration: "Forever",
-    features: [
-      "Access to limited music library",
-      "Ad-supported listening",
-      "Standard audio quality",
-      "Basic playlist creation",
-    ],
-    icon: <Music className="w-6 h-6" />,
-    color: "text-zinc-400",
-    gradient: "from-zinc-600 to-zinc-700",
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    price: 100,
-    duration: "per month",
-    popular: true,
-    features: [
-      "Ad-free listening",
-      "Access to full music library",
-      "High-fidelity audio (320kbps)",
-      "Offline downloads",
-      "Unlimited playlist creation",
-      "Enhanced artist support",
-      "Priority customer support",
-      "Exclusive content access",
-    ],
-    icon: <Crown className="w-6 h-6" />,
-    color: "text-purple-400",
-    gradient: "from-purple-500 to-purple-600",
-  },
-];
+// Remove local interface - using the one from types/subscription.ts
+// Local UI helper function to get plan display properties
+const getPlanDisplayProps = (planId: number) => {
+  const props = {
+    1: {
+      icon: <Music className="w-6 h-6" />,
+      color: "text-zinc-400",
+      gradient: "from-zinc-600 to-zinc-700",
+      popular: false,
+    },
+    2: {
+      icon: <Crown className="w-6 h-6" />,
+      color: "text-purple-400",
+      gradient: "from-purple-500 to-purple-600",
+      popular: true,
+    },
+  };
+  return props[planId as keyof typeof props] || props[1];
+};
 
 const SubscriptionPage = () => {
   const { rollups, dappAddress } = useMelodiousContext();
   const activeAccount = useActiveAccount();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [currentSubscription, setCurrentSubscription] = useState<string | null>(
-    null
-  );
   const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
-  const [showVouchers, setShowVouchers] = useState(false);
-  const [subscriptionTxHash, setSubscriptionTxHash] = useState<string | null>(
-    null
-  );
+  const [workflowState, setWorkflowState] =
+    useState<DepositWorkflowState | null>(null);
+
+  // TanStack Query hooks
+  const { data: subscriptionPlans, isLoading: plansLoading } =
+    useSubscriptionPlans();
+  const {
+    activeSubscription,
+    hasActiveSubscription,
+    isLoading: statusLoading,
+  } = useSubscriptionStatus();
+  const depositFirstSubscription = useDepositFirstSubscription();
+  const manualVoucherExecution = useManualVoucherExecution();
+
+  // Cartesi hooks
   const {
     loading: vouchersLoading,
     error: vouchersError,
@@ -101,6 +92,13 @@ const SubscriptionPage = () => {
     refetch: refetchVouchers,
     client: apolloClient,
   } = useVouchers();
+
+  // Computed states
+  const isProcessing =
+    depositFirstSubscription.isPending || manualVoucherExecution.isPending;
+  const currentSubscription = hasActiveSubscription
+    ? activeSubscription?.plan?.name?.toLowerCase()
+    : "free";
 
   // Get signer instance from thirdweb account
   useEffect(() => {
@@ -117,10 +115,10 @@ const SubscriptionPage = () => {
     getSigner();
   }, [activeAccount]);
 
+  // Reset workflow state when account changes
   useEffect(() => {
-    // TODO: Fetch current subscription status from backend or Cartesi
-    // This would typically involve checking the user's current subscription
-    setCurrentSubscription("free"); // Default to free for now
+    setWorkflowState(null);
+    setSelectedPlan(null);
   }, [activeAccount]);
 
   const handleVoucherExecution = async (voucher: any) => {
@@ -130,35 +128,20 @@ const SubscriptionPage = () => {
     }
 
     try {
-      toast.loading("Executing voucher...", { id: "voucher-execution" });
-
-      const result = await executeVoucher(apolloClient, voucher, rollups);
-
-      if (
-        result &&
-        typeof result === "string" &&
-        result.includes("successfully")
-      ) {
-        toast.success(
-          "Subscription activated successfully! You can now enjoy your premium features.",
-          {
-            id: "voucher-execution",
-          }
-        );
-        setShowVouchers(false);
-      } else {
-        toast.error("Failed to execute voucher. Please try again.", {
-          id: "voucher-execution",
-        });
-      }
-    } catch (error: any) {
-      console.error("Voucher execution error:", error);
-      toast.error(
-        error?.message || "Error executing voucher. Please try again.",
-        {
-          id: "voucher-execution",
-        }
-      );
+      await manualVoucherExecution.mutateAsync({
+        voucher,
+        rollups,
+        apolloClient,
+        subscriptionId: workflowState?.subscriptionId,
+        amount: workflowState?.subscriptionId
+          ? subscriptionPlans?.find((p) => p.id.toString() === selectedPlan)
+              ?.price
+          : undefined,
+        currency: "CTSI",
+        depositTxHash: workflowState?.depositTxHash,
+      });
+    } catch (error) {
+      console.error("Manual voucher execution failed:", error);
     }
   };
 
@@ -173,80 +156,71 @@ const SubscriptionPage = () => {
       return;
     }
 
-    setIsProcessing(true);
-    setSelectedPlan(plan.id);
+    if (!rollups || !signerInstance) {
+      toast.error("Wallet or rollups not ready. Please try again.");
+      return;
+    }
+
+    setSelectedPlan(plan.id.toString());
+    setWorkflowState(null);
+
+    // CTSI token address (Cartesi Token)
+    const tokenAddress = process.env.NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS!;
+
+    if (!tokenAddress) {
+      toast.error("Token address not configured. Please contact support.");
+      return;
+    }
+
+    const request: DepositFirstSubscriptionRequest = {
+      planType: plan.name.toUpperCase(),
+      planId: plan.id,
+      amount: plan.price,
+      currency: "CTSI",
+      tokenAddress,
+      dappAddress,
+      autoRenew: true,
+    };
 
     try {
-      // CTSI token address (Cartesi Token)
-      const tokenAddress = process.env.NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS!;
-      const amount = plan.price;
+      await depositFirstSubscription.mutateAsync({
+        request,
+        rollups,
+        signer: signerInstance,
+        onStatusChange: (state: DepositWorkflowState) => {
+          setWorkflowState(state);
 
-      toast.loading("Processing subscription payment...", {
-        id: "subscription",
+          // Show progress toasts
+          if (state.status === DepositWorkflowStatus.DEPOSITING) {
+            toast.loading(state.currentStep, { id: "workflow" });
+          } else if (state.status === DepositWorkflowStatus.DEPOSIT_COMPLETED) {
+            toast.dismiss("workflow"); // Stop the loading toast
+            toast.success(state.currentStep, { duration: 5000 }); // Show success message for longer
+          } else if (
+            state.status === DepositWorkflowStatus.CREATING_SUBSCRIPTION
+          ) {
+            toast.loading(state.currentStep, { id: "workflow" });
+          } else if (
+            state.status === DepositWorkflowStatus.SUBSCRIPTION_CREATED
+          ) {
+            toast.success(state.currentStep, { id: "workflow" });
+          } else if (state.status === DepositWorkflowStatus.EXECUTING_VOUCHER) {
+            // No toast - rely on loading bar to show progress
+          } else if (
+            state.status === DepositWorkflowStatus.PROCESSING_PAYMENT
+          ) {
+            toast.loading(state.currentStep, { id: "workflow" });
+          } else if (state.status === DepositWorkflowStatus.FAILED) {
+            toast.error(`${state.currentStep}: ${state.error}`, {
+              id: "workflow",
+            });
+          }
+        },
       });
-
-      // Direct vault deposit (bypassing relayer)
-      if (rollups && signerInstance) {
-        const depositResult = await depositErc20ToVault(
-          rollups,
-          signerInstance,
-          tokenAddress,
-          amount,
-          dappAddress
-        );
-
-        if (
-          depositResult &&
-          depositResult.depositReceipt &&
-          depositResult.inputReceipt
-        ) {
-          toast.success(
-            `Successfully subscribed to ${plan.name} plan! Please execute the voucher below to activate your subscription.`,
-            { id: "subscription" }
-          );
-          setCurrentSubscription(plan.id);
-          setSubscriptionTxHash((depositResult as any).transactionHash);
-          setShowVouchers(true);
-        } else {
-          toast.error("Vault deposit failed. Please try again.", {
-            id: "subscription",
-          });
-        }
-      }
-    } catch (error: any) {
-      console.error("Subscription error:", error);
-
-      // Format and display specific error messages
-      let errorMessage =
-        "An error occurred while processing your subscription.";
-
-      if (error?.message) {
-        // Handle specific error types from depositErc20ToPortal
-        if (error.message.includes("Insufficient token balance")) {
-          errorMessage =
-            "Insufficient CTSI token balance. Please add more tokens to your wallet.";
-        } else if (error.message.includes("User rejected")) {
-          errorMessage = "Transaction was cancelled. Please try again.";
-        } else if (error.message.includes("Transaction failed")) {
-          errorMessage =
-            "Transaction failed. Please check your wallet and try again.";
-        } else if (error.message.includes("Invalid parameters")) {
-          errorMessage =
-            "Invalid subscription parameters. Please refresh and try again.";
-        } else if (error.message.includes("Network error")) {
-          errorMessage =
-            "Network error. Please check your connection and try again.";
-        } else {
-          // Use the original error message if it's user-friendly
-          errorMessage = error.message;
-        }
-      }
-
-      toast.error(errorMessage, {
-        id: "subscription",
-      });
+    } catch (error) {
+      // Error handling is done in the mutation's onError callback
+      console.error("Subscription workflow failed:", error);
     } finally {
-      setIsProcessing(false);
       setSelectedPlan(null);
     }
   };
@@ -285,98 +259,117 @@ const SubscriptionPage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto"
         >
-          {subscriptionPlans.map((plan, index) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02 }}
-              className="relative"
-            >
-              {plan.popular && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
-                    <Star className="w-3 h-3 mr-1" />
-                    Most Popular
-                  </Badge>
-                </div>
-              )}
-
-              <Card
-                className={cn(
-                  "h-full bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm transition-all duration-300",
-                  "hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20",
-                  currentSubscription === plan.id &&
-                    "border-green-500/50 shadow-green-500/20",
-                  plan.popular && "border-purple-500/50 shadow-purple-500/20"
-                )}
+          {subscriptionPlans?.map((plan, index) => {
+            const displayProps = getPlanDisplayProps(plan.id);
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                className="relative"
               >
-                <CardHeader className="text-center pb-4">
-                  <div
-                    className={cn(
-                      "inline-flex p-3 rounded-full mb-4 bg-gradient-to-r",
-                      plan.gradient
-                    )}
-                  >
-                    <div className="text-white">{plan.icon}</div>
+                {displayProps.popular && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                    <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-1">
+                      <Star className="w-3 h-3 mr-1" />
+                      Most Popular
+                    </Badge>
                   </div>
-                  <CardTitle className="text-2xl font-bold text-white mb-2">
-                    {plan.name}
-                  </CardTitle>
-                  <div className="text-center">
-                    <span className="text-4xl font-bold text-white">
-                      {plan.price === 0 ? "Free" : `${plan.price} CTSI`}
-                    </span>
-                    <span className="text-zinc-400 ml-2">{plan.duration}</span>
-                  </div>
-                </CardHeader>
+                )}
 
-                <CardContent className="flex-1 flex flex-col">
-                  <ul className="space-y-3 mb-6 flex-1">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-zinc-300 text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {currentSubscription === plan.id ? (
-                    <Button
-                      disabled
-                      className="w-full bg-green-600 hover:bg-green-600 text-white"
-                    >
-                      <Check className="w-4 h-4 mr-2" />
-                      Current Plan
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleSubscription(plan)}
-                      disabled={isProcessing}
-                      className={cn(
-                        "w-full transition-all duration-200",
-                        plan.price === 0
-                          ? "bg-zinc-700 hover:bg-zinc-600 text-white"
-                          : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
-                      )}
-                    >
-                      {isProcessing && selectedPlan === plan.id ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : plan.price === 0 ? (
-                        "Get Started"
-                      ) : (
-                        "Subscribe Now"
-                      )}
-                    </Button>
+                <Card
+                  className={cn(
+                    "h-full bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm transition-all duration-300",
+                    "hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20",
+                    currentSubscription === plan.id.toString() &&
+                      "border-green-500/50 shadow-green-500/20",
+                    displayProps.popular &&
+                      "border-purple-500/50 shadow-purple-500/20"
                   )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                >
+                  <CardHeader className="text-center pb-4">
+                    <div
+                      className={cn(
+                        "inline-flex p-3 rounded-full mb-4 bg-gradient-to-r",
+                        displayProps.gradient
+                      )}
+                    >
+                      <div className="text-white">{displayProps.icon}</div>
+                    </div>
+                    <CardTitle className="text-2xl font-bold text-white mb-2">
+                      {plan.name}
+                    </CardTitle>
+                    <div className="text-center">
+                      <span className="text-4xl font-bold text-white">
+                        {plan.price === 0 ? "Free" : `${plan.price} CTSI`}
+                      </span>
+                      <span className="text-zinc-400 ml-2">
+                        {plan.duration}
+                      </span>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="flex-1 flex flex-col">
+                    <ul className="space-y-3 mb-6 flex-1">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li
+                          key={featureIndex}
+                          className="flex items-start gap-3"
+                        >
+                          <Check className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-zinc-300 text-sm">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {hasActiveSubscription &&
+                    activeSubscription?.plan?.id === plan.id ? (
+                      <Button
+                        disabled
+                        className="w-full bg-green-600 hover:bg-green-600 text-white"
+                      >
+                        <Check className="w-4 h-4 mr-2" />
+                        Current Plan
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleSubscription(plan)}
+                        disabled={
+                          isProcessing ||
+                          (hasActiveSubscription && plan.price > 0)
+                        }
+                        className={cn(
+                          "w-full transition-all duration-200",
+                          plan.price === 0
+                            ? "bg-zinc-700 hover:bg-zinc-600 text-white"
+                            : hasActiveSubscription && plan.price > 0
+                            ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
+                            : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
+                        )}
+                      >
+                        {isProcessing && selectedPlan === plan.id.toString() ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : hasActiveSubscription && plan.price > 0 ? (
+                          "Already Subscribed"
+                        ) : plan.price === 0 ? (
+                          "Get Started"
+                        ) : (
+                          "Subscribe Now"
+                        )}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* Features Comparison */}
@@ -434,6 +427,93 @@ const SubscriptionPage = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Workflow Status Display */}
+        {workflowState &&
+          workflowState.status !== DepositWorkflowStatus.IDLE && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-12 max-w-2xl mx-auto"
+            >
+              <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                    {workflowState.status === DepositWorkflowStatus.FAILED ? (
+                      <AlertCircle className="w-5 h-5 text-red-500" />
+                    ) : workflowState.status ===
+                      DepositWorkflowStatus.COMPLETED ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
+                    )}
+                    Subscription Workflow
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-300">
+                      {workflowState.currentStep}
+                    </span>
+                    <span className="text-sm text-zinc-400">
+                      {workflowState.progress}%
+                    </span>
+                  </div>
+
+                  <div className="w-full bg-zinc-800 rounded-full h-2">
+                    <div
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${workflowState.progress}%` }}
+                    />
+                  </div>
+
+                  {workflowState.status === DepositWorkflowStatus.FAILED &&
+                    workflowState.error && (
+                      <div className="mt-4 p-3 bg-red-900/20 border border-red-800/50 rounded-lg">
+                        <p className="text-red-400 text-sm">
+                          {workflowState.error}
+                        </p>
+                      </div>
+                    )}
+
+                  {workflowState.status === DepositWorkflowStatus.COMPLETED &&
+                    hasActiveSubscription && (
+                      <div className="mt-4 p-3 bg-green-900/20 border border-green-800/50 rounded-lg">
+                        <p className="text-green-400 text-sm">
+                          🎉 Subscription activated successfully! You can now
+                          enjoy your premium features.
+                        </p>
+                      </div>
+                    )}
+
+                  {workflowState.voucherId &&
+                    workflowState.status !==
+                      DepositWorkflowStatus.COMPLETED && (
+                      <div className="mt-4">
+                        <Button
+                          onClick={() =>
+                            handleVoucherExecution({
+                              id: workflowState.voucherId!,
+                            })
+                          }
+                          disabled={manualVoucherExecution.isPending}
+                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                        >
+                          {manualVoucherExecution.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Executing Voucher...
+                            </>
+                          ) : (
+                            "Execute Voucher Manually"
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
         {/* Subscription Vouchers */}
         {activeAccount && (

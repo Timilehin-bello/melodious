@@ -28,6 +28,11 @@ export const useVouchers = () => {
   const vouchers: Voucher[] =
     data &&
     data.vouchers.edges
+      .filter((node: any) => {
+        // Only include vouchers that have complete proof data
+        const proof = node.node?.proof;
+        return proof && proof.validity && proof.context;
+      })
       .map((node: any) => {
         const n = node.node;
         let payload = n?.payload;
@@ -130,8 +135,14 @@ export const useVouchers = () => {
           index: parseInt(n?.index),
           destination: `${n?.destination ?? ""}`,
           payload: `${payload}`,
-          input: n ? { index: n.input.index, payload: inputPayload, msgSender: n.input.msgSender } : {},
-          proof: null,
+          input: n
+            ? {
+                index: n.input.index,
+                payload: inputPayload,
+                msgSender: n.input.msgSender,
+              }
+            : {},
+          proof: n?.proof || null,
           executed: null,
         };
       })

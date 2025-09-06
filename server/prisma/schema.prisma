@@ -14,17 +14,18 @@ datasource db {
 }
 
 model User {
-  id            Int           @id @default(autoincrement())
-  walletAddress String        @unique
+  id            Int            @id @default(autoincrement())
+  walletAddress String         @unique
   token         Token[]
   listener      Listener?
   artist        Artist?
   lastLogin     DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   userMetrics   UserMetrics?
   deviceInfo    String? // Stores device and browser information
   geoLocation   GeoLocation[]
+  subscriptions Subscription[]
 }
 
 model Listener {
@@ -346,4 +347,60 @@ model PlaybackSession {
 
   @@index([trackId, startTime])
   @@index([listenerId, startTime])
+}
+
+model Subscription {
+  id            Int                   @id @default(autoincrement())
+  userId        Int
+  planType      String // "BASIC", "PREMIUM", "ARTIST"
+  status        String                @default("ACTIVE") // "ACTIVE", "CANCELLED", "EXPIRED", "PENDING"
+  startDate     DateTime              @default(now())
+  endDate       DateTime
+  price         Float
+  currency      String                @default("CTSI")
+  paymentMethod String? // "STRIPE", "PAYPAL", "CRYPTO"
+  paymentId     String? // External payment provider ID
+  autoRenew     Boolean               @default(true)
+  cancelledAt   DateTime?
+  cancelReason  String?
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments      SubscriptionPayment[]
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([userId, status])
+  @@index([endDate, status])
+}
+
+model SubscriptionPayment {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  amount         Float
+  currency       String       @default("CTSI")
+  status         String       @default("PENDING") // "PENDING", "COMPLETED", "FAILED", "REFUNDED"
+  paymentMethod  String // "STRIPE", "PAYPAL", "CRYPTO"
+  paymentId      String // External payment provider transaction ID
+  paymentData    String? // JSON string for additional payment metadata
+  processedAt    DateTime?
+  failureReason  String?
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([subscriptionId, status])
+  @@index([paymentId])
+}
+
+model SubscriptionPlan {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  displayName String
+  description String?
+  price       Float
+  currency    String   @default("CTSI")
+  duration    Int
+  features    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

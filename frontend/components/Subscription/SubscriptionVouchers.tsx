@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useCallback, useState, useEffect, useMemo } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { ethers } from "ethers";
 import { useRollups } from "@/cartesi/hooks/useRollups";
 import { Voucher, useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher } from "@/cartesi/Portals";
 import { useActiveAccount } from "thirdweb/react";
 import { toast } from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/queryClient";
 import {
   RefreshCw,
   Loader2,
@@ -16,6 +18,11 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  useVoucherExecutionStatus,
+  voucherExecutionKeys,
+} from "@/hooks/useVoucherExecutionStatus";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 
 interface ISubscriptionVouchersProps {
   dappAddress: string;
@@ -26,6 +33,12 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 }) => {
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();
+  const { activeSubscription, isLoading } = useSubscriptionStatus();
+  
+  // Debug logging
+  console.log("SubscriptionVouchers - activeSubscription:", activeSubscription);
+  console.log("SubscriptionVouchers - isLoading:", isLoading);
+  console.log("SubscriptionVouchers - account:", account?.address);
   const {
     loading,
     error,
@@ -34,53 +47,26 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
     client: apolloClient,
   } = useVouchers();
 
+  const queryClient = useQueryClient();
   const [voucherToExecute, setVoucherToExecute] = useState<Voucher>();
   const [isExecuting, setIsExecuting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [executionStatuses, setExecutionStatuses] = useState<{
-    [key: string]: boolean;
-  }>({});
 
   const setVoucher = useCallback(
     async (voucher: any) => {
       if (rollups) {
-        voucher.executed = await rollups.dappContract.wasVoucherExecuted(
-          ethers.BigNumber.from(voucher.input.index),
-          ethers.BigNumber.from(voucher.index)
-        );
-        // Update execution status in state
-        setExecutionStatuses((prev) => ({
-          ...prev,
-          [`${voucher.input.index}-${voucher.index}`]: voucher.executed,
-        }));
-      }
-      setVoucherToExecute(voucher);
-    },
-    [rollups]
-  );
-
-  // Check execution status for all vouchers
-  const checkVoucherExecutionStatus = useCallback(
-    async (vouchersList: any[]) => {
-      if (!rollups) return {};
-
-      const statuses: { [key: string]: boolean } = {};
-
-      for (const voucher of vouchersList) {
+        // Check execution status before setting the voucher
         try {
-          const executed = await rollups.dappContract.wasVoucherExecuted(
+          voucher.executed = await rollups.dappContract.wasVoucherExecuted(
             ethers.BigNumber.from(voucher.input.index),
             ethers.BigNumber.from(voucher.index)
           );
-          statuses[`${voucher.input.index}-${voucher.index}`] = executed;
         } catch (error) {
           console.log("Error checking voucher execution status:", error);
-          statuses[`${voucher.input.index}-${voucher.index}`] = false;
+          voucher.executed = false;
         }
       }
-
-      setExecutionStatuses(statuses);
-      return statuses;
+      setVoucherToExecute(voucher);
     },
     [rollups]
   );
@@ -91,12 +77,102 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
       return;
     }
 
+    // Check if voucher is already executed
+    if (voucherToExecute.executed) {
+      toast.error("Voucher has already been executed");
+      return;
+    }
+
     setIsExecuting(true);
+    
     try {
-      await executeVoucher(apolloClient, voucherToExecute, rollups);
-      toast.success("Voucher executed successfully!");
+      console.log("Executing voucher:", {
+        voucherIndex: voucherToExecute.index,
+        inputIndex: voucherToExecute.input?.index,
+        destination: voucherToExecute.destination,
+        payload: voucherToExecute.payload,
+        hasProof: !!voucherToExecute.proof
+      });
+      
+      const result = await executeVoucher(
+        apolloClient,
+        voucherToExecute,
+        rollups
+      );
+      
+      // Check if result indicates an error
+       if (typeof result === 'object' && result !== null && 'message' in result && !(result as any).success) {
+         const errorMessage = (result as any).message || 'Unknown error';
+         console.error('Voucher execution failed:', result);
+         toast.error(`Voucher execution failed: ${errorMessage}`);
+         return;
+       }
+      // Show success message
+      if (typeof result === 'object' && result !== null && (result as any).success && (result as any).message) {
+        toast.success((result as any).message);
+      } else if (typeof result === 'string') {
+        toast.success(result);
+      } else if (typeof result === 'object' && result !== null && 'message' in result) {
+        toast.success((result as any).message);
+      } else {
+        toast.success('Voucher executed successfully!');
+      }
       setVoucherToExecute(undefined);
-      // Note: Manual refresh required - no automatic refetch
+
+      // Call backend to update subscription status after voucher execution
+      console.log("Active subscription:", activeSubscription);
+      console.log("Voucher execution result:", result);
+      
+      if (activeSubscription?.id) {
+        try {
+          // Get the most recent payment's paymentId or use voucher ID as fallback
+          const paymentId =
+            activeSubscription.payments?.[
+              activeSubscription.payments.length - 1
+            ]?.paymentId || voucherToExecute.id;
+
+          // Extract transaction hash from successful result
+          let transactionHash: string;
+          if (typeof result === 'object' && result !== null && (result as any).success && (result as any).txHash) {
+            transactionHash = (result as any).txHash;
+          } else if (typeof result === 'string') {
+            // Legacy string response - generate placeholder
+            transactionHash = `voucher-${voucherToExecute.input.index}-${voucherToExecute.index}`;
+          } else if (result && typeof result === 'object') {
+            // Try to extract hash from various possible properties
+            transactionHash = (result as any)?.hash || (result as any)?.transactionHash || 
+              (result as any)?.txHash ||
+              `voucher-${voucherToExecute.input.index}-${voucherToExecute.index}`;
+          } else {
+            transactionHash = `voucher-${voucherToExecute.input.index}-${voucherToExecute.index}`;
+          }
+
+          console.log("Calling backend with payload:", {
+            subscriptionId: activeSubscription.id,
+            paymentId: paymentId,
+            transactionHash: transactionHash,
+          });
+
+          const response = await apiClient.post("/subscriptions/process-payment", {
+            subscriptionId: activeSubscription.id,
+            paymentId: paymentId,
+            transactionHash: transactionHash,
+          });
+          console.log("Backend subscription status updated successfully:", response.data);
+          toast.success("Subscription status updated!");
+        } catch (error) {
+          console.error("Failed to update backend subscription status:", error);
+          toast.error("Failed to update subscription status");
+        }
+      } else {
+        console.log("No active subscription found, skipping backend call");
+        toast.error("No active subscription found");
+      }
+
+      // Invalidate and refetch voucher execution status
+      queryClient.invalidateQueries({
+        queryKey: voucherExecutionKeys.list(dappAddress, subscriptionVouchers),
+      });
     } catch (error) {
       console.error("Error executing voucher:", error);
       toast.error("Failed to execute voucher");
@@ -108,29 +184,30 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
   // Filter vouchers to show vault-related ones for the current user only
   const subscriptionVouchers = useMemo(() => {
     if (!account?.address || !vouchers) return [];
-    
+
     return vouchers.filter((voucher: any) => {
       // First check if the voucher belongs to the current user
-      const isUserVoucher = voucher.input?.msgSender?.toLowerCase() === account.address.toLowerCase();
-      
+      const isUserVoucher =
+        voucher.input?.msgSender?.toLowerCase() ===
+        account.address.toLowerCase();
+
       // Then check if it's subscription-related
-      const isSubscriptionRelated = (
+      const isSubscriptionRelated =
         voucher.payload.includes("Erc20 Transfer") ||
         voucher.payload.includes("vault") ||
         voucher.payload.includes("subscription") ||
-        voucher.payload.includes("CTSI Transfer")
-      );
-      
+        voucher.payload.includes("CTSI Transfer");
+
       return isUserVoucher && isSubscriptionRelated;
     });
   }, [vouchers, account?.address]);
 
-  // Check execution status when vouchers change
-  useEffect(() => {
-    if (subscriptionVouchers && subscriptionVouchers.length > 0) {
-      checkVoucherExecutionStatus(subscriptionVouchers);
-    }
-  }, [subscriptionVouchers, checkVoucherExecutionStatus]);
+  // Use TanStack Query to manage voucher execution status
+  const {
+    data: executionStatuses = {},
+    isLoading: statusLoading,
+    refetch: refetchStatuses,
+  } = useVoucherExecutionStatus(dappAddress, subscriptionVouchers);
 
   return (
     <div className="space-y-6">
@@ -143,7 +220,10 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
           onClick={async () => {
             setIsRefreshing(true);
             try {
-              await refetchVouchers({ requestPolicy: "network-only" });
+              await Promise.all([
+                refetchVouchers({ requestPolicy: "network-only" }),
+                refetchStatuses(),
+              ]);
             } finally {
               setIsRefreshing(false);
             }
@@ -169,10 +249,12 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
         </button>
       </div>
 
-      {loading && (
+      {(loading || statusLoading) && (
         <div className="flex items-center justify-center p-8">
           <Loader2 className="w-6 h-6 animate-spin text-[#950844]" />
-          <span className="ml-2 text-zinc-400">Loading vouchers...</span>
+          <span className="ml-2 text-zinc-400">
+            {loading ? "Loading vouchers..." : "Checking execution status..."}
+          </span>
         </div>
       )}
 
@@ -184,6 +266,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
       )}
 
       {!loading &&
+        !statusLoading &&
         !error &&
         (!subscriptionVouchers || subscriptionVouchers.length === 0) && (
           <div className="flex items-center justify-center p-8">
@@ -195,6 +278,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
         )}
 
       {!loading &&
+        !statusLoading &&
         !error &&
         subscriptionVouchers &&
         subscriptionVouchers.length > 0 && (
@@ -220,12 +304,19 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
                   </div>
                   <button
                     onClick={handleExecuteVoucher}
-                    disabled={isExecuting || voucherToExecute.executed}
+                    disabled={
+                      isExecuting ||
+                      executionStatuses[
+                        `${voucherToExecute.input.index}-${voucherToExecute.index}`
+                      ]
+                    }
                     className={cn(
                       "px-6 py-3 rounded-lg text-sm font-medium",
                       "transition-all duration-200",
                       "flex items-center gap-2",
-                      voucherToExecute.executed
+                      executionStatuses[
+                        `${voucherToExecute.input.index}-${voucherToExecute.index}`
+                      ]
                         ? "bg-green-600/20 text-green-400 cursor-not-allowed"
                         : isExecuting
                         ? "bg-[#950844]/50 text-white cursor-not-allowed"
@@ -237,7 +328,9 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Executing...
                       </>
-                    ) : voucherToExecute.executed ? (
+                    ) : executionStatuses[
+                        `${voucherToExecute.input.index}-${voucherToExecute.index}`
+                      ] ? (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
                         Voucher Executed

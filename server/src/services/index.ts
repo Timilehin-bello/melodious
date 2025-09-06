@@ -3,6 +3,7 @@ import * as authService from "./auth.service";
 import * as tokenService from "./token.service";
 import * as transactionService from "./transaction.service";
 import * as cronService from "./cron.service";
+import * as subscriptionService from "./subscription.service";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -13,4 +14,5 @@ export {
   tokenService,
   transactionService,
   cronService,
+  subscriptionService,
 };

@@ -740,28 +740,95 @@ export const executeVoucher = async (
 
     console.log("voucherWithProof", voucherWithProof);
 
+    if (!voucherWithProof) {
+      console.error("Failed to get voucher with proof");
+      return { message: "Failed to get voucher with proof" };
+    }
+
+    if (!voucherWithProof.proof || !voucherWithProof.destination || !voucherWithProof.payload) {
+      console.error("Voucher proof data incomplete:", {
+        hasProof: !!voucherWithProof.proof,
+        hasDestination: !!voucherWithProof.destination,
+        hasPayload: !!voucherWithProof.payload
+      });
+      return { message: "Voucher proof data incomplete" };
+    }
+
     if (voucherWithProof) {
-      const tx = await rollups.dappContract.executeVoucher(
-        voucherWithProof.destination,
-        voucherWithProof.payload,
-        voucherWithProof.proof
-      );
+      console.log("Executing voucher with:", {
+        destination: voucherWithProof.destination,
+        payloadLength: voucherWithProof.payload?.length,
+        hasProof: !!voucherWithProof.proof,
+        proof: voucherWithProof.proof
+      });
+      
+      console.log('Full proof object:', JSON.stringify(voucherWithProof.proof, null, 2));
 
-      const receipt = await tx.wait();
-      if (receipt) {
-        console.log("Voucher receipt", receipt);
-        // successAlert("Congratulations! Funds successfully withdrawn");
-        return "Congratulations! Funds successfully withdrawn";
+      // Convert proof structure to match contract expectations
+      const formattedProof = {
+        validity: {
+          inputIndexWithinEpoch: ethers.BigNumber.from(voucherWithProof.proof.validity.inputIndexWithinEpoch),
+          outputIndexWithinInput: ethers.BigNumber.from(voucherWithProof.proof.validity.outputIndexWithinInput),
+          outputHashesRootHash: voucherWithProof.proof.validity.outputHashesRootHash,
+          vouchersEpochRootHash: voucherWithProof.proof.validity.vouchersEpochRootHash,
+          noticesEpochRootHash: voucherWithProof.proof.validity.noticesEpochRootHash,
+          machineStateHash: voucherWithProof.proof.validity.machineStateHash,
+          outputHashInOutputHashesSiblings: voucherWithProof.proof.validity.outputHashInOutputHashesSiblings,
+          outputHashesInEpochSiblings: voucherWithProof.proof.validity.outputHashesInEpochSiblings
+        },
+        context: voucherWithProof.proof.context
+      };
+      
+      console.log("Formatted proof:", formattedProof);
+      
+      try {
+        const tx = await rollups.dappContract.executeVoucher(
+          voucherWithProof.destination,
+          voucherWithProof.payload,
+          formattedProof
+        );
+
+        console.log("Transaction submitted:", tx.hash);
+        const receipt = await tx.wait();
+        
+        if (receipt) {
+          console.log("Voucher receipt", receipt);
+          return {
+            success: true,
+            message: "Congratulations! Funds successfully withdrawn",
+            txHash: tx.hash,
+            receipt: receipt
+          };
+        }
+
+        if (!receipt) {
+          console.log("No receipt received", receipt);
+          return { message: "Could not execute voucher - no receipt" };
+        }
+
+        console.log("Voucher executed successfully", voucherWithProof);
+        return {
+          success: true,
+          message: "Voucher executed successfully",
+          txHash: tx.hash
+        };
+      } catch (contractError) {
+        console.error("Contract execution error:", contractError);
+        
+        // Check if it's an ABI error that might resolve on retry
+        if (contractError && typeof contractError === 'object' && 'message' in contractError) {
+          const errorMessage = (contractError as any).message || '';
+          if (errorMessage.includes('AbiErrorSignatureNotFoundError') || 
+              errorMessage.includes('0x87332c01')) {
+            return { 
+              message: `AbiErrorSignatureNotFoundError: ${errorMessage}`,
+              retryable: true 
+            };
+          }
+        }
+        
+        throw contractError;
       }
-
-      if (!receipt) {
-        console.log("Voucher receipt", receipt);
-        // errorAlert("Could not execute voucher");
-        return "Could not execute voucher";
-      }
-
-      console.log("Voucher executed successfully", voucherWithProof);
-      return "Voucher executed successfull";
     }
   } catch (e) {
     console.log("Error executing voucher:", e);

@@ -133,12 +133,8 @@ const getVoucherWithProof = async (
       voucherIndex,
       inputIndex,
     },
+    fetchPolicy: "network-only",
   });
-  // const result = await client.query({
-  //   fetchPolicy: "network-only",
-  //   query,
-  //   variables: { voucherIndex, inputIndex },
-  // });
   console.log("result getVoucherWithProof test", result);
   return result.data?.voucher || null;
 };
