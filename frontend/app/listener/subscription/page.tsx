@@ -338,16 +338,13 @@ const SubscriptionPage = () => {
                     ) : (
                       <Button
                         onClick={() => handleSubscription(plan)}
-                        disabled={
-                          isProcessing ||
-                          (hasActiveSubscription && plan.price > 0)
-                        }
+                        disabled={isProcessing || hasActiveSubscription}
                         className={cn(
                           "w-full transition-all duration-200",
-                          plan.price === 0
-                            ? "bg-zinc-700 hover:bg-zinc-600 text-white"
-                            : hasActiveSubscription && plan.price > 0
+                          hasActiveSubscription
                             ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
+                            : plan.price === 0
+                            ? "bg-zinc-700 hover:bg-zinc-600 text-white"
                             : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
                         )}
                       >
@@ -356,7 +353,7 @@ const SubscriptionPage = () => {
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                             Processing...
                           </>
-                        ) : hasActiveSubscription && plan.price > 0 ? (
+                        ) : hasActiveSubscription ? (
                           "Already Subscribed"
                         ) : plan.price === 0 ? (
                           "Get Started"

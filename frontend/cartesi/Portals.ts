@@ -163,10 +163,15 @@ export const depositErc20ToVault = async (
         );
         console.log("Approval transaction submitted:", approveTx.hash);
         const approveReceipt = await approveTx.wait(1);
-        console.log("Approval transaction confirmed:", approveReceipt.transactionHash);
+        console.log(
+          "Approval transaction confirmed:",
+          approveReceipt.transactionHash
+        );
       } catch (approveError: any) {
         console.error("Token approval failed:", approveError);
-        throw new Error(`Token approval failed: ${approveError?.message || approveError}`);
+        throw new Error(
+          `Token approval failed: ${approveError?.message || approveError}`
+        );
       }
     }
 
@@ -186,9 +191,9 @@ export const depositErc20ToVault = async (
       token,
       dappAddress,
       amount: amountInWei.toString(),
-      dataLength: data.length
+      dataLength: data.length,
     });
-    
+
     let depositTx;
     try {
       depositTx = await rollups.erc20PortalContract.depositERC20Tokens(
@@ -200,21 +205,30 @@ export const depositErc20ToVault = async (
       console.log("Deposit transaction submitted:", depositTx.hash);
     } catch (depositError: any) {
       console.error("ERC20 portal deposit failed:", depositError);
-      throw new Error(`ERC20 portal deposit failed: ${depositError?.message || depositError}`);
+      throw new Error(
+        `ERC20 portal deposit failed: ${depositError?.message || depositError}`
+      );
     }
 
     let receipt;
     try {
       receipt = await depositTx.wait(1);
-      console.log("Vault deposit transaction confirmed:", receipt.transactionHash);
+      console.log(
+        "Vault deposit transaction confirmed:",
+        receipt.transactionHash
+      );
     } catch (receiptError: any) {
       console.error("Deposit transaction confirmation failed:", receiptError);
-      throw new Error(`Deposit transaction confirmation failed: ${receiptError?.message || receiptError}`);
+      throw new Error(
+        `Deposit transaction confirmation failed: ${
+          receiptError?.message || receiptError
+        }`
+      );
     }
 
     // Send additional input after ERC20 portal deposit
     console.log("Sending additional input after deposit...");
-    
+
     let inputTx;
     try {
       inputTx = await rollups.inputContract.addInput(dappAddress, data);
@@ -223,39 +237,46 @@ export const depositErc20ToVault = async (
       console.error("Add input failed:", inputError);
       throw new Error(`Add input failed: ${inputError?.message || inputError}`);
     }
-    
+
     let inputReceipt;
     try {
       inputReceipt = await inputTx.wait(1);
       console.log("Input transaction confirmed:", inputReceipt.transactionHash);
     } catch (inputReceiptError: any) {
-      console.error("Input transaction confirmation failed:", inputReceiptError);
-      throw new Error(`Input transaction confirmation failed: ${inputReceiptError?.message || inputReceiptError}`);
+      console.error(
+        "Input transaction confirmation failed:",
+        inputReceiptError
+      );
+      throw new Error(
+        `Input transaction confirmation failed: ${
+          inputReceiptError?.message || inputReceiptError
+        }`
+      );
     }
 
     return { depositReceipt: receipt, inputReceipt };
   } catch (e: any) {
     console.error("Vault deposit error:", e);
-    
+
     // Provide more detailed error information
     let errorMessage = "Unknown error occurred during vault deposit";
-    
+
     if (e?.message) {
       errorMessage = e.message;
     } else if (e?.reason) {
       errorMessage = e.reason;
     } else if (e?.data?.message) {
       errorMessage = e.data.message;
-    } else if (typeof e === 'string') {
+    } else if (typeof e === "string") {
       errorMessage = e;
     }
-    
+
     console.error("Detailed error message:", errorMessage);
-    
+
     // Create a new error with better context
     const enhancedError = new Error(`Vault deposit failed: ${errorMessage}`);
     enhancedError.cause = e;
-    
+
     throw enhancedError;
   }
 };
@@ -745,13 +766,57 @@ export const executeVoucher = async (
       return { message: "Failed to get voucher with proof" };
     }
 
-    if (!voucherWithProof.proof || !voucherWithProof.destination || !voucherWithProof.payload) {
+    // Enhanced proof validation to prevent ABI errors
+    if (
+      !voucherWithProof.proof ||
+      !voucherWithProof.destination ||
+      !voucherWithProof.payload
+    ) {
       console.error("Voucher proof data incomplete:", {
         hasProof: !!voucherWithProof.proof,
         hasDestination: !!voucherWithProof.destination,
-        hasPayload: !!voucherWithProof.payload
+        hasPayload: !!voucherWithProof.payload,
       });
       return { message: "Voucher proof data incomplete" };
+    }
+
+    // Validate proof structure completeness to prevent 0x87332c01 ABI error
+    const proof = voucherWithProof.proof;
+    if (
+      !proof.validity ||
+      !proof.context ||
+      proof.validity.inputIndexWithinEpoch === undefined ||
+      proof.validity.outputIndexWithinInput === undefined ||
+      !proof.validity.outputHashesRootHash ||
+      !proof.validity.vouchersEpochRootHash ||
+      !proof.validity.noticesEpochRootHash ||
+      !proof.validity.machineStateHash ||
+      !Array.isArray(proof.validity.outputHashInOutputHashesSiblings) ||
+      !Array.isArray(proof.validity.outputHashesInEpochSiblings)
+    ) {
+      console.error("Proof structure incomplete - not ready for execution:", {
+        hasValidity: !!proof.validity,
+        hasContext: !!proof.context,
+        hasInputIndexWithinEpoch:
+          proof.validity?.inputIndexWithinEpoch !== undefined,
+        hasOutputIndexWithinInput:
+          proof.validity?.outputIndexWithinInput !== undefined,
+        hasOutputHashesRootHash: !!proof.validity?.outputHashesRootHash,
+        hasVouchersEpochRootHash: !!proof.validity?.vouchersEpochRootHash,
+        hasNoticesEpochRootHash: !!proof.validity?.noticesEpochRootHash,
+        hasMachineStateHash: !!proof.validity?.machineStateHash,
+        hasOutputHashSiblings: Array.isArray(
+          proof.validity?.outputHashInOutputHashesSiblings
+        ),
+        hasEpochSiblings: Array.isArray(
+          proof.validity?.outputHashesInEpochSiblings
+        ),
+      });
+      return {
+        message:
+          "Proof data not ready for execution. Please wait a moment and try again.",
+        retryable: true,
+      };
     }
 
     if (voucherWithProof) {
@@ -759,28 +824,40 @@ export const executeVoucher = async (
         destination: voucherWithProof.destination,
         payloadLength: voucherWithProof.payload?.length,
         hasProof: !!voucherWithProof.proof,
-        proof: voucherWithProof.proof
+        proof: voucherWithProof.proof,
       });
-      
-      console.log('Full proof object:', JSON.stringify(voucherWithProof.proof, null, 2));
+
+      console.log(
+        "Full proof object:",
+        JSON.stringify(voucherWithProof.proof, null, 2)
+      );
 
       // Convert proof structure to match contract expectations
       const formattedProof = {
         validity: {
-          inputIndexWithinEpoch: ethers.BigNumber.from(voucherWithProof.proof.validity.inputIndexWithinEpoch),
-          outputIndexWithinInput: ethers.BigNumber.from(voucherWithProof.proof.validity.outputIndexWithinInput),
-          outputHashesRootHash: voucherWithProof.proof.validity.outputHashesRootHash,
-          vouchersEpochRootHash: voucherWithProof.proof.validity.vouchersEpochRootHash,
-          noticesEpochRootHash: voucherWithProof.proof.validity.noticesEpochRootHash,
+          inputIndexWithinEpoch: ethers.BigNumber.from(
+            voucherWithProof.proof.validity.inputIndexWithinEpoch
+          ),
+          outputIndexWithinInput: ethers.BigNumber.from(
+            voucherWithProof.proof.validity.outputIndexWithinInput
+          ),
+          outputHashesRootHash:
+            voucherWithProof.proof.validity.outputHashesRootHash,
+          vouchersEpochRootHash:
+            voucherWithProof.proof.validity.vouchersEpochRootHash,
+          noticesEpochRootHash:
+            voucherWithProof.proof.validity.noticesEpochRootHash,
           machineStateHash: voucherWithProof.proof.validity.machineStateHash,
-          outputHashInOutputHashesSiblings: voucherWithProof.proof.validity.outputHashInOutputHashesSiblings,
-          outputHashesInEpochSiblings: voucherWithProof.proof.validity.outputHashesInEpochSiblings
+          outputHashInOutputHashesSiblings:
+            voucherWithProof.proof.validity.outputHashInOutputHashesSiblings,
+          outputHashesInEpochSiblings:
+            voucherWithProof.proof.validity.outputHashesInEpochSiblings,
         },
-        context: voucherWithProof.proof.context
+        context: voucherWithProof.proof.context,
       };
-      
+
       console.log("Formatted proof:", formattedProof);
-      
+
       try {
         const tx = await rollups.dappContract.executeVoucher(
           voucherWithProof.destination,
@@ -790,14 +867,14 @@ export const executeVoucher = async (
 
         console.log("Transaction submitted:", tx.hash);
         const receipt = await tx.wait();
-        
+
         if (receipt) {
           console.log("Voucher receipt", receipt);
           return {
             success: true,
             message: "Congratulations! Funds successfully withdrawn",
             txHash: tx.hash,
-            receipt: receipt
+            receipt: receipt,
           };
         }
 
@@ -810,23 +887,29 @@ export const executeVoucher = async (
         return {
           success: true,
           message: "Voucher executed successfully",
-          txHash: tx.hash
+          txHash: tx.hash,
         };
       } catch (contractError) {
         console.error("Contract execution error:", contractError);
-        
+
         // Check if it's an ABI error that might resolve on retry
-        if (contractError && typeof contractError === 'object' && 'message' in contractError) {
-          const errorMessage = (contractError as any).message || '';
-          if (errorMessage.includes('AbiErrorSignatureNotFoundError') || 
-              errorMessage.includes('0x87332c01')) {
-            return { 
+        if (
+          contractError &&
+          typeof contractError === "object" &&
+          "message" in contractError
+        ) {
+          const errorMessage = (contractError as any).message || "";
+          if (
+            errorMessage.includes("AbiErrorSignatureNotFoundError") ||
+            errorMessage.includes("0x87332c01")
+          ) {
+            return {
               message: `AbiErrorSignatureNotFoundError: ${errorMessage}`,
-              retryable: true 
+              retryable: true,
             };
           }
         }
-        
+
         throw contractError;
       }
     }

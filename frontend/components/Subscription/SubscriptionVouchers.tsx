@@ -22,7 +22,10 @@ import {
   useVoucherExecutionStatus,
   voucherExecutionKeys,
 } from "@/hooks/useVoucherExecutionStatus";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import {
+  useSubscriptionStatus,
+  subscriptionKeys,
+} from "@/hooks/useSubscription";
 
 interface ISubscriptionVouchersProps {
   dappAddress: string;
@@ -34,7 +37,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();
   const { activeSubscription, isLoading } = useSubscriptionStatus();
-  
+
   // Debug logging
   console.log("SubscriptionVouchers - activeSubscription:", activeSubscription);
   console.log("SubscriptionVouchers - isLoading:", isLoading);
@@ -47,29 +50,19 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
     client: apolloClient,
   } = useVouchers();
 
+  // Use vouchers directly from useVouchers hook (already filtered for complete proofs)
+  const vouchersList = useMemo(() => {
+    return vouchers || [];
+  }, [vouchers]);
+
   const queryClient = useQueryClient();
   const [voucherToExecute, setVoucherToExecute] = useState<Voucher>();
   const [isExecuting, setIsExecuting] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const setVoucher = useCallback(
-    async (voucher: any) => {
-      if (rollups) {
-        // Check execution status before setting the voucher
-        try {
-          voucher.executed = await rollups.dappContract.wasVoucherExecuted(
-            ethers.BigNumber.from(voucher.input.index),
-            ethers.BigNumber.from(voucher.index)
-          );
-        } catch (error) {
-          console.log("Error checking voucher execution status:", error);
-          voucher.executed = false;
-        }
-      }
-      setVoucherToExecute(voucher);
-    },
-    [rollups]
-  );
+  const setVoucher = useCallback((voucher: any) => {
+    setVoucherToExecute(voucher);
+  }, []);
 
   const handleExecuteVoucher = async () => {
     if (!voucherToExecute || !rollups || !apolloClient) {
@@ -78,51 +71,51 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
     }
 
     // Check if voucher is already executed
-    if (voucherToExecute.executed) {
-      toast.error("Voucher has already been executed");
+    try {
+      const isAlreadyExecuted = await rollups.dappContract.wasVoucherExecuted(
+        ethers.BigNumber.from(voucherToExecute.input.index),
+        ethers.BigNumber.from(voucherToExecute.index)
+      );
+
+      if (isAlreadyExecuted) {
+        toast.error("Voucher has already been executed");
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking voucher execution status:", error);
+      toast.error("Failed to check voucher execution status");
       return;
     }
 
     setIsExecuting(true);
-    
+
     try {
       console.log("Executing voucher:", {
         voucherIndex: voucherToExecute.index,
         inputIndex: voucherToExecute.input?.index,
         destination: voucherToExecute.destination,
         payload: voucherToExecute.payload,
-        hasProof: !!voucherToExecute.proof
+        hasProof: !!voucherToExecute.proof,
       });
-      
+
       const result = await executeVoucher(
         apolloClient,
         voucherToExecute,
         rollups
       );
-      
-      // Check if result indicates an error
-       if (typeof result === 'object' && result !== null && 'message' in result && !(result as any).success) {
-         const errorMessage = (result as any).message || 'Unknown error';
-         console.error('Voucher execution failed:', result);
-         toast.error(`Voucher execution failed: ${errorMessage}`);
-         return;
-       }
-      // Show success message
-      if (typeof result === 'object' && result !== null && (result as any).success && (result as any).message) {
-        toast.success((result as any).message);
-      } else if (typeof result === 'string') {
-        toast.success(result);
-      } else if (typeof result === 'object' && result !== null && 'message' in result) {
-        toast.success((result as any).message);
+
+      if (result && (result as any).success) {
+        toast.success("Voucher executed successfully!");
+        setVoucherToExecute(undefined);
       } else {
-        toast.success('Voucher executed successfully!');
+        toast.error("Failed to execute voucher");
+        return;
       }
-      setVoucherToExecute(undefined);
 
       // Call backend to update subscription status after voucher execution
       console.log("Active subscription:", activeSubscription);
       console.log("Voucher execution result:", result);
-      
+
       if (activeSubscription?.id) {
         try {
           // Get the most recent payment's paymentId or use voucher ID as fallback
@@ -133,14 +126,21 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 
           // Extract transaction hash from successful result
           let transactionHash: string;
-          if (typeof result === 'object' && result !== null && (result as any).success && (result as any).txHash) {
+          if (
+            typeof result === "object" &&
+            result !== null &&
+            (result as any).success &&
+            (result as any).txHash
+          ) {
             transactionHash = (result as any).txHash;
-          } else if (typeof result === 'string') {
+          } else if (typeof result === "string") {
             // Legacy string response - generate placeholder
             transactionHash = `voucher-${voucherToExecute.input.index}-${voucherToExecute.index}`;
-          } else if (result && typeof result === 'object') {
+          } else if (result && typeof result === "object") {
             // Try to extract hash from various possible properties
-            transactionHash = (result as any)?.hash || (result as any)?.transactionHash || 
+            transactionHash =
+              (result as any)?.hash ||
+              (result as any)?.transactionHash ||
               (result as any)?.txHash ||
               `voucher-${voucherToExecute.input.index}-${voucherToExecute.index}`;
           } else {
@@ -153,12 +153,18 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
             transactionHash: transactionHash,
           });
 
-          const response = await apiClient.post("/subscriptions/process-payment", {
-            subscriptionId: activeSubscription.id,
-            paymentId: paymentId,
-            transactionHash: transactionHash,
-          });
-          console.log("Backend subscription status updated successfully:", response.data);
+          const response = await apiClient.post(
+            "/subscriptions/process-payment",
+            {
+              subscriptionId: activeSubscription.id,
+              paymentId: paymentId,
+              transactionHash: transactionHash,
+            }
+          );
+          console.log(
+            "Backend subscription status updated successfully:",
+            response.data
+          );
           toast.success("Subscription status updated!");
         } catch (error) {
           console.error("Failed to update backend subscription status:", error);
@@ -173,6 +179,11 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
       queryClient.invalidateQueries({
         queryKey: voucherExecutionKeys.list(dappAddress, subscriptionVouchers),
       });
+
+      // Invalidate subscription queries to update UI button states
+      queryClient.invalidateQueries({
+        queryKey: subscriptionKeys.lists(),
+      });
     } catch (error) {
       console.error("Error executing voucher:", error);
       toast.error("Failed to execute voucher");
@@ -183,9 +194,9 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 
   // Filter vouchers to show vault-related ones for the current user only
   const subscriptionVouchers = useMemo(() => {
-    if (!account?.address || !vouchers) return [];
+    if (!account?.address || !vouchersList) return [];
 
-    return vouchers.filter((voucher: any) => {
+    return vouchersList.filter((voucher: any) => {
       // First check if the voucher belongs to the current user
       const isUserVoucher =
         voucher.input?.msgSender?.toLowerCase() ===
@@ -198,9 +209,25 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
         voucher.payload.includes("subscription") ||
         voucher.payload.includes("CTSI Transfer");
 
-      return isUserVoucher && isSubscriptionRelated;
+      // Additional proof validation to ensure voucher is ready for execution
+      // This matches the wallet implementation's filtering logic
+      const proof = voucher.proof;
+      const hasCompleteProof =
+        proof &&
+        proof.validity &&
+        proof.context &&
+        proof.validity.inputIndexWithinEpoch !== undefined &&
+        proof.validity.outputIndexWithinInput !== undefined &&
+        proof.validity.outputHashesRootHash &&
+        proof.validity.vouchersEpochRootHash &&
+        proof.validity.noticesEpochRootHash &&
+        proof.validity.machineStateHash &&
+        Array.isArray(proof.validity.outputHashInOutputHashesSiblings) &&
+        Array.isArray(proof.validity.outputHashesInEpochSiblings);
+
+      return isUserVoucher && isSubscriptionRelated && hasCompleteProof;
     });
-  }, [vouchers, account?.address]);
+  }, [vouchersList, account?.address]);
 
   // Use TanStack Query to manage voucher execution status
   const {

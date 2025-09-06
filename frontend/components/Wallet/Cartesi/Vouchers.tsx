@@ -1,7 +1,8 @@
 "use client";
 
 import { ethers } from "ethers";
-import React, { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useState, useMemo, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRollups } from "@/cartesi/hooks/useRollups";
 import { Voucher, useVouchers } from "@/cartesi/hooks/useVouchers";
 import { executeVoucher } from "@/cartesi/Portals";
@@ -25,9 +26,8 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
   const { loading, error, vouchers, refetch, client } = useVouchers();
   const [voucherToExecute, setVoucherToExecute] = useState<any>();
   const [isExecuting, setIsExecuting] = useState(false);
-  const [executionStatuses, setExecutionStatuses] = useState<{
-    [key: string]: boolean;
-  }>({});
+  // Remove local state as TanStack Query will manage this
+  const checkedVouchersRef = useRef<Set<string>>(new Set());
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();
 
@@ -36,25 +36,9 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
     refetch({ requestPolicy: "network-only" });
   };
 
-  const setVoucher = useCallback(
-    async (voucher: any) => {
-      if (rollups) {
-        voucher.executed = await rollups.dappContract.wasVoucherExecuted(
-          ethers.BigNumber.from(voucher.input.index),
-          ethers.BigNumber.from(voucher.index)
-        );
-        // Update execution status in state
-        setExecutionStatuses((prev) => ({
-          ...prev,
-          [`${voucher.input.index}-${voucher.index}`]: voucher.executed,
-        }));
-      }
-      setVoucherToExecute(voucher);
-    },
-    [rollups]
-  );
+  // This will be defined after the TanStack Query
 
-  // Check execution status for all vouchers
+  // Check execution status for all vouchers - optimized for TanStack Query
   const checkVoucherExecutionStatus = useCallback(
     async (vouchersList: any[]) => {
       if (!rollups) return {};
@@ -62,19 +46,19 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
       const statuses: { [key: string]: boolean } = {};
 
       for (const voucher of vouchersList) {
+        const voucherKey = `${voucher.input.index}-${voucher.index}`;
         try {
           const executed = await rollups.dappContract.wasVoucherExecuted(
             ethers.BigNumber.from(voucher.input.index),
             ethers.BigNumber.from(voucher.index)
           );
-          statuses[`${voucher.input.index}-${voucher.index}`] = executed;
+          statuses[voucherKey] = executed;
         } catch (error) {
           console.log("Error checking voucher execution status:", error);
-          statuses[`${voucher.input.index}-${voucher.index}`] = false;
+          statuses[voucherKey] = false;
         }
       }
 
-      setExecutionStatuses(statuses);
       return statuses;
     },
     [rollups]
@@ -85,16 +69,55 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
     return vouchers || [];
   }, [vouchers]);
 
-  useEffect(() => {
-    refetch({ requestPolicy: "network-only" });
-  }, [refetch]);
+  // Use TanStack Query to manage voucher execution status
+  const { data: executionStatusesQuery, refetch: refetchExecutionStatuses } =
+    useQuery({
+      queryKey: [
+        "voucherExecutionStatuses",
+        vouchersList?.map((v) => `${v.input.index}-${v.index}`).join(","),
+      ],
+      queryFn: async () => {
+        if (!rollups || !vouchersList || vouchersList.length === 0) return {};
+        return await checkVoucherExecutionStatus(vouchersList);
+      },
+      enabled: !!rollups && !!vouchersList && vouchersList.length > 0,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+      refetchOnWindowFocus: false,
+    });
 
-  // Check execution status when vouchers are loaded
-  useEffect(() => {
-    if (vouchersList && vouchersList.length > 0) {
-      checkVoucherExecutionStatus(vouchersList);
-    }
-  }, [vouchersList, checkVoucherExecutionStatus]);
+  // Trigger GraphQL refetch when needed
+  const handleRefresh = useCallback(() => {
+    refetch({ requestPolicy: "network-only" });
+    refetchExecutionStatuses();
+  }, [refetch, refetchExecutionStatuses]);
+
+  // Set voucher for execution with TanStack Query integration
+  const setVoucher = useCallback(
+    async (voucher: any) => {
+      const voucherKey = `${voucher.input.index}-${voucher.index}`;
+
+      // Check if we already have the execution status from TanStack Query
+      if (
+        executionStatusesQuery &&
+        executionStatusesQuery[voucherKey] !== undefined
+      ) {
+        voucher.executed = executionStatusesQuery[voucherKey];
+      } else if (rollups) {
+        // Fallback: check directly if not in cache
+        try {
+          voucher.executed = await rollups.dappContract.wasVoucherExecuted(
+            ethers.BigNumber.from(voucher.input.index),
+            ethers.BigNumber.from(voucher.index)
+          );
+        } catch (error) {
+          console.log("Error checking voucher execution status:", error);
+          voucher.executed = false;
+        }
+      }
+      setVoucherToExecute(voucher);
+    },
+    [rollups, executionStatusesQuery]
+  );
 
   // Filter vouchers to show only those belonging to the current user
   const userVouchers = useMemo(() => {
@@ -117,7 +140,7 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
           Vouchers ({userVouchers?.length || 0})
         </h3>
         <button
-          onClick={() => refetch({ requestPolicy: "network-only" })}
+          onClick={handleRefresh}
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium",
             "bg-zinc-800 hover:bg-zinc-700",
@@ -189,6 +212,13 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
                       );
                       if (res) {
                         toast.success("Voucher executed successfully");
+                        // Update the current voucher's executed status
+                        setVoucherToExecute((prev: any) => ({
+                          ...prev,
+                          executed: true,
+                        }));
+                        // Refresh both GraphQL data and execution statuses
+                        handleRefresh();
                       } else {
                         toast.error("Failed to execute voucher");
                       }
@@ -258,7 +288,8 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
                   ) : (
                     userVouchers?.map((n: any) => {
                       const voucherKey = `${n.input.index}-${n.index}`;
-                      const isExecuted = executionStatuses[voucherKey] || false;
+                      const isExecuted =
+                        executionStatusesQuery?.[voucherKey] || false;
 
                       return (
                         <tr

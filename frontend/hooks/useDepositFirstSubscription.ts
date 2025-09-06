@@ -276,11 +276,6 @@ export function useDepositFirstSubscription() {
 
       if (data.status === DepositWorkflowStatus.COMPLETED) {
         toast.success(
-          "Subscription activated successfully! You can now enjoy your premium features.",
-          { duration: 5000 }
-        );
-      } else {
-        toast.success(
           "Subscription created successfully! Please execute the voucher to activate your plan.",
           { duration: 5000 }
         );
@@ -383,10 +378,10 @@ export function useManualVoucherExecution() {
       // Invalidate subscriptions to refetch updated status
       queryClient.invalidateQueries({ queryKey: subscriptionKeys.lists() });
 
-      toast.success(
-        "Subscription activated successfully! You can now enjoy your premium features.",
-        { duration: 5000 }
-      );
+      // toast.success(
+      //   "Subscription activated successfully! You can now enjoy your premium features.",
+      //   { duration: 5000 }
+      // );
     },
     onError: (error: any) => {
       console.error("Manual voucher execution failed:", error);

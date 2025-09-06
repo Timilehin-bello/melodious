@@ -29,9 +29,24 @@ export const useVouchers = () => {
     data &&
     data.vouchers.edges
       .filter((node: any) => {
-        // Only include vouchers that have complete proof data
+        // Only include vouchers that have complete proof data to prevent ABI errors
         const proof = node.node?.proof;
-        return proof && proof.validity && proof.context;
+        if (!proof || !proof.validity || !proof.context) {
+          return false;
+        }
+
+        // Validate all required proof fields are present and properly populated
+        const validity = proof.validity;
+        return (
+          validity.inputIndexWithinEpoch !== undefined &&
+          validity.outputIndexWithinInput !== undefined &&
+          validity.outputHashesRootHash &&
+          validity.vouchersEpochRootHash &&
+          validity.noticesEpochRootHash &&
+          validity.machineStateHash &&
+          Array.isArray(validity.outputHashInOutputHashesSiblings) &&
+          Array.isArray(validity.outputHashesInEpochSiblings)
+        );
       })
       .map((node: any) => {
         const n = node.node;
