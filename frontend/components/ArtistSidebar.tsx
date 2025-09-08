@@ -28,7 +28,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
-
 // Menu items.
 const items = [
   {
@@ -132,7 +131,6 @@ export function ArtistSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-
     </Sidebar>
   );
 }

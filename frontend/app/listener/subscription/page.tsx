@@ -211,9 +211,13 @@ const SubscriptionPage = () => {
           ) {
             toast.loading(state.currentStep, { id: "workflow" });
           } else if (state.status === DepositWorkflowStatus.FAILED) {
-            toast.error(`${state.currentStep}: ${state.error}`, {
-              id: "workflow",
-            });
+            // Error toast is handled by the mutation's onError callback
+            // to avoid duplicate toasts
+
+            //  toast.error(`${state.currentStep}: ${state.error}`, {
+            //   id: "workflow",
+            // });
+            toast.dismiss("workflow");
           }
         },
       });

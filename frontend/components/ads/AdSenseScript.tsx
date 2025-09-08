@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import Script from 'next/script';
+import Script from "next/script";
 
 interface AdSenseScriptProps {
   clientId: string;
   testMode?: boolean;
 }
 
-const AdSenseScript: React.FC<AdSenseScriptProps> = ({ 
-  clientId, 
-  testMode = false 
+const AdSenseScript: React.FC<AdSenseScriptProps> = ({
+  clientId,
+  testMode = false,
 }) => {
   // Only load in production or when testing is enabled
-  if (process.env.NODE_ENV !== 'production' && !testMode) {
+  if (process.env.NODE_ENV !== "production" && !testMode) {
     return null;
   }
 
@@ -22,7 +22,7 @@ const AdSenseScript: React.FC<AdSenseScriptProps> = ({
       src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`}
       crossOrigin="anonymous"
       strategy="afterInteractive"
-      data-adbreak-test={testMode ? 'on' : undefined}
+      data-adbreak-test={testMode ? "on" : undefined}
     />
   );
 };

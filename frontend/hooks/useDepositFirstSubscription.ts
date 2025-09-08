@@ -294,8 +294,8 @@ export function useDepositFirstSubscription() {
 function getErrorMessage(error: any): string {
   if (error?.message) {
     // Handle specific error types
-    if (error.message.includes("Insufficient token balance")) {
-      return "Insufficient CTSI token balance. Please add more tokens to your wallet.";
+    if (error.message.includes("Insufficient balance") || error.message.includes("Insufficient token balance")) {
+      return "Insufficient CTSI token balance. Please add more tokens to your wallet to proceed with the subscription.";
     } else if (error.message.includes("User rejected")) {
       return "Transaction was cancelled. Please try again.";
     } else if (error.message.includes("Transaction failed")) {

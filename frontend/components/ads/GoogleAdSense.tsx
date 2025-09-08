@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import Script from 'next/script';
-import { useSubscriptionStatus } from '@/hooks/useSubscription';
+import { useEffect } from "react";
+import Script from "next/script";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 
 interface GoogleAdSenseProps {
   adSlot: string;
-  adFormat?: 'auto' | 'rectangle' | 'vertical' | 'horizontal';
+  adFormat?: "auto" | "rectangle" | "vertical" | "horizontal";
   style?: React.CSSProperties;
   className?: string;
   responsive?: boolean;
@@ -21,9 +21,9 @@ declare global {
 
 const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   adSlot,
-  adFormat = 'auto',
+  adFormat = "auto",
   style,
-  className = '',
+  className = "",
   responsive = true,
 }) => {
   const { isPremiumUser, isLoading } = useSubscriptionStatus();
@@ -34,7 +34,7 @@ const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (error) {
-        console.error('AdSense error:', error);
+        console.error("AdSense error:", error);
       }
     }
   }, [isPremiumUser, isLoading]);
@@ -45,9 +45,12 @@ const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   }
 
   // Only render in production or when explicitly testing
-  if (process.env.NODE_ENV !== 'production' && !process.env.NEXT_PUBLIC_ADSENSE_TEST) {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    !process.env.NEXT_PUBLIC_ADSENSE_TEST
+  ) {
     return (
-      <div 
+      <div
         className={`border-2 border-dashed border-gray-400 p-4 text-center text-gray-500 ${className}`}
         style={style}
       >
@@ -60,13 +63,13 @@ const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
     <ins
       className={`adsbygoogle ${className}`}
       style={{
-        display: 'block',
+        display: "block",
         ...style,
       }}
       data-ad-client={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}
       data-ad-slot={adSlot}
       data-ad-format={adFormat}
-      data-full-width-responsive={responsive ? 'true' : 'false'}
+      data-full-width-responsive={responsive ? "true" : "false"}
     />
   );
 };

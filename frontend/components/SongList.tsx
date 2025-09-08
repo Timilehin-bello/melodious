@@ -12,7 +12,8 @@
 
 // import SongListItem from "./SongListItem";
 // import { useCallback } from "react";
-// import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
+// import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { Track } from "@/contexts/melodious/MusicProvider";
 
 // const SongList = ({ songList }: any) => {
 //   const { connect } = useConnectModal();
@@ -109,7 +110,7 @@ import type React from "react";
 import { Play, Pause } from "lucide-react";
 import Image from "next/image";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
-import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 
 interface SongListProps {
   songList: Track[];
@@ -219,11 +220,7 @@ const SongList: React.FC<SongListProps> = ({
                   </div>
                 </td>
                 <td className="py-3 text-sm text-zinc-400">
-                  {new Intl.DateTimeFormat("en-US", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  }).format(new Date(song.createdAt))}
+                  Recently added
                 </td>
                 <td className="py-3 pr-4 text-right text-sm text-zinc-400">
                   {song.duration} mins

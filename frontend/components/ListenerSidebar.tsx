@@ -33,6 +33,7 @@ import { twMerge } from "tailwind-merge";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { title } from "process";
 import { SidebarAd } from "@/components/ads";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 // Menu items.
 const items = [
   {
@@ -51,11 +52,11 @@ const items = [
     icon: CreditCard,
   },
 
-  // {
-  //   title: "Playlist",
-  //   url: "/listener/playlist",
-  //   icon: Inbox,
-  // },
+  {
+    title: "Playlist",
+    url: "/listener/playlist",
+    icon: Inbox,
+  },
   // {
   //   title: "Explore",
   //   url: "/listener/explore",
@@ -77,6 +78,16 @@ export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
   const { currentTrack } = useMusic();
+  const { isPremiumUser } = useSubscriptionStatus();
+
+  // Filter menu items based on premium status
+  const filteredItems = items.filter(item => {
+    // Show Playlist only for premium users
+    if (item.title === "Playlist") {
+      return isPremiumUser;
+    }
+    return true;
+  });
 
   return (
     <Sidebar
@@ -116,7 +127,7 @@ export function ListenerSidebar() {
           <SidebarGroupContent className="mt-12">
             <h2 className="mb-8 text-xl">Menu</h2>
             <SidebarMenu>
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

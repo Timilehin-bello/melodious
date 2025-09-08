@@ -50,6 +50,18 @@ import {
   ConfigsRoute,
 } from "./config.route";
 
+import {
+  CreatePlaylistRoute,
+  UpdatePlaylistRoute,
+  DeletePlaylistRoute,
+  AddTrackToPlaylistRoute,
+  RemoveTrackFromPlaylistRoute,
+  PlaylistsRoute,
+  PlaylistRoute,
+  PlaylistsByListenerRoute,
+  PlaylistsByWalletRoute,
+} from "./playlist.route";
+
 export {
   // User
   CreateUserRoute,
@@ -94,8 +106,19 @@ export {
   UpdateArtistListeningTimeForRewardRoute,
   ReferralRewardRoute,
 
-  // Config
+  // Config routes
   CreateConfigRoute,
   UpdateConfigRoute,
   ConfigsRoute,
+
+  // Playlist routes
+  CreatePlaylistRoute,
+  UpdatePlaylistRoute,
+  DeletePlaylistRoute,
+  AddTrackToPlaylistRoute,
+  RemoveTrackFromPlaylistRoute,
+  PlaylistsRoute,
+  PlaylistRoute,
+  PlaylistsByListenerRoute,
+  PlaylistsByWalletRoute,
 };
