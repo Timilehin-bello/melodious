@@ -17,6 +17,7 @@
     "db:migrate": "npx prisma migrate dev --name $MIGRATION_NAME --create-only && yarn prisma generate",
     "db:push": "npx prisma db push",
     "db:studio": "npx prisma studio",
+    "db:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
     "build": "tsc",
     "docker:build": "docker-compose build",
     "docker:start": "docker-compose up",
@@ -86,5 +87,8 @@
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.5.4"
+  },
+  "prisma": {
+    "seed": "ts-node -r tsconfig-paths/register prisma/seed.ts"
   }
 }

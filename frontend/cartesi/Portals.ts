@@ -86,6 +86,201 @@ export const depositEtherToPortal = async (
   }
 };
 
+export const depositErc20ToVault = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  token: string,
+  amount: number,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) {
+      throw new Error("Rollups contracts not initialized");
+    }
+    if (!signer) {
+      throw new Error("Signer not provided");
+    }
+    if (!token || !ethers.utils.isAddress(token)) {
+      throw new Error("Invalid token address");
+    }
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress)) {
+      throw new Error("Invalid DApp address");
+    }
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
+
+    console.log(
+      "Depositing to vault:",
+      "rollups",
+      rollups,
+      "signer",
+      signer,
+      "token",
+      token,
+      "amount",
+      amount,
+      "dappAddress",
+      dappAddress
+    );
+
+    const signerAddress = await signer.getAddress();
+    const amountInWei = ethers.utils.parseEther(`${amount}`);
+    const erc20PortalAddress = rollups.erc20PortalContract.address;
+    const tokenContract = IERC20__factory.connect(token, signer);
+
+    console.log("signerAddress", signerAddress);
+    console.log("erc20PortalAddress", erc20PortalAddress);
+    console.log("amountInWei", amountInWei.toString());
+
+    // Check user's token balance
+    const userBalance = await tokenContract.balanceOf(signerAddress);
+    console.log("userBalance", userBalance.toString());
+
+    if (userBalance.lt(amountInWei)) {
+      throw new Error(
+        `Insufficient balance. You have ${ethers.utils.formatEther(
+          userBalance
+        )} tokens, but trying to deposit ${amount}`
+      );
+    }
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.allowance(
+      signerAddress,
+      erc20PortalAddress
+    );
+    console.log("currentAllowance", currentAllowance.toString());
+
+    // Approve tokens if needed
+    if (currentAllowance.lt(amountInWei)) {
+      console.log("Approving tokens...");
+      try {
+        const approveTx = await tokenContract.approve(
+          erc20PortalAddress,
+          amountInWei
+        );
+        console.log("Approval transaction submitted:", approveTx.hash);
+        const approveReceipt = await approveTx.wait(1);
+        console.log(
+          "Approval transaction confirmed:",
+          approveReceipt.transactionHash
+        );
+      } catch (approveError: any) {
+        console.error("Token approval failed:", approveError);
+        throw new Error(
+          `Token approval failed: ${approveError?.message || approveError}`
+        );
+      }
+    }
+
+    // Create vault deposit payload matching backend expected format
+    const vaultPayload = JSON.stringify({
+      method: "vault_deposit",
+      args: {
+        amount: amount,
+      },
+    });
+
+    const data = ethers.utils.toUtf8Bytes(vaultPayload);
+
+    // Deposit tokens to portal with vault payload
+    console.log("Depositing tokens to vault...");
+    console.log("Deposit parameters:", {
+      token,
+      dappAddress,
+      amount: amountInWei.toString(),
+      dataLength: data.length,
+    });
+
+    let depositTx;
+    try {
+      depositTx = await rollups.erc20PortalContract.depositERC20Tokens(
+        token,
+        dappAddress,
+        amountInWei,
+        data
+      );
+      console.log("Deposit transaction submitted:", depositTx.hash);
+    } catch (depositError: any) {
+      console.error("ERC20 portal deposit failed:", depositError);
+      throw new Error(
+        `ERC20 portal deposit failed: ${depositError?.message || depositError}`
+      );
+    }
+
+    let receipt;
+    try {
+      receipt = await depositTx.wait(1);
+      console.log(
+        "Vault deposit transaction confirmed:",
+        receipt.transactionHash
+      );
+    } catch (receiptError: any) {
+      console.error("Deposit transaction confirmation failed:", receiptError);
+      throw new Error(
+        `Deposit transaction confirmation failed: ${
+          receiptError?.message || receiptError
+        }`
+      );
+    }
+
+    // Send additional input after ERC20 portal deposit
+    console.log("Sending additional input after deposit...");
+
+    let inputTx;
+    try {
+      inputTx = await rollups.inputContract.addInput(dappAddress, data);
+      console.log("Input transaction submitted:", inputTx.hash);
+    } catch (inputError: any) {
+      console.error("Add input failed:", inputError);
+      throw new Error(`Add input failed: ${inputError?.message || inputError}`);
+    }
+
+    let inputReceipt;
+    try {
+      inputReceipt = await inputTx.wait(1);
+      console.log("Input transaction confirmed:", inputReceipt.transactionHash);
+    } catch (inputReceiptError: any) {
+      console.error(
+        "Input transaction confirmation failed:",
+        inputReceiptError
+      );
+      throw new Error(
+        `Input transaction confirmation failed: ${
+          inputReceiptError?.message || inputReceiptError
+        }`
+      );
+    }
+
+    return { depositReceipt: receipt, inputReceipt };
+  } catch (e: any) {
+    console.error("Vault deposit error:", e);
+
+    // Provide more detailed error information
+    let errorMessage = "Unknown error occurred during vault deposit";
+
+    if (e?.message) {
+      errorMessage = e.message;
+    } else if (e?.reason) {
+      errorMessage = e.reason;
+    } else if (e?.data?.message) {
+      errorMessage = e.data.message;
+    } else if (typeof e === "string") {
+      errorMessage = e;
+    }
+
+    console.error("Detailed error message:", errorMessage);
+
+    // Create a new error with better context
+    const enhancedError = new Error(`Vault deposit failed: ${errorMessage}`);
+    enhancedError.cause = e;
+
+    throw enhancedError;
+  }
+};
+
 export const depositErc20ToPortal = async (
   rollups: RollupsContracts | undefined,
   signer: any,
@@ -94,6 +289,23 @@ export const depositErc20ToPortal = async (
   dappAddress: string
 ) => {
   try {
+    // Input validation
+    if (!rollups) {
+      throw new Error("Rollups contracts not initialized");
+    }
+    if (!signer) {
+      throw new Error("Signer not provided");
+    }
+    if (!token || !ethers.utils.isAddress(token)) {
+      throw new Error("Invalid token address");
+    }
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress)) {
+      throw new Error("Invalid DApp address");
+    }
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
+
     console.log(
       "rollups",
       rollups,
@@ -106,51 +318,76 @@ export const depositErc20ToPortal = async (
       "dappAddress",
       dappAddress
     );
-    if (rollups && signer) {
-      const data = ethers.utils.toUtf8Bytes(
-        `Deposited (${amount}) of ERC20 (${token}).`
-      );
-      // const signer = await provider.getSigner();
-      // const signerAddress = await signer?.getAddress();
 
-      const erc20PortalAddress = rollups.erc20PortalContract.address;
-      const tokenContract = signer
-        ? IERC20__factory.connect(token, signer)
-        : IERC20__factory.connect(token, signer!);
+    const signerAddress = await signer.getAddress();
+    const amountInWei = ethers.utils.parseEther(`${amount}`);
+    const erc20PortalAddress = rollups.erc20PortalContract.address;
+    const tokenContract = IERC20__factory.connect(token, signer);
 
-      console.log("signerAddress", signer.getAddress());
-      console.log("erc20PortalAddress", erc20PortalAddress);
-      // query current allowance
-      const currentAllowance = await tokenContract.allowance(
-        signer.getAddress()!,
-        erc20PortalAddress
-      );
-      console.log("currentAllowance: ", currentAllowance.toString());
-      console.log(
-        "ethers.utils.parseEther(`${amount}`",
-        ethers.utils.parseEther(`${amount}`)
-      );
-      if (ethers.utils.parseEther(`${amount}`) > currentAllowance) {
-        // Allow portal to withdraw `amount` tokens from signer
-        const tx = await tokenContract.approve(
-          erc20PortalAddress,
-          ethers.utils.parseEther(`${amount}`)
-        );
-      }
+    console.log("signerAddress", signerAddress);
+    console.log("erc20PortalAddress", erc20PortalAddress);
+    console.log("amountInWei", amountInWei.toString());
 
-      console.log("token test", token);
-      const deposit = await rollups.erc20PortalContract.depositERC20Tokens(
-        token,
-        dappAddress,
-        ethers.utils.parseEther(`${amount}`),
-        "0x"
+    // Check user's token balance
+    const userBalance = await tokenContract.balanceOf(signerAddress);
+    console.log("userBalance", userBalance.toString());
+
+    if (userBalance.lt(amountInWei)) {
+      const balanceInEther = ethers.utils.formatEther(userBalance);
+      throw new Error(
+        `Insufficient token balance. You have ${balanceInEther} tokens but need ${amount} tokens.`
       );
-      const transReceipt = await deposit.wait(1);
-      return transReceipt;
     }
-  } catch (e) {
-    console.log(`${e}`);
-    return e;
+
+    // Check current allowance
+    const currentAllowance = await tokenContract.allowance(
+      signerAddress,
+      erc20PortalAddress
+    );
+    console.log("currentAllowance", currentAllowance.toString());
+
+    // Approve tokens if allowance is insufficient
+    if (amountInWei.gt(currentAllowance)) {
+      console.log("Approving tokens for portal...");
+      const approveTx = await tokenContract.approve(
+        erc20PortalAddress,
+        amountInWei
+      );
+
+      // Wait for approval transaction to be mined
+      const approveReceipt = await approveTx.wait(1);
+      if (!approveReceipt.status) {
+        throw new Error("Token approval transaction failed");
+      }
+      console.log("Token approval successful", approveReceipt.transactionHash);
+    }
+
+    // Perform the deposit
+    console.log("Depositing tokens to portal...");
+    const deposit = await rollups.erc20PortalContract.depositERC20Tokens(
+      token,
+      dappAddress,
+      amountInWei,
+      "0x"
+    );
+
+    const transReceipt = await deposit.wait(1);
+    if (!transReceipt.status) {
+      throw new Error("Deposit transaction failed");
+    }
+
+    console.log("Deposit successful", transReceipt.transactionHash);
+    return transReceipt;
+  } catch (e: any) {
+    console.error("depositErc20ToPortal error:", e);
+    // Re-throw the error with a more user-friendly message if it's a generic error
+    if (e.message && e.message.includes("user rejected")) {
+      throw new Error("Transaction was rejected by user");
+    }
+    if (e.message && e.message.includes("insufficient funds")) {
+      throw new Error("Insufficient ETH for gas fees");
+    }
+    throw e;
   }
 };
 // export const depositErc20ToPortal = async (
@@ -524,28 +761,157 @@ export const executeVoucher = async (
 
     console.log("voucherWithProof", voucherWithProof);
 
+    if (!voucherWithProof) {
+      console.error("Failed to get voucher with proof");
+      return { message: "Failed to get voucher with proof" };
+    }
+
+    // Enhanced proof validation to prevent ABI errors
+    if (
+      !voucherWithProof.proof ||
+      !voucherWithProof.destination ||
+      !voucherWithProof.payload
+    ) {
+      console.error("Voucher proof data incomplete:", {
+        hasProof: !!voucherWithProof.proof,
+        hasDestination: !!voucherWithProof.destination,
+        hasPayload: !!voucherWithProof.payload,
+      });
+      return { message: "Voucher proof data incomplete" };
+    }
+
+    // Validate proof structure completeness to prevent 0x87332c01 ABI error
+    const proof = voucherWithProof.proof;
+    if (
+      !proof.validity ||
+      !proof.context ||
+      proof.validity.inputIndexWithinEpoch === undefined ||
+      proof.validity.outputIndexWithinInput === undefined ||
+      !proof.validity.outputHashesRootHash ||
+      !proof.validity.vouchersEpochRootHash ||
+      !proof.validity.noticesEpochRootHash ||
+      !proof.validity.machineStateHash ||
+      !Array.isArray(proof.validity.outputHashInOutputHashesSiblings) ||
+      !Array.isArray(proof.validity.outputHashesInEpochSiblings)
+    ) {
+      console.error("Proof structure incomplete - not ready for execution:", {
+        hasValidity: !!proof.validity,
+        hasContext: !!proof.context,
+        hasInputIndexWithinEpoch:
+          proof.validity?.inputIndexWithinEpoch !== undefined,
+        hasOutputIndexWithinInput:
+          proof.validity?.outputIndexWithinInput !== undefined,
+        hasOutputHashesRootHash: !!proof.validity?.outputHashesRootHash,
+        hasVouchersEpochRootHash: !!proof.validity?.vouchersEpochRootHash,
+        hasNoticesEpochRootHash: !!proof.validity?.noticesEpochRootHash,
+        hasMachineStateHash: !!proof.validity?.machineStateHash,
+        hasOutputHashSiblings: Array.isArray(
+          proof.validity?.outputHashInOutputHashesSiblings
+        ),
+        hasEpochSiblings: Array.isArray(
+          proof.validity?.outputHashesInEpochSiblings
+        ),
+      });
+      return {
+        message:
+          "Proof data not ready for execution. Please wait a moment and try again.",
+        retryable: true,
+      };
+    }
+
     if (voucherWithProof) {
-      const tx = await rollups.dappContract.executeVoucher(
-        voucherWithProof.destination,
-        voucherWithProof.payload,
-        voucherWithProof.proof
+      console.log("Executing voucher with:", {
+        destination: voucherWithProof.destination,
+        payloadLength: voucherWithProof.payload?.length,
+        hasProof: !!voucherWithProof.proof,
+        proof: voucherWithProof.proof,
+      });
+
+      console.log(
+        "Full proof object:",
+        JSON.stringify(voucherWithProof.proof, null, 2)
       );
 
-      const receipt = await tx.wait();
-      if (receipt) {
-        console.log("Voucher receipt", receipt);
-        // successAlert("Congratulations! Funds successfully withdrawn");
-        return "Congratulations! Funds successfully withdrawn";
-      }
+      // Convert proof structure to match contract expectations
+      const formattedProof = {
+        validity: {
+          inputIndexWithinEpoch: ethers.BigNumber.from(
+            voucherWithProof.proof.validity.inputIndexWithinEpoch
+          ),
+          outputIndexWithinInput: ethers.BigNumber.from(
+            voucherWithProof.proof.validity.outputIndexWithinInput
+          ),
+          outputHashesRootHash:
+            voucherWithProof.proof.validity.outputHashesRootHash,
+          vouchersEpochRootHash:
+            voucherWithProof.proof.validity.vouchersEpochRootHash,
+          noticesEpochRootHash:
+            voucherWithProof.proof.validity.noticesEpochRootHash,
+          machineStateHash: voucherWithProof.proof.validity.machineStateHash,
+          outputHashInOutputHashesSiblings:
+            voucherWithProof.proof.validity.outputHashInOutputHashesSiblings,
+          outputHashesInEpochSiblings:
+            voucherWithProof.proof.validity.outputHashesInEpochSiblings,
+        },
+        context: voucherWithProof.proof.context,
+      };
 
-      if (!receipt) {
-        console.log("Voucher receipt", receipt);
-        // errorAlert("Could not execute voucher");
-        return "Could not execute voucher";
-      }
+      console.log("Formatted proof:", formattedProof);
 
-      console.log("Voucher executed successfully", voucherWithProof);
-      return "Voucher executed successfull";
+      try {
+        const tx = await rollups.dappContract.executeVoucher(
+          voucherWithProof.destination,
+          voucherWithProof.payload,
+          formattedProof
+        );
+
+        console.log("Transaction submitted:", tx.hash);
+        const receipt = await tx.wait();
+
+        if (receipt) {
+          console.log("Voucher receipt", receipt);
+          return {
+            success: true,
+            message: "Congratulations! Funds successfully withdrawn",
+            txHash: tx.hash,
+            receipt: receipt,
+          };
+        }
+
+        if (!receipt) {
+          console.log("No receipt received", receipt);
+          return { message: "Could not execute voucher - no receipt" };
+        }
+
+        console.log("Voucher executed successfully", voucherWithProof);
+        return {
+          success: true,
+          message: "Voucher executed successfully",
+          txHash: tx.hash,
+        };
+      } catch (contractError) {
+        console.error("Contract execution error:", contractError);
+
+        // Check if it's an ABI error that might resolve on retry
+        if (
+          contractError &&
+          typeof contractError === "object" &&
+          "message" in contractError
+        ) {
+          const errorMessage = (contractError as any).message || "";
+          if (
+            errorMessage.includes("AbiErrorSignatureNotFoundError") ||
+            errorMessage.includes("0x87332c01")
+          ) {
+            return {
+              message: `AbiErrorSignatureNotFoundError: ${errorMessage}`,
+              retryable: true,
+            };
+          }
+        }
+
+        throw contractError;
+      }
     }
   } catch (e) {
     console.log("Error executing voucher:", e);

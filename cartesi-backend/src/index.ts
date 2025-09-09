@@ -113,6 +113,18 @@ router.addRoute("create_config", new Routes.CreateConfigRoute(config));
 router.addRoute("update_config", new Routes.UpdateConfigRoute(config));
 router.addRoute("get_config", new Routes.ConfigsRoute(config));
 
+// Playlist Route
+const playlist = new Controllers.PlaylistController();
+router.addRoute("create_playlist", new Routes.CreatePlaylistRoute(playlist));
+router.addRoute("update_playlist", new Routes.UpdatePlaylistRoute(playlist));
+router.addRoute("delete_playlist", new Routes.DeletePlaylistRoute(playlist));
+router.addRoute("add_track_to_playlist", new Routes.AddTrackToPlaylistRoute(playlist));
+router.addRoute("remove_track_from_playlist", new Routes.RemoveTrackFromPlaylistRoute(playlist));
+router.addRoute("get_playlists", new Routes.PlaylistsRoute(playlist));
+router.addRoute("get_playlist", new Routes.PlaylistRoute(playlist));
+router.addRoute("get_playlists_by_listener", new Routes.PlaylistsByListenerRoute(playlist));
+router.addRoute("get_playlists_by_wallet", new Routes.PlaylistsByWalletRoute(playlist));
+
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
     let endpoint;
@@ -151,18 +163,6 @@ async function handle_advance(data: any) {
     console.log("payload is", payload);
     const payloadStr = hexToString(payload);
     console.log("payloadStr is", payloadStr);
-
-    const payloadObj = JSON.parse(JSON.stringify(payloadStr));
-    console.log("payloadObj is", payloadObj);
-
-    // console.log("payloadObj.args.signer is", payloadObj.args.signer);
-
-    if (payloadObj?.args?.signer !== undefined) {
-      console.log(
-        `The original message sender: ${data.metadata.msg_sender} has been updated to: ${payloadObj.args.signer}`
-      );
-      data.metadata.msg_sender = payloadObj.args.signer.toLowerCase();
-    }
 
     let msg_sender: string = data.metadata.msg_sender;
 
@@ -219,6 +219,14 @@ async function handle_advance(data: any) {
       const jsonpayload = JSON.parse(payloadStr);
       console.log("json payload is ", jsonpayload.method);
       console.log("payload is ", data);
+
+      // Handle signer override for JSON payloads
+      if (jsonpayload?.args?.signer !== undefined) {
+        console.log(
+          `The original message sender: ${data.metadata.msg_sender} has been updated to: ${jsonpayload.args.signer}`
+        );
+        data.metadata.msg_sender = jsonpayload.args.signer.toLowerCase();
+      }
 
       return router.process(jsonpayload.method, data);
     } catch (e) {

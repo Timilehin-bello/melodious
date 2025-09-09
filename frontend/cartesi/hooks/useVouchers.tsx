@@ -28,6 +28,26 @@ export const useVouchers = () => {
   const vouchers: Voucher[] =
     data &&
     data.vouchers.edges
+      .filter((node: any) => {
+        // Only include vouchers that have complete proof data to prevent ABI errors
+        const proof = node.node?.proof;
+        if (!proof || !proof.validity || !proof.context) {
+          return false;
+        }
+
+        // Validate all required proof fields are present and properly populated
+        const validity = proof.validity;
+        return (
+          validity.inputIndexWithinEpoch !== undefined &&
+          validity.outputIndexWithinInput !== undefined &&
+          validity.outputHashesRootHash &&
+          validity.vouchersEpochRootHash &&
+          validity.noticesEpochRootHash &&
+          validity.machineStateHash &&
+          Array.isArray(validity.outputHashInOutputHashesSiblings) &&
+          Array.isArray(validity.outputHashesInEpochSiblings)
+        );
+      })
       .map((node: any) => {
         const n = node.node;
         let payload = n?.payload;
@@ -118,7 +138,9 @@ export const useVouchers = () => {
               }
             }
           } catch (e) {
-            console.log(e);
+            console.log("Error decoding payload:", e);
+            // If decoding fails, show the raw payload as hex
+            payload = `Raw Payload: ${payload}`;
           }
         } else {
           payload = "(empty)";
@@ -128,13 +150,19 @@ export const useVouchers = () => {
           index: parseInt(n?.index),
           destination: `${n?.destination ?? ""}`,
           payload: `${payload}`,
-          input: n ? { index: n.input.index, payload: inputPayload } : {},
-          proof: null,
+          input: n
+            ? {
+                index: n.input.index,
+                payload: inputPayload,
+                msgSender: n.input.msgSender,
+              }
+            : {},
+          proof: n?.proof || null,
           executed: null,
         };
       })
-      .sort((b: any, a: any) => {
-        if (a.input.index === b.input.index) {
+      .sort((a: any, b: any) => {
+        if (b.input.index === a.input.index) {
           return b.index - a.index;
         } else {
           return b.input.index - a.input.index;

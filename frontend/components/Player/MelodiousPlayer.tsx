@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { BannerAd } from "@/components/ads";
 
 export const MelodiousMusicPlayer = () => {
   const {
@@ -208,6 +209,11 @@ export const MelodiousMusicPlayer = () => {
                 }}
                 className="w-24 accent-green-500"
               />
+            </div>
+
+            {/* Ad Section */}
+            <div className="mt-8">
+              <BannerAd className="w-full max-w-xl mx-auto" />
             </div>
           </div>
         </div>

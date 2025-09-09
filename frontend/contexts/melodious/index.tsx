@@ -8,6 +8,7 @@ import { useContext } from "react";
 import { io, Socket } from "socket.io-client";
 import { DeviceInfo } from "@/lib/getDeviceInfo";
 import { disconnectSocket, initSocket } from "@/lib/socket";
+import { RollupsContracts, useRollups } from "@/cartesi/hooks/useRollups";
 import toast from "react-hot-toast";
 
 declare global {
@@ -25,6 +26,8 @@ interface IMelodiousContext {
   createAlbum?: (album: ICreateAlbum) => Promise<any>;
   createSingleTrack: (album: ICreateTrack) => Promise<any>;
   getUser: (userId: number) => Promise<any>;
+  rollups: RollupsContracts | undefined;
+  dappAddress: string;
 
   // sendEvent: (event: PlaybackEvent) => void | null;
   playing: boolean;
@@ -170,6 +173,8 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
     return false;
   },
   setUserData: () => {},
+  rollups: undefined,
+  dappAddress: "",
 });
 
 export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -187,6 +192,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [userData, setUserData] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS || "";
+  const rollups = useRollups(dappAddress);
 
   const checkLoginStatus = async () => {
     let data = localStorage.getItem("xx-mu") as any | null;
@@ -571,6 +578,8 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoggedIn,
         setUserData,
         checkLoginStatus,
+        rollups,
+        dappAddress,
       }}
     >
       {children}

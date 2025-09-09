@@ -13,9 +13,10 @@ import { twMerge } from "tailwind-merge";
 import { useCallback, useEffect, useState } from "react";
 import fetchMethod from "@/lib/readState";
 import { useMelodiousContext } from "@/contexts/melodious";
-import { Track, useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProvider";
 import SongList from "@/components/SongList";
+import { SidebarAd } from "@/components/ads";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
@@ -55,126 +56,6 @@ export default function Page() {
   // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
-
-  const genres = [
-    {
-      name: "Rock",
-      songs: [
-        {
-          title: "Song 1",
-          totalListen: "19,900,000",
-          duration: "3:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 2",
-          totalListen: "19,900,000",
-          duration: "4:20",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 3",
-          totalListen: "19,900,000",
-          duration: "5:10",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
-
-    {
-      name: "Jazz",
-      songs: [
-        {
-          title: "Song 7",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 8",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 9",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
-
-    {
-      name: "Raggae",
-      songs: [
-        {
-          title: "Song 13",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 14",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 15",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
-    {
-      name: "Hip Hop",
-      songs: [
-        {
-          title: "Song 16",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 17",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 18",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
-    {
-      name: "Blues",
-      songs: [
-        {
-          title: "Song 19",
-          totalListen: "19,900,000",
-          duration: "6:15",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 20",
-          totalListen: "19,900,000",
-          duration: "5:45",
-          imageUrl: "/images/artist.svg",
-        },
-        {
-          title: "Song 21",
-          totalListen: "19,900,000",
-          duration: "7:00",
-          imageUrl: "/images/artist.svg",
-        },
-      ],
-    },
-  ];
 
   const recentlyPlayed = [
     {
@@ -329,6 +210,11 @@ export default function Page() {
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
               <PopularArtistCarousel />
             </div>
+          </section>
+
+          {/* Ad Section */}
+          <section className="w-full mb-8">
+            <SidebarAd className="w-full" />
           </section>
 
           {/* Recently Played Section */}

@@ -376,14 +376,14 @@ export type VoucherQuery = { __typename?: 'Query', voucher: { __typename?: 'Vouc
 export type VouchersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type VouchersQuery = { __typename?: 'Query', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number } } }> } };
+export type VouchersQuery = { __typename?: 'Query', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number, msgSender: string }, proof?: { __typename?: 'Proof', context: string, validity: { __typename?: 'OutputValidityProof', inputIndexWithinEpoch: number, outputIndexWithinInput: number, outputHashesRootHash: string, vouchersEpochRootHash: string, noticesEpochRootHash: string, machineStateHash: string, outputHashInOutputHashesSiblings: Array<string>, outputHashesInEpochSiblings: Array<string> } } | null } }> } };
 
 export type VouchersByInputQueryVariables = Exact<{
   inputIndex: Scalars['Int']['input'];
 }>;
 
 
-export type VouchersByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number } } }> } } };
+export type VouchersByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number, msgSender: string } } }> } } };
 
 export type ReportQueryVariables = Exact<{
   reportIndex: Scalars['Int']['input'];
@@ -511,9 +511,23 @@ export const VouchersDocument = gql`
         index
         input {
           index
+          msgSender
         }
         destination
         payload
+        proof {
+          validity {
+            inputIndexWithinEpoch
+            outputIndexWithinInput
+            outputHashesRootHash
+            vouchersEpochRootHash
+            noticesEpochRootHash
+            machineStateHash
+            outputHashInOutputHashesSiblings
+            outputHashesInEpochSiblings
+          }
+          context
+        }
       }
     }
   }
@@ -532,6 +546,7 @@ export const VouchersByInputDocument = gql`
           index
           input {
             index
+            msgSender
           }
           destination
           payload

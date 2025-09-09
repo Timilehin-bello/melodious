@@ -7,6 +7,7 @@ class RepositoryService {
   static tracks: Model.Track[] = [];
   static artists: Model.Artist[] = [];
   static listeners: Model.Listener[] = [];
+  static playlists: Model.Playlist[] = [];
   static config: Model.Config | null = null;
 }
 

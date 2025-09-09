@@ -1,5 +1,14 @@
 "use client";
-import { Calendar, Home, Inbox, LogOut, Search, Settings } from "lucide-react";
+import {
+  Calendar,
+  Home,
+  Inbox,
+  LogOut,
+  Search,
+  Settings,
+  CreditCard,
+  Wallet,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -22,6 +31,9 @@ import { useRouter } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { title } from "process";
+import { SidebarAd } from "@/components/ads";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 // Menu items.
 const items = [
   {
@@ -29,11 +41,22 @@ const items = [
     url: "/listener/dashboard",
     icon: Home,
   },
-  // {
-  //   title: "Playlist",
-  //   url: "/listener/playlist",
-  //   icon: Inbox,
-  // },
+  {
+    title: "Wallet",
+    url: "/listener/wallet",
+    icon: Wallet,
+  },
+  {
+    title: "Subscription",
+    url: "/listener/subscription",
+    icon: CreditCard,
+  },
+
+  {
+    title: "Playlist",
+    url: "/listener/playlist",
+    icon: Inbox,
+  },
   // {
   //   title: "Explore",
   //   url: "/listener/explore",
@@ -55,6 +78,16 @@ export function ListenerSidebar() {
   const [activeMenu, setActiveMenu] = useState("Home");
   const { state } = useSidebar();
   const { currentTrack } = useMusic();
+  const { isPremiumUser } = useSubscriptionStatus();
+
+  // Filter menu items based on premium status
+  const filteredItems = items.filter(item => {
+    // Show Playlist only for premium users
+    if (item.title === "Playlist") {
+      return isPremiumUser;
+    }
+    return true;
+  });
 
   return (
     <Sidebar
@@ -94,7 +127,7 @@ export function ListenerSidebar() {
           <SidebarGroupContent className="mt-12">
             <h2 className="mb-8 text-xl">Menu</h2>
             <SidebarMenu>
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
@@ -120,33 +153,9 @@ export function ListenerSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      {/* <SidebarFooter className="bg-[#950944] text-white">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <div className="flex align-middle items-center w-full">
-              <button
-                onClick={logOut}
-                className={
-                  state === "collapsed"
-                    ? "hidden"
-                    : "bg-[#950944] px-10 rounded-md py-2 text-md border-0 ml-10 mx-auto  hover:text-gray-400 "
-                }
-              >
-                Log out
-              </button>
-            </div>
-            <div
-              className={
-                state !== "collapsed"
-                  ? "hidden"
-                  : "bg-[#950944] px-1 rounded-full py-2 text-md border-0 mx-auto hover:text-gray-400 cursor-pointer"
-              }
-            >
-              <LogOut size={20} />
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter> */}
+      <SidebarFooter className="text-white p-2">
+        <SidebarAd className="w-full" />
+      </SidebarFooter>
     </Sidebar>
   );
 }

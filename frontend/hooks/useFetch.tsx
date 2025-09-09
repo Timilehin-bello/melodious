@@ -1,25 +1,27 @@
-// hooks/useFetch.ts
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { get } from "@/lib/api";
 
-export const useFetch = <T,>(url: string) => {
-  const [data, setData] = useState<T | null>(null);
+const useFetch = (url: string) => {
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(url);
-        setData(response.data);
-      } catch (err) {
-        setError((err as Error).message);
+        const response = await get({ url });
+        setData(response);
+      } catch (error: any) {
+        setError(error);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [url]);
 
   return { data, loading, error };
 };
+
+export default useFetch;

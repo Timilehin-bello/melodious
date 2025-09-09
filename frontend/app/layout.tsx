@@ -9,6 +9,8 @@ import WalletConnectionHandler from "@/components/WalletConnectionHandler";
 import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 import { Toaster as Toast } from "react-hot-toast";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import { AdSenseScript } from "@/components/ads";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,30 +35,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <ThirdwebProvider>
-        <WalletConnectionHandler />
-        <LayoutWrapper>
-          <MelodiousProvider>
-            <body
-              className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
-            >
-              <MusicPlayerProvider>
-                <main>{children}</main>
-                {/* <Toaster /> */}
-                <Toast
-                  toastOptions={{
-                    style: {
-                      textWrap: "wrap",
-                    },
-                  }}
-                />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-[#210946] to-purple-950 min-h-screen`}
+      >
+        <ThirdwebProvider>
+          <WalletConnectionHandler />
+          <LayoutWrapper>
+            <MelodiousProvider>
+              <QueryProvider>
+                <MusicPlayerProvider>
+                  <main>{children}</main>
+                  {/* <Toaster /> */}
+                  <Toast
+                    toastOptions={{
+                      style: {
+                        textWrap: "wrap",
+                      },
+                    }}
+                  />
 
-                <MelodiousMusicPlayer />
-              </MusicPlayerProvider>
-            </body>
-          </MelodiousProvider>
-        </LayoutWrapper>
-      </ThirdwebProvider>
+                  <MelodiousMusicPlayer />
+                </MusicPlayerProvider>
+              </QueryProvider>
+            </MelodiousProvider>
+          </LayoutWrapper>
+        </ThirdwebProvider>
+      </body>
     </html>
   );
 }

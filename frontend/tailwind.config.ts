@@ -78,6 +78,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        gold: {
+          "500": "#eab308",
+          "600": "#ca8a04",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
