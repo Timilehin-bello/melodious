@@ -5,9 +5,12 @@ import { Ellipsis, Play, Plus, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { usePlaylists } from "@/hooks/usePlaylist";
+import { usePlaylists, usePlaylist } from "@/hooks/usePlaylist";
 import { useActiveAccount } from "thirdweb/react";
 import AddPlaylistModal from "@/components/AddPlaylistModal";
+import { Track } from "@/contexts/melodious/MusicProvider";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import fetchMethod from "@/lib/readState";
 
 // Utility function to format time ago
 const getTimeAgo = (date: Date): string => {
@@ -37,6 +40,10 @@ const Playlist = () => {
   const activeAccount = useActiveAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Music player hooks
+  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
+    useMusicPlayer();
+
   // Fetch user's playlists
   const {
     data: playlistsData,
@@ -50,6 +57,37 @@ const Playlist = () => {
 
   const handleModalSuccess = () => {
     refetch(); // Refresh the playlists after creation
+  };
+
+  // Handle playing a playlist
+  const handlePlayPlaylist = async (playlistId: string) => {
+    try {
+      // Use the existing fetchMethod to get playlist data
+      const playlistResponse = await fetchMethod(`get_playlist/${playlistId}`);
+      const playlist = playlistResponse?.data;
+      
+      if (!playlist?.tracks || playlist.tracks.length === 0) {
+        return; // No tracks to play
+      }
+      
+      // Transform tracks to match Track interface
+      const transformedTracks: Track[] = playlist.tracks.map((track: any) => ({
+        id: track.id,
+        title: track.title,
+        artist: track.artistId || "Unknown Artist",
+        album: track.albumId || "Unknown Album",
+        createdAt: track.createdAt,
+        duration: parseInt(track.duration) || 0,
+        imageUrl: track.imageUrl || "/images/artist.svg",
+        audioUrl: track.audioUrl,
+        artistId: track.artistId,
+      }));
+      
+      // Start playing the playlist from the first track
+      playPlaylist(transformedTracks, 0);
+    } catch (error) {
+      console.error('Failed to play playlist:', error);
+    }
   };
 
   const playlists = playlistsData?.data?.playlists || [];
@@ -158,9 +196,17 @@ const Playlist = () => {
                             target.src = "/images/playlist.jpg";
                           }}
                         />
-                        <button className="absolute bottom-2 right-2  bg-[#950944] hover:bg-[#b30d52]  ease-out shadow-lg hover:shadow-[#950944]/25 transform hover:scale-110 active:scale-95 group-hover:translate-y-0 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <Play className="w-4 h-4" />
-                        </button>
+                        {playlist.tracks && playlist.tracks.length > 0 && (
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault(); // Prevent navigation to playlist page
+                              handlePlayPlaylist(playlist.id);
+                            }}
+                            className="absolute bottom-2 right-2  bg-[#950944] hover:bg-[#b30d52]  ease-out shadow-lg hover:shadow-[#950944]/25 transform hover:scale-110 active:scale-95 group-hover:translate-y-0 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          >
+                            <Play className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                       <h3 className="text-white font-medium mb-1 truncate">
                         {playlist.title}
