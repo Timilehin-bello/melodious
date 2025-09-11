@@ -76,7 +76,7 @@ const Playlist = () => {
     if (!searchQuery.trim()) {
       return transformedTracks;
     }
-    
+
     const query = searchQuery.toLowerCase();
     return transformedTracks.filter((track: Track) =>
       track.title.toLowerCase().includes(query)
@@ -100,7 +100,7 @@ const Playlist = () => {
 
   const handleRemoveTrack = (track: Track) => {
     if (!playlist?.id) return;
-    
+
     removeTrackMutation.mutate({
       playlistId: playlist.id.toString(),
       data: {
@@ -161,32 +161,48 @@ const Playlist = () => {
         {/* Main Action Section */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-6">
-            <button 
-               className="flex items-center justify-center w-16 h-16 rounded-full bg-[#950944] hover:bg-[#a50a4a] transition-colors duration-200 shadow-lg"
-               onClick={() => {
-                 if (transformedTracks.length > 0) {
-                   if (isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id)) {
-                     togglePlay();
-                   } else {
-                     playPlaylist(transformedTracks, 0);
-                   }
-                 }
-               }}
-             >
-               {isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id) ? (
-                 <Pause size={28} fill="white" className="text-white" />
-               ) : (
-                 <Play size={28} fill="white" className="text-white ml-1" />
-               )}
-             </button>
+            <button
+              className="flex items-center justify-center w-16 h-16 rounded-full bg-[#950944] hover:bg-[#a50a4a] transition-colors duration-200 shadow-lg"
+              onClick={() => {
+                if (transformedTracks.length > 0) {
+                  if (
+                    isPlaying &&
+                    currentTrack &&
+                    transformedTracks.some(
+                      (track) => track.id === currentTrack.id
+                    )
+                  ) {
+                    togglePlay();
+                  } else {
+                    playPlaylist(transformedTracks, 0);
+                  }
+                }
+              }}
+            >
+              {isPlaying &&
+              currentTrack &&
+              transformedTracks.some(
+                (track) => track.id === currentTrack.id
+              ) ? (
+                <Pause size={28} fill="white" className="text-white" />
+              ) : (
+                <Play size={28} fill="white" className="text-white ml-1" />
+              )}
+            </button>
             <div className="text-white">
-               <h3 className="text-lg font-semibold">
-                 {isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id) ? 'Pause' : 'Play All'}
-               </h3>
-               <p className="text-sm text-gray-400">{transformedTracks.length} tracks</p>
-             </div>
+              <h3 className="text-lg font-semibold">
+                {isPlaying &&
+                currentTrack &&
+                transformedTracks.some((track) => track.id === currentTrack.id)
+                  ? "Pause"
+                  : "Play All"}
+              </h3>
+              <p className="text-sm text-gray-400">
+                {transformedTracks.length} tracks
+              </p>
+            </div>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {isPremiumUser && (
               <Button
@@ -198,10 +214,10 @@ const Playlist = () => {
             )}
           </div>
         </div>
-        
+
         {/* Search Section */}
         <div className="mb-6">
-          <SearchInput 
+          <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="Search tracks by title..."
@@ -222,8 +238,12 @@ const Playlist = () => {
           {filteredTracks.length === 0 && searchQuery ? (
             <div className="text-center py-12">
               <Search className="mx-auto mb-4 h-12 w-12 text-zinc-500" />
-              <p className="text-zinc-400 mb-4">No tracks found matching your search</p>
-              <p className="text-zinc-500 text-sm">Try a different search term</p>
+              <p className="text-zinc-400 mb-4">
+                No tracks found matching your search
+              </p>
+              <p className="text-zinc-500 text-sm">
+                Try a different search term
+              </p>
             </div>
           ) : (
             <SongList

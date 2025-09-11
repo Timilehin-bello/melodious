@@ -1,7 +1,15 @@
 "use client";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Play, Plus, Loader2, Music, Search } from "lucide-react";
+import {
+  Ellipsis,
+  Play,
+  Pause,
+  Plus,
+  Loader2,
+  Music,
+  Search,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
@@ -44,8 +52,15 @@ const Playlist = () => {
   const { isPremiumUser } = useSubscriptionStatus();
 
   // Music player hooks
-  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
-    useMusicPlayer();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    playPlaylist,
+    togglePlay,
+    playlist,
+    currentPlaylistId,
+  } = useMusicPlayer();
 
   // Fetch user's playlists
   const {
@@ -62,14 +77,20 @@ const Playlist = () => {
     refetch(); // Refresh the playlists after creation
   };
 
+  // Check if a playlist is currently playing
+  const isPlaylistPlaying = (playlistId: string) => {
+    return currentPlaylistId === playlistId && isPlaying;
+  };
+
   // Handle playing a playlist
   const handlePlayPlaylist = async (playlistId: string) => {
     try {
       // Use the existing fetchMethod to get playlist data
-      const playlistResponse = await fetchMethod(`get_playlist/${playlistId}`);
-      const playlist = playlistResponse?.data;
+      const playlist = await fetchMethod(`get_playlist/${playlistId}`);
+      console.log("Playlist response:", playlist);
 
       if (!playlist?.tracks || playlist.tracks.length === 0) {
+        console.log("No tracks found in playlist");
         return; // No tracks to play
       }
 
@@ -80,20 +101,25 @@ const Playlist = () => {
         artist: track.artistId || "Unknown Artist",
         album: track.albumId || "Unknown Album",
         createdAt: track.createdAt,
-        duration: parseInt(track.duration) || 0,
+        duration: track.duration || 0,
         imageUrl: track.imageUrl || "/images/artist.svg",
         audioUrl: track.audioUrl,
         artistId: track.artistId,
       }));
 
+      console.log("Transformed tracks:", transformedTracks);
+
       // Start playing the playlist from the first track
-      playPlaylist(transformedTracks, 0);
+      playPlaylist(transformedTracks, 0, playlistId);
     } catch (error) {
       console.log("Failed to play playlist:", error);
     }
   };
 
-  const playlists = playlistsData?.data?.playlists || [];
+  const playlists = React.useMemo(
+    () => playlistsData?.data?.playlists || [],
+    [playlistsData]
+  );
 
   // Filter playlists based on search query
   const filteredPlaylists = React.useMemo(() => {
@@ -255,11 +281,19 @@ const Playlist = () => {
                           <button
                             onClick={(e) => {
                               e.preventDefault(); // Prevent navigation to playlist page
-                              handlePlayPlaylist(playlist.id);
+                              if (isPlaylistPlaying(playlist.id)) {
+                                togglePlay(); // Pause if currently playing
+                              } else {
+                                handlePlayPlaylist(playlist.id); // Play if not playing
+                              }
                             }}
                             className="absolute bottom-2 right-2  bg-[#950944] hover:bg-[#b30d52]  ease-out shadow-lg hover:shadow-[#950944]/25 transform hover:scale-110 active:scale-95 group-hover:translate-y-0 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                           >
-                            <Play className="w-4 h-4" />
+                            {isPlaylistPlaying(playlist.id) ? (
+                              <Pause className="w-4 h-4" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                       </div>

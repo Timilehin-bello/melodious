@@ -12,7 +12,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   value = "",
   onChange,
   placeholder = "Search...",
-  className = ""
+  className = "",
 }) => {
   return (
     <div className={`relative ${className}`}>
