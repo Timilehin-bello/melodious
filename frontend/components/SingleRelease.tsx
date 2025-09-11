@@ -33,6 +33,7 @@ import {
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useGenres } from "@/hooks/useGenres";
+import { useTracks } from "@/hooks/useTracks";
 import BlockLoader from "./BlockLoader";
 import Image from "next/image";
 
@@ -43,6 +44,7 @@ const SingleRelease = () => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingRequest, setLoadingRequest] = useState<boolean>(false);
   const [myAudio, setMyAudio] = useState<string | null>(null);
+  const { refetch } = useTracks();
 
   const router = useRouter();
 
@@ -108,6 +110,8 @@ const SingleRelease = () => {
     const result = await createSingleTrack(values);
 
     if (result) {
+      // Refetch tracks to update the list immediately
+      await refetch();
       setLoadingRequest(false);
       router.push("/artist/release");
     } else {

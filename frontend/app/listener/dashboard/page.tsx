@@ -10,8 +10,9 @@ import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { useTracks } from "@/hooks/useTracks";
+import { useRepositoryData } from "@/hooks/useNoticesQuery";
 import toast from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
@@ -22,6 +23,7 @@ import { SidebarAd } from "@/components/ads";
 
 export default function Page() {
   const { tracks, isLoading, isError, error } = useTracks();
+  const { users } = useRepositoryData();
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
 
@@ -33,6 +35,25 @@ export default function Page() {
   }, [isError, error]);
 
   console.log("tracklist", tracks);
+
+  // Enhanced tracks with artist details
+  const tracksWithArtistDetails = useMemo(() => {
+    if (!tracks || !users) return tracks;
+    
+    return tracks.map((track: Track) => {
+      // Find the artist user by artistId
+      const artistUser = users.find((user: any) => 
+        (track.artistId && user.id === parseInt(track.artistId)) || 
+        (track.artistId && user.artist?.id === parseInt(track.artistId))
+      );
+      
+      return {
+        ...track,
+        artist: artistUser?.displayName || artistUser?.name || 'Unknown Artist',
+        artistDetails: artistUser || null
+      };
+    });
+  }, [tracks, users]);
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -156,13 +177,13 @@ export default function Page() {
             </div>
             <div className="overflow-x-auto  pb-4">
               <div className="flex gap-4 min-w-min">
-                {tracks.map((track: Track, index: number) => (
+                {tracksWithArtistDetails?.map((track: any, index: number) => (
                   <div key={track.id} className="w-[250px] flex-shrink-0">
                     <TrendingSoundItem
                       song={track}
                       imageUrl={track.imageUrl}
                       songTitle={track.title}
-                      songDetails={String(track.duration)}
+                      songDetails={track.artist || 'Unknown Artist'}
                       playSong={() => handlePlayTrack(track, index)}
                       likeSong={likeSong}
                       isLoading={isLoading}
@@ -177,7 +198,7 @@ export default function Page() {
           <section className="space-y-4">
             <div className="mb-14">
               <SongList
-                songList={tracks}
+                songList={tracksWithArtistDetails}
                 onPlayPause={handlePlayTrack}
                 isLoading={isLoading}
               />
