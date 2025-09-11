@@ -2,7 +2,7 @@
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import AddTrackToPlaylistModal from "@/components/AddTrackToPlaylistModal";
-import { Ellipsis, Play } from "lucide-react";
+import { Ellipsis, Play, Pause } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
@@ -142,29 +142,59 @@ const Playlist = () => {
         </div>
       </div>
 
-      <div className="mt-10 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex items-center justify-center  w-12 h-12 rounded-full bg-[#950944]">
-            <Play size={24} fill="white" className=" text-white" />
+      <div className="mt-10 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-6">
+        {/* Main Action Section */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-6">
+            <button 
+               className="flex items-center justify-center w-16 h-16 rounded-full bg-[#950944] hover:bg-[#a50a4a] transition-colors duration-200 shadow-lg"
+               onClick={() => {
+                 if (transformedTracks.length > 0) {
+                   if (isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id)) {
+                     togglePlay();
+                   } else {
+                     playPlaylist(transformedTracks, 0);
+                   }
+                 }
+               }}
+             >
+               {isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id) ? (
+                 <Pause size={28} fill="white" className="text-white" />
+               ) : (
+                 <Play size={28} fill="white" className="text-white ml-1" />
+               )}
+             </button>
+            <div className="text-white">
+               <h3 className="text-lg font-semibold">
+                 {isPlaying && currentTrack && transformedTracks.some(track => track.id === currentTrack.id) ? 'Pause' : 'Play All'}
+               </h3>
+               <p className="text-sm text-gray-400">{transformedTracks.length} tracks</p>
+             </div>
           </div>
-          <SearchInput />
-
-          <Button
-            className="bg-[#950944] h-[45px]"
-            onClick={() => setIsAddTrackModalOpen(true)}
-          >
-            Add Track
-          </Button>
-
-          <AddTrackToPlaylistModal
-            isOpen={isAddTrackModalOpen}
-            onClose={() => setIsAddTrackModalOpen(false)}
-            onSuccess={handleAddTrackSuccess}
-            playlistId={id as string}
-            playlistTitle={playlist.title}
-            existingTracks={transformedTracks}
-          />
+          
+          <div className="flex items-center gap-3">
+            <Button
+              className="bg-[#950944] hover:bg-[#a50a4a] h-[45px] px-6 transition-colors duration-200"
+              onClick={() => setIsAddTrackModalOpen(true)}
+            >
+              Add Track
+            </Button>
+          </div>
         </div>
+        
+        {/* Search Section */}
+        <div className="mb-6">
+          <SearchInput />
+        </div>
+
+        <AddTrackToPlaylistModal
+          isOpen={isAddTrackModalOpen}
+          onClose={() => setIsAddTrackModalOpen(false)}
+          onSuccess={handleAddTrackSuccess}
+          playlistId={id as string}
+          playlistTitle={playlist.title}
+          existingTracks={transformedTracks}
+        />
         <div className="mt-12">
           <SongList
             songList={transformedTracks}
