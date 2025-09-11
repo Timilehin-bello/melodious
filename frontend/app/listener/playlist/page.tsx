@@ -13,13 +13,13 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-import { usePlaylists, usePlaylist } from "@/hooks/usePlaylist";
 import { useActiveAccount } from "thirdweb/react";
 import AddPlaylistModal from "@/components/AddPlaylistModal";
 import { useSubscriptionStatus } from "@/hooks/useSubscription";
 import { Track } from "@/contexts/melodious/MusicProvider";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
-import fetchMethod from "@/lib/readState";
+import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useMemo } from "react";
 
 // Utility function to format time ago
 const getTimeAgo = (date: Date): string => {
@@ -62,19 +62,28 @@ const Playlist = () => {
     currentPlaylistId,
   } = useMusicPlayer();
 
-  // Fetch user's playlists
+  // Fetch user's playlists from repository notices
   const {
-    data: playlistsData,
+    playlists: allPlaylists,
     isLoading,
     error,
     refetch,
-  } = usePlaylists({
-    createdBy: activeAccount?.address,
-    enabled: !!activeAccount?.address,
-  });
+  } = useRepositoryData();
+  // Filter playlists by current user
+  const playlistsData = useMemo(() => {
+    if (!allPlaylists || !activeAccount?.address) return [];
+    const filteredPlaylists = allPlaylists.filter(
+      (playlist: any) =>
+        playlist.walletAddress === activeAccount.address.toLowerCase()
+    );
+    console.log("filteredPlaylists", filteredPlaylists);
+    return filteredPlaylists;
+  }, [allPlaylists, activeAccount?.address]);
 
   const handleModalSuccess = () => {
-    refetch(); // Refresh the playlists after creation
+    // Refetch repository data to get the newly created playlist
+    refetch();
+    console.log("Playlist created, refetching repository data");
   };
 
   // Check if a playlist is currently playing
@@ -85,27 +94,29 @@ const Playlist = () => {
   // Handle playing a playlist
   const handlePlayPlaylist = async (playlistId: string) => {
     try {
-      // Use the existing fetchMethod to get playlist data
-      const playlist = await fetchMethod(`get_playlist/${playlistId}`);
-      console.log("Playlist response:", playlist);
+      // Find playlist from repository data
+      const playlistItem = allPlaylists?.find((p: any) => p.id === playlistId);
+      console.log("Playlist response:", playlistItem);
 
-      if (!playlist?.tracks || playlist.tracks.length === 0) {
+      if (!playlistItem?.tracks || playlistItem.tracks.length === 0) {
         console.log("No tracks found in playlist");
         return; // No tracks to play
       }
 
       // Transform tracks to match Track interface
-      const transformedTracks: Track[] = playlist.tracks.map((track: any) => ({
-        id: track.id,
-        title: track.title,
-        artist: track.artistId || "Unknown Artist",
-        album: track.albumId || "Unknown Album",
-        createdAt: track.createdAt,
-        duration: track.duration || 0,
-        imageUrl: track.imageUrl || "/images/artist.svg",
-        audioUrl: track.audioUrl,
-        artistId: track.artistId,
-      }));
+      const transformedTracks: Track[] = playlistItem.tracks.map(
+        (track: any) => ({
+          id: track.id,
+          title: track.title,
+          artist: track.artistId || "Unknown Artist",
+          album: track.albumId || "Unknown Album",
+          createdAt: track.createdAt,
+          duration: track.duration || 0,
+          imageUrl: track.imageUrl || "/images/artist.svg",
+          audioUrl: track.audioUrl,
+          artistId: track.artistId,
+        })
+      );
 
       console.log("Transformed tracks:", transformedTracks);
 
@@ -119,33 +130,34 @@ const Playlist = () => {
   // Handle playing all playlists
   const handlePlayAllPlaylists = async () => {
     try {
-      if (!playlists || playlists.length === 0) {
+      if (!playlistsData || playlistsData.length === 0) {
         console.log("No playlists to play");
         return;
       }
 
       let allTracks: Track[] = [];
 
-      // Fetch tracks from all playlists
-      for (const playlist of playlists) {
+      // Get tracks from all playlists using repository data
+      for (const playlistItem of playlistsData) {
         try {
-          const playlistData = await fetchMethod(`get_playlist/${playlist.id}`);
-          if (playlistData?.tracks && playlistData.tracks.length > 0) {
-            const transformedTracks: Track[] = playlistData.tracks.map((track: any) => ({
-              id: track.id,
-              title: track.title,
-              artist: track.artistId || "Unknown Artist",
-              album: track.albumId || "Unknown Album",
-              createdAt: track.createdAt,
-              duration: track.duration || 0,
-              imageUrl: track.imageUrl || "/images/artist.svg",
-              audioUrl: track.audioUrl,
-              artistId: track.artistId,
-            }));
+          if (playlistItem?.tracks && playlistItem.tracks.length > 0) {
+            const transformedTracks: Track[] = playlistItem.tracks.map(
+              (track: any) => ({
+                id: track.id,
+                title: track.title,
+                artist: track.artistId || "Unknown Artist",
+                album: track.albumId || "Unknown Album",
+                createdAt: track.createdAt,
+                duration: track.duration || 0,
+                imageUrl: track.imageUrl || "/images/artist.svg",
+                audioUrl: track.audioUrl,
+                artistId: track.artistId,
+              })
+            );
             allTracks = [...allTracks, ...transformedTracks];
           }
         } catch (error) {
-          console.log(`Failed to fetch playlist ${playlist.id}:`, error);
+          console.log(`Failed to process playlist ${playlistItem.id}:`, error);
         }
       }
 
@@ -154,8 +166,10 @@ const Playlist = () => {
         return;
       }
 
-      console.log(`Playing all tracks from ${playlists.length} playlists (${allTracks.length} total tracks)`);
-      
+      console.log(
+        `Playing all tracks from ${playlistsData.length} playlists (${allTracks.length} total tracks)`
+      );
+
       // Start playing all tracks from the first track
       playPlaylist(allTracks, 0, "all-playlists");
     } catch (error) {
@@ -163,22 +177,17 @@ const Playlist = () => {
     }
   };
 
-  const playlists = React.useMemo(
-    () => playlistsData?.data?.playlists || [],
-    [playlistsData]
-  );
-
   // Filter playlists based on search query
   const filteredPlaylists = React.useMemo(() => {
     if (!searchQuery.trim()) {
-      return playlists;
+      return playlistsData;
     }
 
     const query = searchQuery.toLowerCase();
-    return playlists.filter((playlist: any) =>
+    return playlistsData.filter((playlist: any) =>
       playlist.title.toLowerCase().includes(query)
     );
-  }, [playlists, searchQuery]);
+  }, [playlistsData, searchQuery]);
   return (
     <div className="m-4">
       <div className="flex flex-wrap items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-center md:justify-start justify-center text-white">
@@ -235,10 +244,12 @@ const Playlist = () => {
             </button>
             <div className="text-white">
               <h3 className="text-lg font-semibold">
-                {currentPlaylistId === "all-playlists" && isPlaying ? "Pause All" : "Play All"}
+                {currentPlaylistId === "all-playlists" && isPlaying
+                  ? "Pause All"
+                  : "Play All"}
               </h3>
               <p className="text-sm text-gray-400">
-                {playlists.length} playlists
+                {playlistsData.length} playlists
               </p>
             </div>
           </div>
@@ -283,7 +294,7 @@ const Playlist = () => {
             <div className="text-center py-12">
               <p className="text-red-400 mb-4">Failed to load playlists</p>
               <Button
-                onClick={() => refetch()}
+                onClick={() => window.location.reload()}
                 variant="outline"
                 className="border-zinc-600 text-zinc-300 hover:bg-zinc-800"
               >
@@ -310,7 +321,7 @@ const Playlist = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {filteredPlaylists.map((playlist, index) => {
+              {filteredPlaylists.map((playlist: any, index: number) => {
                 const createdDate = new Date(playlist.createdAt);
                 const timeAgo = getTimeAgo(createdDate);
 

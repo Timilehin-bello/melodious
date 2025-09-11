@@ -39,18 +39,19 @@ export default function Page() {
   // Enhanced tracks with artist details
   const tracksWithArtistDetails = useMemo(() => {
     if (!tracks || !users) return tracks;
-    
+
     return tracks.map((track: Track) => {
       // Find the artist user by artistId
-      const artistUser = users.find((user: any) => 
-        (track.artistId && user.id === parseInt(track.artistId)) || 
-        (track.artistId && user.artist?.id === parseInt(track.artistId))
+      const artistUser = users.find(
+        (user: any) =>
+          (track.artistId && user.id === parseInt(track.artistId)) ||
+          (track.artistId && user.artist?.id === parseInt(track.artistId))
       );
-      
+
       return {
         ...track,
-        artist: artistUser?.displayName || artistUser?.name || 'Unknown Artist',
-        artistDetails: artistUser || null
+        artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+        artistDetails: artistUser || null,
       };
     });
   }, [tracks, users]);
@@ -183,7 +184,7 @@ export default function Page() {
                       song={track}
                       imageUrl={track.imageUrl}
                       songTitle={track.title}
-                      songDetails={track.artist || 'Unknown Artist'}
+                      songDetails={track.artist || "Unknown Artist"}
                       playSong={() => handlePlayTrack(track, index)}
                       likeSong={likeSong}
                       isLoading={isLoading}

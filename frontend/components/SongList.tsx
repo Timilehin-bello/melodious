@@ -11,6 +11,7 @@ interface SongListProps {
   isLoading: boolean;
   onRemove?: (track: Track) => void;
   showRemoveButton?: boolean;
+  removingTrackId?: string;
 }
 
 const SongList: React.FC<SongListProps> = ({
@@ -19,6 +20,7 @@ const SongList: React.FC<SongListProps> = ({
   isLoading,
   onRemove,
   showRemoveButton = false,
+  removingTrackId,
 }) => {
   const { currentTrack, isPlaying } = useMusicPlayer();
 
@@ -145,10 +147,19 @@ const SongList: React.FC<SongListProps> = ({
                         e.stopPropagation();
                         onRemove(song);
                       }}
-                      className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all duration-200 "
-                      title="Remove from playlist"
+                      disabled={removingTrackId === song.id.toString()}
+                      className={`p-2 rounded-md transition-all duration-200 ${
+                        removingTrackId === song.id.toString()
+                          ? "text-zinc-600 cursor-not-allowed"
+                          : "text-zinc-400 hover:text-red-400 hover:bg-red-400/10"
+                      }`}
+                      title={removingTrackId === song.id.toString() ? "Removing..." : "Remove from playlist"}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      {removingTrackId === song.id.toString() ? (
+                        <div className="w-4 h-4 border-2 border-zinc-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
                     </button>
                   </td>
                 )}

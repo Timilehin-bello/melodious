@@ -1,16 +1,19 @@
 "use client";
+
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import AddTrackToPlaylistModal from "@/components/AddTrackToPlaylistModal";
-import { Ellipsis, Play, Pause, Search } from "lucide-react";
+import { Play, Pause, Search } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
-import { usePlaylist, useRemoveTrackFromPlaylist } from "@/hooks/usePlaylist";
+import { useRemoveTrackFromPlaylist } from "@/hooks/usePlaylist";
 import { Track } from "@/contexts/melodious/MusicProvider";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
 import { useSubscriptionStatus } from "@/hooks/useSubscription";
 import SongList from "@/components/SongList";
+import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useMemo } from "react";
 
 // Utility function to format time ago
 const getTimeAgo = (date: Date): string => {
@@ -41,35 +44,55 @@ const Playlist = () => {
   const id = params?.id as string;
   const [isAddTrackModalOpen, setIsAddTrackModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [removingTrackId, setRemovingTrackId] = useState<string | null>(null);
   const { isPremiumUser } = useSubscriptionStatus();
 
   // Music player hooks
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
 
-  const {
-    data: playlistResponse,
-    isLoading,
-    error,
-  } = usePlaylist(id as string);
-  const playlist = playlistResponse?.data;
+  // Fetch playlist from repository notices
+  const { playlists, users, isLoading, error, refetch } = useRepositoryData();
+  console.log("playlists user --", playlists);
+
+  // Find the specific playlist by ID
+  const playlist = useMemo(() => {
+    if (!playlists || !id) return null;
+
+    const playlist = playlists.find((p: any) => Number(p.id) === Number(id));
+
+    return playlist;
+  }, [playlists, id]);
 
   // Remove track mutation
   const removeTrackMutation = useRemoveTrackFromPlaylist();
 
-  // Transform playlist tracks to match Track interface
-  const transformedTracks: Track[] =
-    playlist?.tracks?.map((track) => ({
-      id: track.id,
-      title: track.title,
-      artist: track.artistId || "Unknown Artist",
-      album: track.albumId || "Unknown Album",
-      createdAt: track.createdAt,
-      duration: parseInt(track.duration) || 0,
-      imageUrl: track.imageUrl || "/images/artist.svg",
-      audioUrl: track.audioUrl,
-      artistId: track.artistId, // Add artistId for websocket
-    })) || [];
+  // Transform playlist tracks to match Track interface with artist details
+  const transformedTracks: Track[] = useMemo(() => {
+    if (!playlist?.tracks || !users) return [];
+
+    return playlist.tracks.map((track: any) => {
+      // Find the artist user by artistId
+      const artistUser = users.find(
+        (user: any) =>
+          (track.artistId && user.id === parseInt(track.artistId)) ||
+          (track.artistId && user.artist?.id === parseInt(track.artistId))
+      );
+
+      return {
+        id: track.id,
+        title: track.title,
+        artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+        album: track.albumId || "Unknown Album",
+        createdAt: track.createdAt,
+        duration: parseInt(track.duration) || 0,
+        imageUrl: track.imageUrl || "/images/artist.svg",
+        audioUrl: track.audioUrl,
+        artistId: track.artistId, // Add artistId for websocket
+        artistDetails: artistUser || null, // Add full artist details
+      };
+    });
+  }, [playlist, users]);
 
   // Filter tracks based on search query
   const filteredTracks = React.useMemo(() => {
@@ -78,8 +101,10 @@ const Playlist = () => {
     }
 
     const query = searchQuery.toLowerCase();
-    return transformedTracks.filter((track: Track) =>
-      track.title.toLowerCase().includes(query)
+    return transformedTracks.filter(
+      (track: Track) =>
+        track.title.toLowerCase().includes(query) ||
+        track.artist?.toLowerCase().includes(query)
     );
   }, [transformedTracks, searchQuery]);
 
@@ -95,18 +120,32 @@ const Playlist = () => {
   };
 
   const handleAddTrackSuccess = () => {
-    // The modal will handle success actions and refetch
+    // Refetch repository data to get updated playlist with new track
+    refetch();
   };
 
   const handleRemoveTrack = (track: Track) => {
-    if (!playlist?.id) return;
+    if (!playlist?.id || removingTrackId) return;
 
-    removeTrackMutation.mutate({
-      playlistId: playlist.id.toString(),
-      data: {
-        trackId: track.id.toString(),
+    setRemovingTrackId(track.id.toString());
+    removeTrackMutation.mutate(
+      {
+        playlistId: playlist.id.toString(),
+        data: {
+          trackId: track.id.toString(),
+        },
       },
-    });
+      {
+        onSuccess: () => {
+          // Refetch repository data to get updated playlist without the removed track
+          refetch();
+          setRemovingTrackId(null);
+        },
+        onError: () => {
+          setRemovingTrackId(null);
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -220,7 +259,7 @@ const Playlist = () => {
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Search tracks by title..."
+            placeholder="Search tracks by title and artist name..."
           />
         </div>
 
@@ -252,6 +291,7 @@ const Playlist = () => {
               isLoading={isLoading}
               onRemove={handleRemoveTrack}
               showRemoveButton={true}
+              removingTrackId={removingTrackId || undefined}
             />
           )}
         </div>
