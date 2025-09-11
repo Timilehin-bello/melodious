@@ -93,7 +93,7 @@ const AddPlaylistModal: React.FC<AddPlaylistModalProps> = ({
         imageUrl: fileUrl || undefined,
         isPublic: values.isPublic,
       });
-      toast.success("Playlist created successfully");
+
       form.reset();
       setFileUrl(null);
       onSuccess();

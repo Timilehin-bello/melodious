@@ -2,13 +2,14 @@
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
 import AddTrackToPlaylistModal from "@/components/AddTrackToPlaylistModal";
-import { Ellipsis, Play, Pause } from "lucide-react";
+import { Ellipsis, Play, Pause, Search } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useState } from "react";
 import { usePlaylist, useRemoveTrackFromPlaylist } from "@/hooks/usePlaylist";
 import { Track } from "@/contexts/melodious/MusicProvider";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 import SongList from "@/components/SongList";
 
 // Utility function to format time ago
@@ -39,6 +40,8 @@ const Playlist = () => {
   const params = useParams();
   const id = params?.id as string;
   const [isAddTrackModalOpen, setIsAddTrackModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { isPremiumUser } = useSubscriptionStatus();
 
   // Music player hooks
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
@@ -67,6 +70,18 @@ const Playlist = () => {
       audioUrl: track.audioUrl,
       artistId: track.artistId, // Add artistId for websocket
     })) || [];
+
+  // Filter tracks based on search query
+  const filteredTracks = React.useMemo(() => {
+    if (!searchQuery.trim()) {
+      return transformedTracks;
+    }
+    
+    const query = searchQuery.toLowerCase();
+    return transformedTracks.filter((track: Track) =>
+      track.title.toLowerCase().includes(query)
+    );
+  }, [transformedTracks, searchQuery]);
 
   // Handle play/pause functionality
   const handlePlayTrack = (track: Track, index: number) => {
@@ -173,36 +188,52 @@ const Playlist = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <Button
-              className="bg-[#950944] hover:bg-[#a50a4a] h-[45px] px-6 transition-colors duration-200"
-              onClick={() => setIsAddTrackModalOpen(true)}
-            >
-              Add Track
-            </Button>
+            {isPremiumUser && (
+              <Button
+                className="bg-[#950944] hover:bg-[#a50a4a] h-[45px] px-6 transition-colors duration-200"
+                onClick={() => setIsAddTrackModalOpen(true)}
+              >
+                Add Track
+              </Button>
+            )}
           </div>
         </div>
         
         {/* Search Section */}
         <div className="mb-6">
-          <SearchInput />
+          <SearchInput 
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search tracks by title..."
+          />
         </div>
 
-        <AddTrackToPlaylistModal
-          isOpen={isAddTrackModalOpen}
-          onClose={() => setIsAddTrackModalOpen(false)}
-          onSuccess={handleAddTrackSuccess}
-          playlistId={id as string}
-          playlistTitle={playlist.title}
-          existingTracks={transformedTracks}
-        />
-        <div className="mt-12">
-          <SongList
-            songList={transformedTracks}
-            onPlayPause={handlePlayTrack}
-            isLoading={isLoading}
-            onRemove={handleRemoveTrack}
-            showRemoveButton={true}
+        {isPremiumUser && (
+          <AddTrackToPlaylistModal
+            isOpen={isAddTrackModalOpen}
+            onClose={() => setIsAddTrackModalOpen(false)}
+            onSuccess={handleAddTrackSuccess}
+            playlistId={id as string}
+            playlistTitle={playlist.title}
+            existingTracks={transformedTracks}
           />
+        )}
+        <div className="mt-12">
+          {filteredTracks.length === 0 && searchQuery ? (
+            <div className="text-center py-12">
+              <Search className="mx-auto mb-4 h-12 w-12 text-zinc-500" />
+              <p className="text-zinc-400 mb-4">No tracks found matching your search</p>
+              <p className="text-zinc-500 text-sm">Try a different search term</p>
+            </div>
+          ) : (
+            <SongList
+              songList={filteredTracks}
+              onPlayPause={handlePlayTrack}
+              isLoading={isLoading}
+              onRemove={handleRemoveTrack}
+              showRemoveButton={true}
+            />
+          )}
         </div>
       </div>
     </div>

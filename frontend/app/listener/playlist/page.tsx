@@ -1,13 +1,14 @@
 "use client";
 import SearchInput from "@/components/SearchInput";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Play, Plus, Loader2 } from "lucide-react";
+import { Ellipsis, Play, Plus, Loader2, Music, Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
 import { usePlaylists, usePlaylist } from "@/hooks/usePlaylist";
 import { useActiveAccount } from "thirdweb/react";
 import AddPlaylistModal from "@/components/AddPlaylistModal";
+import { useSubscriptionStatus } from "@/hooks/useSubscription";
 import { Track } from "@/contexts/melodious/MusicProvider";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
 import fetchMethod from "@/lib/readState";
@@ -39,6 +40,8 @@ const getTimeAgo = (date: Date): string => {
 const Playlist = () => {
   const activeAccount = useActiveAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const { isPremiumUser } = useSubscriptionStatus();
 
   // Music player hooks
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
@@ -91,6 +94,18 @@ const Playlist = () => {
   };
 
   const playlists = playlistsData?.data?.playlists || [];
+
+  // Filter playlists based on search query
+  const filteredPlaylists = React.useMemo(() => {
+    if (!searchQuery.trim()) {
+      return playlists;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return playlists.filter((playlist: any) =>
+      playlist.title.toLowerCase().includes(query)
+    );
+  }, [playlists, searchQuery]);
   return (
     <div className="m-4">
       <div className="flex flex-wrap items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md  px-6 py-8 sm:px-4  sm:justify-center md:justify-start justify-center text-white">
@@ -126,26 +141,55 @@ const Playlist = () => {
       </div>
 
       <div className="mt-10 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-4">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="flex items-center justify-center  w-12 h-12 rounded-full bg-[#950944]">
-            <Play size={24} fill="white" className=" text-white" />
+        {/* Play Controls and Add Playlist Section */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <button
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-[#950944] hover:bg-[#a50a4a] transition-colors duration-200"
+              onClick={() => {
+                // Handle play all playlists functionality if needed
+                console.log("Play all playlists");
+              }}
+            >
+              <Play size={28} fill="white" className="text-white ml-1" />
+            </button>
+            <div className="text-white">
+              <h3 className="text-lg font-semibold">Play All</h3>
+              <p className="text-sm text-gray-400">
+                {playlists.length} playlists
+              </p>
+            </div>
           </div>
-          <SearchInput />
 
-          <Button
-            onClick={() => setIsModalOpen(true)}
-            className="bg-[#950944] hover:bg-[#950944]/90 text-white px-6 py-2 rounded-full flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add New Playlist
-          </Button>
+          <div className="flex items-center gap-3">
+            {isPremiumUser && (
+              <Button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-[#950944] hover:bg-[#a50a4a] h-[45px] px-6 transition-colors duration-200"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Playlist
+              </Button>
+            )}
+          </div>
+        </div>
 
+        {/* Search Section */}
+        <div className="mb-6">
+          <SearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search playlists by title..."
+          />
+        </div>
+
+        {isPremiumUser && (
           <AddPlaylistModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
             onSuccess={handleModalSuccess}
           />
-        </div>
+        )}
         {/* Playlist Grid */}
         <div className="mt-8">
           {isLoading ? (
@@ -164,16 +208,27 @@ const Playlist = () => {
                 Try Again
               </Button>
             </div>
-          ) : playlists.length === 0 ? (
+          ) : filteredPlaylists.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-zinc-400 mb-4">No playlists found</p>
+              {searchQuery ? (
+                <Search className="mx-auto mb-4 h-12 w-12 text-zinc-500" />
+              ) : (
+                <Music className="mx-auto mb-4 h-12 w-12 text-zinc-500" />
+              )}
+              <p className="text-zinc-400 mb-4">
+                {searchQuery
+                  ? "No playlists found matching your search"
+                  : "No playlists found"}
+              </p>
               <p className="text-zinc-500 text-sm">
-                Create your first playlist to get started!
+                {searchQuery
+                  ? "Try a different search term"
+                  : "Create your first playlist to get started!"}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {playlists.map((playlist, index) => {
+              {filteredPlaylists.map((playlist, index) => {
                 const createdDate = new Date(playlist.createdAt);
                 const timeAgo = getTimeAgo(createdDate);
 
