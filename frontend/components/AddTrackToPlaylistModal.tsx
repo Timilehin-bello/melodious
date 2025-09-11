@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Track } from "@/contexts/melodious/MusicProvider";
-import fetchMethod from "@/lib/readState";
+import { useTracks } from "@/hooks/useTracks";
 import { useAddTrackToPlaylist } from "@/hooks/usePlaylist";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
@@ -30,46 +30,37 @@ const AddTrackToPlaylistModal: React.FC<AddTrackToPlaylistModalProps> = ({
   playlistTitle,
   existingTracks = [],
 }) => {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { tracks: allTracks, isLoading, isError, error } = useTracks();
   const [selectedTracks, setSelectedTracks] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
   const activeAccount = useActiveAccount();
   const addTrackMutation = useAddTrackToPlaylist();
 
-  // Load all tracks when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      loadTracks();
-    }
-  }, [isOpen]);
+  const tracks = allTracks || [];
 
-  const loadTracks = async () => {
-    try {
-      setIsLoading(true);
-      const trackList = await fetchMethod("get_tracks");
-      console.log("Available tracks:", trackList);
-      setTracks(trackList || []);
-    } catch (error) {
-      console.log("Failed to fetch tracks:", error);
+  useEffect(() => {
+    if (isError) {
+      console.error("Error fetching tracks:", error);
       toast.error("Failed to load tracks");
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [isError, error]);
 
   // Filter tracks based on search query (title only) and exclude already added tracks
   const filteredTracks = useMemo(() => {
     let filtered = tracks;
 
     // Exclude tracks that are already in the playlist
-    const existingTrackIds = new Set(existingTracks.map((track) => track.id));
-    filtered = filtered.filter((track) => !existingTrackIds.has(track.id));
+    const existingTrackIds = new Set(
+      existingTracks.map((track: Track) => track.id)
+    );
+    filtered = filtered.filter(
+      (track: Track) => !existingTrackIds.has(track.id)
+    );
 
     // Filter by search query (title only)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((track) =>
+      filtered = filtered.filter((track: Track) =>
         track.title.toLowerCase().includes(query)
       );
     }
@@ -213,7 +204,7 @@ const AddTrackToPlaylistModal: React.FC<AddTrackToPlaylistModalProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {filteredTracks.map((track) => {
+                      {filteredTracks.map((track: Track) => {
                         const isSelected = selectedTracks.has(track.id);
                         return (
                           <div

@@ -8,6 +8,7 @@ import Trending from "@/components/Trending";
 import FeaturedArtists from "@/components/FeaturedArtists";
 import Footer from "@/components/Footer";
 import HowItWorks from "@/components/HowItWorks";
+import RepositoryNoticesDemo from "@/components/RepositoryNoticesDemo";
 
 export default function Home() {
   useEffect(() => {
@@ -58,6 +59,7 @@ export default function Home() {
       <Hero />
       <About />
       <HowItWorks />
+      <RepositoryNoticesDemo />
       <Trending />
       <FeaturedArtists />
       {/* <ListenerSubscription /> */}

@@ -30,10 +30,13 @@ class GenreController {
       RepositoryService.genres.push(genre);
       console.log("Genre created", genre);
 
-      const genre_json = JSON.stringify(genre);
-      const notice_payload = `{{"type":"create_genre","content":${genre_json}}}`;
-
-      return new Notice(notice_payload);
+      // Create repository notice with genre creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("genre_created", genre);
+      
+      // Also create specific genre notice
+      const genreNotice = RepositoryService.createDataNotice("genres", "created", genre);
+      
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error creating genre", error);
       return new Error_out(`Failed to create genre with id ${genreBody.id}`);
@@ -55,9 +58,14 @@ class GenreController {
       Object.assign(updateGenre, { ...rest });
 
       console.log("Genre updated", updateGenre);
-      const genre_json = JSON.stringify(updateGenre);
-      const notice_payload = `{{"type":"update_genre","content":${genre_json}}}`;
-      return new Notice(notice_payload);
+      
+      // Create repository notice with genre update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("genre_updated", updateGenre);
+      
+      // Also create specific genre notice
+      const genreNotice = RepositoryService.createDataNotice("genres", "updated", updateGenre);
+      
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to update genre with id ${genreBody.id}`);
     }
@@ -73,9 +81,14 @@ class GenreController {
         (genre) => genre.id !== id
       );
       console.log("Genre deleted", genre);
-      const genre_json = JSON.stringify(genre);
-      const notice_payload = `{{"type":"delete_genre","content":${genre_json}}}`;
-      return new Notice(notice_payload);
+      
+      // Create repository notice with genre deletion data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("genre_deleted", genre);
+      
+      // Also create specific genre notice
+      const genreNotice = RepositoryService.createDataNotice("genres", "deleted", genre);
+      
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to delete genre with id ${id}`);
     }
@@ -83,10 +96,14 @@ class GenreController {
 
   public deleteGenres() {
     try {
+      const deletedCount = RepositoryService.genres.length;
       RepositoryService.genres = [];
       console.log("All Genres deleted");
 
-      return new Notice(`{{"type":"delete_all_genres","content":null }}`);
+      // Create repository notice for bulk deletion
+      const repositoryNotice = RepositoryService.createRepositoryNotice("all_genres_deleted", { deletedCount });
+      
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to delete all genres`);
     }

@@ -67,13 +67,24 @@ class UserController {
       RepositoryService.users.push(user);
 
       console.log("user", user);
-
-      const user_json = JSON.stringify(user);
-      const notice_payload = `{{"type":"create_user","content":${user_json}}}`;
       console.log(
         `User ${user.name} created with wallet address ${user.walletAddress}`
       );
-      return new Notice(notice_payload);
+
+      // Create repository notice with user creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "user_created",
+        user
+      );
+
+      // Also create specific user notice
+      const userNotice = RepositoryService.createDataNotice(
+        "users",
+        "created",
+        user
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to create User ${error}`;
       console.debug("Create User", error_msg);
@@ -133,12 +144,22 @@ class UserController {
       });
 
       // this.fileHelper.writeFile(RepositoryService.users); // Persist changes to JSON
-      const user_json = JSON.stringify(updateUser);
+      console.log("Updating User", JSON.stringify(updateUser));
 
-      console.log("Updating User", user_json);
-      const notice_payload = `{{"type":"update_user","content":${user_json}}}`;
+      // Create repository notice with user update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "user_updated",
+        updateUser
+      );
 
-      return new Notice(notice_payload);
+      // Also create specific user notice
+      const userNotice = RepositoryService.createDataNotice(
+        "users",
+        "updated",
+        updateUser
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error updating user", error);
       return new Error_out(`Failed to update user with id ${userBody.id}`);
@@ -201,13 +222,22 @@ class UserController {
       );
 
       console.log("User deleted", user);
+      console.log("Deleting User", JSON.stringify(user));
 
-      const user_json = JSON.stringify(user);
-      console.log("Deleting User", user_json);
+      // Create repository notice with user deletion data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "user_deleted",
+        user
+      );
 
-      const notice_payload = `{{"type":"delete_user","content":${user_json} }}`;
+      // Also create specific user notice
+      const userNotice = RepositoryService.createDataNotice(
+        "users",
+        "deleted",
+        user
+      );
 
-      return new Notice(notice_payload);
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting user", error);
       return new Error_out(`Failed to delete user with id ${userId}`);
@@ -216,9 +246,17 @@ class UserController {
 
   public deleteUsers() {
     try {
+      const deletedCount = RepositoryService.users.length;
       RepositoryService.users = [];
       console.log("All Users deleted");
-      return new Notice(`{{"type":"delete_all_users","content":null }}`);
+
+      // Create repository notice for bulk deletion
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "all_users_deleted",
+        { deletedCount }
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting all users", error);
       return new Error_out("Failed to delete all users");

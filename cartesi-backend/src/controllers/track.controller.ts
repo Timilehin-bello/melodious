@@ -61,18 +61,30 @@ class TrackController {
       RepositoryService.tracks.push(newTrack);
 
       console.log("Track created", newTrack);
-      const track_json = JSON.stringify(newTrack);
       if (!returnAsNotice) {
         console.log(
           "All  tracks",
           RepositoryService.tracks,
           RepositoryService.tracks.length
         );
-        console.log("Creating track", track_json);
+        console.log("Creating track", JSON.stringify(newTrack));
         return newTrack;
       }
-      const notice_payload = `{{"type":"create_track", "content":${track_json} }}`;
-      return new Notice(notice_payload);
+
+      // Create repository notice with track creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "track_created",
+        newTrack
+      );
+
+      // Also create specific track notice
+      const trackNotice = RepositoryService.createDataNotice(
+        "tracks",
+        "created",
+        newTrack
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to create Track ${error}`;
       console.debug(error_msg);
@@ -134,8 +146,21 @@ class TrackController {
       }
 
       console.log("Updating track", track_json);
-      const notice_payload = `{{"type":"update_track", "content":${track_json} }}`;
-      return new Notice(notice_payload);
+
+      // Create repository notice with track update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "track_updated",
+        findTrackToUpdate
+      );
+
+      // Also create specific track notice
+      const trackNotice = RepositoryService.createDataNotice(
+        "tracks",
+        "updated",
+        findTrackToUpdate
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error updating track", error);
       return new Error_out("Failed to update track");
@@ -243,9 +268,21 @@ class TrackController {
         (track) => track.id !== trackId
       );
       console.log("Track deleted", track);
-      return new Notice(
-        `{{"type":"delete_track","content":${JSON.stringify(track)} }}`
+
+      // Create repository notice with track deletion data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "track_deleted",
+        track
       );
+
+      // Also create specific track notice
+      const trackNotice = RepositoryService.createDataNotice(
+        "tracks",
+        "deleted",
+        track
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting track", error);
       return new Error_out("Failed to delete track");
@@ -254,9 +291,17 @@ class TrackController {
 
   public deleteTracks() {
     try {
+      const deletedCount = RepositoryService.tracks.length;
       RepositoryService.tracks = [];
       console.log("All tracks deleted");
-      return new Notice(`{{"type":"delete_all_tracks","content":null }}`);
+
+      // Create repository notice for bulk deletion
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "all_tracks_deleted",
+        { deletedCount }
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting all tracks", error);
       return new Error_out("Failed to delete all tracks");

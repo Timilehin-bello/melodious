@@ -11,7 +11,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import fetchMethod from "@/lib/readState";
+import { useUserByWallet } from "@/hooks/useUserByWallet";
+import { useActiveAccount } from "thirdweb/react";
 import {
   Popover,
   PopoverContent,
@@ -23,32 +24,23 @@ export interface IUser {
 }
 
 export default function Page() {
-  const [userDetails, setUserDetails] = useState<any>(null);
+  const account = useActiveAccount();
+  const {
+    user: userDetails,
+    isLoading,
+    isError,
+    error,
+  } = useUserByWallet(account?.address);
 
-  const fetchData = async (user: IUser) => {
-    const getUserDetails = await fetchMethod(
-      "get_user_info/" + user.walletAddress
-    );
-
-    console.log("getUserDetails", getUserDetails);
-
-    if (getUserDetails) {
-      setUserDetails(getUserDetails);
-      // console.log("getUserDetails", getUserDetails);
-    }
-  };
-
+  // Log user details when they change
   useEffect(() => {
-    let user = localStorage.getItem("xx-mu") as any;
-    //     console.log("token gotten", JSON.parse(data));
-
-    user = JSON.parse(user) ?? null;
-
-    user = user.user;
-    console.log("user", user);
-
-    fetchData(user);
-  }, []);
+    if (userDetails) {
+      console.log("User details from notices:", userDetails);
+    }
+    if (isError) {
+      console.error("Error fetching user details:", error);
+    }
+  }, [userDetails, isError, error]);
 
   return (
     <div className="px-4 mt-6 mb-4">

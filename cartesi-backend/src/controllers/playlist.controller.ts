@@ -49,12 +49,24 @@ class PlaylistController {
 
       RepositoryService.playlists.push(playlist);
 
-      const playlist_json = JSON.stringify(playlist);
-      const notice_payload = `{{"type":"create_playlist","content":${playlist_json}}}`;
       console.log(
         `Playlist "${playlist.title}" created for listener ${playlist.listenerId}`
       );
-      return new Notice(notice_payload);
+
+      // Create repository notice with playlist creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "playlist_created",
+        playlist
+      );
+
+      // Also create specific playlist notice
+      const playlistNotice = RepositoryService.createDataNotice(
+        "playlists",
+        "created",
+        playlist
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to create Playlist: ${error}`;
       console.debug("Create Playlist", error_msg);
@@ -103,10 +115,22 @@ class PlaylistController {
         playlist.public = playlistBody.isPublic;
       playlist.updatedAt = new Date(playlistBody.timestamp * 1000);
 
-      const playlist_json = JSON.stringify(playlist);
-      const notice_payload = `{{"type":"update_playlist","content":${playlist_json}}}`;
       console.log(`Playlist "${playlist.title}" updated`);
-      return new Notice(notice_payload);
+
+      // Create repository notice with playlist update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "playlist_updated",
+        playlist
+      );
+
+      // Also create specific playlist notice
+      const playlistNotice = RepositoryService.createDataNotice(
+        "playlists",
+        "updated",
+        playlist
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to update Playlist: ${error}`;
       console.debug("Update Playlist", error_msg);
@@ -134,9 +158,22 @@ class PlaylistController {
 
       RepositoryService.playlists.splice(playlistIndex, 1);
 
-      const notice_payload = `{{"type":"delete_playlist","content":{{"id":${playlistId}}}}}`;
       console.log(`Playlist with ID ${playlistId} deleted`);
-      return new Notice(notice_payload);
+
+      // Create repository notice with playlist deletion data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "playlist_deleted",
+        playlist
+      );
+
+      // Also create specific playlist notice
+      const playlistNotice = RepositoryService.createDataNotice(
+        "playlists",
+        "deleted",
+        playlist
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to delete Playlist: ${error}`;
       console.debug("Delete Playlist", error_msg);
@@ -217,10 +254,19 @@ class PlaylistController {
 
       playlist.addTrack(track);
 
-      const playlist_json = JSON.stringify(playlist);
-      const notice_payload = `{{"type":"add_track_to_playlist","content":${playlist_json}}}`;
       console.log(`Track ${trackId} added to playlist ${playlistId}`);
-      return new Notice(notice_payload);
+
+      // Create repository notice with track addition data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "track_added_to_playlist",
+        {
+          playlist,
+          track,
+          action: "add_track",
+        }
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to add track to playlist: ${error}`;
       console.debug("Add Track to Playlist", error_msg);
@@ -253,10 +299,19 @@ class PlaylistController {
 
       playlist.removeTrack(trackId);
 
-      const playlist_json = JSON.stringify(playlist);
-      const notice_payload = `{{"type":"remove_track_from_playlist","content":${playlist_json}}}`;
       console.log(`Track ${trackId} removed from playlist ${playlistId}`);
-      return new Notice(notice_payload);
+
+      // Create repository notice with track removal data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "track_removed_from_playlist",
+        {
+          playlist,
+          trackId,
+          action: "remove_track",
+        }
+      );
+
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to remove track from playlist: ${error}`;
       console.debug("Remove Track from Playlist", error_msg);

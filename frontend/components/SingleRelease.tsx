@@ -32,7 +32,7 @@ import {
 } from "@/lib/extractDuration";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import fetchMethod from "@/lib/readState";
+import { useGenres } from "@/hooks/useGenres";
 import BlockLoader from "./BlockLoader";
 import Image from "next/image";
 
@@ -163,28 +163,16 @@ const SingleRelease = () => {
     [uploadToIPFS, setFileUrl]
   );
 
-  const fetchTracks = async () => {
-    try {
-      // setLoading(true);
-      const genreList: any[] = await fetchMethod("get_genres");
-      // console.log("genreList", genreList);
-      if (Array.isArray(genreList)) {
-        setTimeout(() => {
-          setGenreList(genreList);
-          // setLoading(false);
-        }, 3000);
-      } else {
-        console.log("Fetched data is not an array");
-        // setLoading(false);
-      }
-    } catch (error) {
-      console.log(error);
-      // setLoading(false);
-    }
-  };
+  const { genres, isLoading: genresLoading, isError } = useGenres();
+
   useEffect(() => {
-    fetchTracks();
-  }, []);
+    if (genres.length > 0) {
+      setGenreList(genres);
+    }
+    if (isError) {
+      console.log("Error fetching genres");
+    }
+  }, [genres, isError]);
 
   if (loading) {
     return <BlockLoader message="Uploading File" />;

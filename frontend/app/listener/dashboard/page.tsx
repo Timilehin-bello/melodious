@@ -11,7 +11,8 @@ import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
 import { useCallback, useEffect, useState } from "react";
-import fetchMethod from "@/lib/readState";
+import { useTracks } from "@/hooks/useTracks";
+import toast from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProvider";
@@ -20,27 +21,18 @@ import { SidebarAd } from "@/components/ads";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { tracks, isLoading, isError, error } = useTracks();
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
 
   useEffect(() => {
-    const loadTracks = async () => {
-      try {
-        const trackList = await await fetchMethod("get_tracks");
-        console.log("tracklist", trackList);
-        setTracks(trackList);
-        setIsLoading(false);
-      } catch (error) {
-        console.log("Failed to fetch tracks:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (isError) {
+      console.error("Error fetching tracks:", error);
+      toast.error("Failed to load tracks");
+    }
+  }, [isError, error]);
 
-    loadTracks();
-  }, []);
+  console.log("tracklist", tracks);
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -164,7 +156,7 @@ export default function Page() {
             </div>
             <div className="overflow-x-auto  pb-4">
               <div className="flex gap-4 min-w-min">
-                {tracks.map((track, index) => (
+                {tracks.map((track: Track, index: number) => (
                   <div key={track.id} className="w-[250px] flex-shrink-0">
                     <TrendingSoundItem
                       song={track}

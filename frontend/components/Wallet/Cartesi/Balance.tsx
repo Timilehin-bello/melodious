@@ -1,12 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ethers } from "ethers";
-import { useActiveAccount } from "thirdweb/react";
-import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
 import { BalanceProps } from "@/types";
-import fetchMethod from "@/lib/readState";
-import { IUser } from "@/app/artist/dashboard/page";
 import {
   Coins,
   Wallet,
@@ -28,11 +24,8 @@ const Balance: React.FC<BalanceProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRefresh = async () => {
-    if (userDetails) {
-      await fetchData(userDetails);
-      if (account?.address) {
-        await inspectCall(`balance/${account.address}`);
-      }
+    if (account?.address) {
+      await inspectCall(`balance/${account.address}`);
     }
   };
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Music2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import toast from "react-hot-toast";
 import {
   Popover,
   PopoverContent,
@@ -13,100 +14,60 @@ import {
 import SearchInput from "@/components/SearchInput";
 import SongList from "@/components/SongList";
 import BlockLoader from "@/components/BlockLoader";
-import fetchMethod from "@/lib/readState";
+import { useTracks } from "@/hooks/useTracks";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProvider";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useActiveAccount } from "thirdweb/react";
+import { useUserByWallet } from "@/hooks/useUserByWallet";
 
 const Release = () => {
-  // const [tracks, setTracks] = useState<Track[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const {
-  //   currentTrack,
-  //   isPlaying,
-  //   playTrack,
-  //   pauseTrack,
-  //   resumeTrack,
-  //   stopAllAudio,
-  // } = useMusic();
-
-  // const handlePlayPause = (track: Track) => {
-  //   stopAllAudio();
-  //   if (currentTrack?.id === track.id.toString()) {
-  //     if (isPlaying) {
-  //       pauseTrack();
-  //     } else {
-  //       resumeTrack();
-  //     }
-  //   } else {
-  //     playTrack(track);
-  //   }
-  // };
-
-  // const fetchTracks = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const trackList: any[] = await fetchMethod("get_tracks");
-  //     console.log("tracklist", trackList);
-  //     if (Array.isArray(trackList)) {
-  //       // setTimeout(() => {
-  //       const transformedTracks = trackList.map((track) => ({
-  //         id: track.id,
-  //         title: track.title,
-  //         artist: track.artistId,
-  //         album: track.album,
-  //         duration: track.duration,
-  //         cover: track.imageUrl,
-  //         url: track.audioUrl,
-  //       }));
-  //       setTracks(transformedTracks);
-  //       setLoading(false);
-  //       // }, 3000);
-  //     } else {
-  //       console.log("Fetched data is not an array");
-  //       setLoading(false);
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //     setLoading(false);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   fetchTracks();
-  // }, []); // Removed fetchTracks from the dependency array
-
-  // if (loading) {
-  //   return <BlockLoader message="Loading songs" />;
-  // }
   const activeAccount = useActiveAccount();
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { tracks: allTracks, isLoading, isError, error } = useTracks();
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
+  const walletAddress = activeAccount?.address;
+
+  // Get user/artist details by wallet address
+  const { user: artistUser, isLoading: userLoading } =
+    useUserByWallet(walletAddress);
+
+  // Filter tracks by artist ID and format with artist details
+  const tracks = useMemo(() => {
+    if (!allTracks || !artistUser?.artist) return [];
+
+    const artistTracks = allTracks.filter(
+      (track: any) => track.artistId === artistUser.artist.id
+    );
+
+    // Format tracks to include artist details
+    return artistTracks.map((track: any) => ({
+      ...track,
+      artist: artistUser.displayName || artistUser.name, // Use string for SongList component
+      artistDetails: {
+        id: artistUser.artist.id,
+        name: artistUser.name,
+        displayName: artistUser.displayName,
+        profileImage: artistUser.profileImage,
+        biography: artistUser.artist.biography,
+        socialMediaLinks: artistUser.artist.socialMediaLinks,
+      },
+    }));
+  }, [allTracks, artistUser]);
 
   useEffect(() => {
-    const loadTracks = async () => {
-      try {
-        const trackList = await fetchMethod(
-          `get_tracks_by_wallet_address/${
-            activeAccount?.address || localStorage.getItem("walletAddress")
-          }`
-        );
-        // const trackList = await fetchMethod("get_tracks");
-        console.log("tracklist", trackList);
-        setTracks(trackList);
-        setIsLoading(false);
-      } catch (error) {
-        console.log("Failed to fetch tracks:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (isError) {
+      console.error("Error fetching tracks:", error);
+      toast.error("Failed to load tracks");
+    }
+  }, [isError, error]);
 
-    loadTracks();
-  }, []);
+  // Log formatted tracks with artist details
+  useEffect(() => {
+    if (tracks.length > 0) {
+      console.log("Formatted tracks with artist details:", tracks);
+    }
+  }, [tracks]);
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -197,7 +158,7 @@ const Release = () => {
           <SongList
             songList={tracks}
             onPlayPause={handlePlayTrack}
-            isLoading={isLoading}
+            isLoading={isLoading || userLoading}
           />
         ) : (
           <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">

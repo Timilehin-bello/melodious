@@ -92,9 +92,13 @@ class AlbumController {
 
       RepositoryService.albums.push(newAlbum);
 
-      const album_json = JSON.stringify(RepositoryService.albums);
-      const notice_payload = `{{"type":"create_album","content:${album_json} }}`;
-      return new Notice(notice_payload);
+      // Create repository notice with album creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("album_created", newAlbum);
+      
+      // Also create specific album notice
+      const albumNotice = RepositoryService.createDataNotice("albums", "created", newAlbum);
+      
+      return repositoryNotice;
     } catch (error) {
       const error_msg = `Failed to create album ${error}`;
       console.debug("Create Album", error_msg);
@@ -165,13 +169,15 @@ class AlbumController {
         ...rest,
       });
 
-      const album_json = JSON.stringify(findAlbumToUpdate);
+      console.log("Updating album", JSON.stringify(findAlbumToUpdate));
 
-      console.log("Updating album", album_json);
-
-      const notice_payload = `{{"type":"update_album","content:${album_json} }}`;
-
-      return new Notice(notice_payload);
+      // Create repository notice with album update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("album_updated", findAlbumToUpdate);
+      
+      // Also create specific album notice
+      const albumNotice = RepositoryService.createDataNotice("albums", "updated", findAlbumToUpdate);
+      
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error updating album", error);
       return new Error_out(`Failed to update album with id ${albumBody.id}`);
@@ -212,13 +218,15 @@ class AlbumController {
       );
 
       console.log("Album deleted", album);
+      console.log("Deleting album", JSON.stringify(album));
 
-      const album_json = JSON.stringify(album);
-      console.log("Deleting album", album_json);
-
-      const notice_payload = `{{"type":"delete_album","content":${album_json} }}`;
-
-      return new Notice(notice_payload);
+      // Create repository notice with album deletion data
+      const repositoryNotice = RepositoryService.createRepositoryNotice("album_deleted", album);
+      
+      // Also create specific album notice
+      const albumNotice = RepositoryService.createDataNotice("albums", "deleted", album);
+      
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting album", error);
       return new Error_out(`Failed to delete album with id ${album_id}`);
@@ -227,9 +235,14 @@ class AlbumController {
 
   public deleteAlbums() {
     try {
+      const deletedCount = RepositoryService.albums.length;
       RepositoryService.albums = [];
       console.log("All albums deleted");
-      return new Notice(`{{"type":"delete_all_albums","content":null }}`);
+      
+      // Create repository notice for bulk deletion
+      const repositoryNotice = RepositoryService.createRepositoryNotice("all_albums_deleted", { deletedCount });
+      
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error deleting all albums", error);
       return new Error_out("Failed to delete all albums");
