@@ -116,6 +116,53 @@ const Playlist = () => {
     }
   };
 
+  // Handle playing all playlists
+  const handlePlayAllPlaylists = async () => {
+    try {
+      if (!playlists || playlists.length === 0) {
+        console.log("No playlists to play");
+        return;
+      }
+
+      let allTracks: Track[] = [];
+
+      // Fetch tracks from all playlists
+      for (const playlist of playlists) {
+        try {
+          const playlistData = await fetchMethod(`get_playlist/${playlist.id}`);
+          if (playlistData?.tracks && playlistData.tracks.length > 0) {
+            const transformedTracks: Track[] = playlistData.tracks.map((track: any) => ({
+              id: track.id,
+              title: track.title,
+              artist: track.artistId || "Unknown Artist",
+              album: track.albumId || "Unknown Album",
+              createdAt: track.createdAt,
+              duration: track.duration || 0,
+              imageUrl: track.imageUrl || "/images/artist.svg",
+              audioUrl: track.audioUrl,
+              artistId: track.artistId,
+            }));
+            allTracks = [...allTracks, ...transformedTracks];
+          }
+        } catch (error) {
+          console.log(`Failed to fetch playlist ${playlist.id}:`, error);
+        }
+      }
+
+      if (allTracks.length === 0) {
+        console.log("No tracks found in any playlist");
+        return;
+      }
+
+      console.log(`Playing all tracks from ${playlists.length} playlists (${allTracks.length} total tracks)`);
+      
+      // Start playing all tracks from the first track
+      playPlaylist(allTracks, 0, "all-playlists");
+    } catch (error) {
+      console.log("Failed to play all playlists:", error);
+    }
+  };
+
   const playlists = React.useMemo(
     () => playlistsData?.data?.playlists || [],
     [playlistsData]
@@ -166,21 +213,30 @@ const Playlist = () => {
         </div>
       </div>
 
-      <div className="mt-10 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-4">
+      <div className="mb-20 mt-4 bg-[url('/images/main_background.svg')] from-[#180526] to-[#180526] bg-cover bg-center rounded-lg p-4">
         {/* Play Controls and Add Playlist Section */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <button
               className="flex items-center justify-center w-12 h-12 rounded-full bg-[#950944] hover:bg-[#a50a4a] transition-colors duration-200"
               onClick={() => {
-                // Handle play all playlists functionality if needed
-                console.log("Play all playlists");
+                if (currentPlaylistId === "all-playlists" && isPlaying) {
+                  togglePlay(); // Pause if currently playing all playlists
+                } else {
+                  handlePlayAllPlaylists(); // Play all playlists
+                }
               }}
             >
-              <Play size={28} fill="white" className="text-white ml-1" />
+              {currentPlaylistId === "all-playlists" && isPlaying ? (
+                <Pause size={28} fill="white" className="text-white" />
+              ) : (
+                <Play size={28} fill="white" className="text-white ml-1" />
+              )}
             </button>
             <div className="text-white">
-              <h3 className="text-lg font-semibold">Play All</h3>
+              <h3 className="text-lg font-semibold">
+                {currentPlaylistId === "all-playlists" && isPlaying ? "Pause All" : "Play All"}
+              </h3>
               <p className="text-sm text-gray-400">
                 {playlists.length} playlists
               </p>

@@ -183,7 +183,7 @@ export default function Page() {
 
           {/* Song List Section */}
           <section className="space-y-4">
-            <div className="pt-2">
+            <div className="mb-14">
               <SongList
                 songList={tracks}
                 onPlayPause={handlePlayTrack}
