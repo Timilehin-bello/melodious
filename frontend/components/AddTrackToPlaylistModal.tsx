@@ -6,7 +6,7 @@ import { X, Search, Play, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Track } from "@/contexts/melodious/MusicProvider";
+import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useTracks } from "@/hooks/useTracks";
 import { useAddTrackToPlaylist } from "@/hooks/usePlaylist";
 import { toast } from "react-hot-toast";

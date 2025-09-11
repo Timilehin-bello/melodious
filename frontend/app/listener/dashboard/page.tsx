@@ -16,7 +16,10 @@ import { useRepositoryData } from "@/hooks/useNoticesQuery";
 import toast from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProvider";
+import {
+  useMusicPlayer,
+  Track,
+} from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import SongList from "@/components/SongList";
 import { SidebarAd } from "@/components/ads";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
@@ -24,8 +27,16 @@ import { SidebarAd } from "@/components/ads";
 export default function Page() {
   const { tracks, isLoading, isError, error } = useTracks();
   const { users } = useRepositoryData();
-  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
-    useMusicPlayer();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    playPlaylist,
+    togglePlay,
+    recentlyPlayed,
+    isLoadingRecentlyPlayed,
+    clearRecentlyPlayed,
+  } = useMusicPlayer();
 
   useEffect(() => {
     if (isError) {
@@ -56,6 +67,26 @@ export default function Page() {
     });
   }, [tracks, users]);
 
+  // Enhanced recently played tracks with artist details
+  const recentlyPlayedWithArtistDetails = useMemo(() => {
+    if (!recentlyPlayed || !users) return recentlyPlayed;
+
+    return recentlyPlayed.map((track: Track) => {
+      // Find the artist user by artistId
+      const artistUser = users.find(
+        (user: any) =>
+          (track.artistId && user.id === parseInt(track.artistId)) ||
+          (track.artistId && user.artist?.id === parseInt(track.artistId))
+      );
+
+      return {
+        ...track,
+        artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+        artistDetails: artistUser || null,
+      };
+    });
+  }, [recentlyPlayed, users]);
+
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
       togglePlay();
@@ -71,43 +102,8 @@ export default function Page() {
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
 
-  const recentlyPlayed = [
-    {
-      title: "Perfect",
-      artistName: "Ed Sheran",
-      duration: "2 mins",
-    },
-    {
-      title: "Title Deluxe",
-      artistName: "Taini Song",
-      duration: "6 mins",
-    },
-    {
-      title: "Shape of You",
-      artistName: "Ed Sheran",
-      duration: "4 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-  ];
+  // Recently played tracks are now managed by the enhanced music provider
+  // and automatically populated when tracks are played
 
   const likeSong = async () => {
     if (status === "disconnected") {
@@ -233,24 +229,50 @@ export default function Page() {
 
           {/* Recently Played Section */}
           <section className="w-full">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">
                 Recently Played
               </h3>
-              <button className="text-[#950944] hover:text-gray-300 transition-colors text-sm font-medium">
-                See All
-              </button>
+              <div className="flex gap-2">
+                {recentlyPlayedWithArtistDetails.length > 0 && (
+                  <button
+                    onClick={clearRecentlyPlayed}
+                    className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
+                  >
+                    Clear
+                  </button>
+                )}
+                {/* <button className="text-[#950944] hover:text-gray-300 transition-colors text-sm font-medium">
+                  See All
+                </button> */}
+              </div>
             </div>
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
               <div className="space-y-3">
-                {recentlyPlayed.map((item, index) => (
-                  <RecentItem
-                    key={index}
-                    title={item.title}
-                    artistName={item.artistName}
-                    duration={item.duration}
-                  />
-                ))}
+                {isLoadingRecentlyPlayed ? (
+                  <div className="text-gray-400 text-sm">
+                    Loading recently played...
+                  </div>
+                ) : recentlyPlayedWithArtistDetails.length === 0 ? (
+                  <div className="text-gray-400 text-sm">
+                    No recently played tracks
+                  </div>
+                ) : (
+                  recentlyPlayedWithArtistDetails.map((track, index) => (
+                    <RecentItem
+                      key={track.id || index}
+                      title={track.title}
+                      artistName={track.artist}
+                      duration={`${track.duration}`}
+                      // duration={`${Math.floor(track.duration / 60)}:${String(
+                      //   track.duration % 60
+                      // ).padStart(2, "0")}`}
+                      imageUrl={track.imageUrl}
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      onPlay={() => handlePlayTrack(track, index)}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </section>

@@ -16,8 +16,8 @@ import React, { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import AddPlaylistModal from "@/components/AddPlaylistModal";
 import { useSubscriptionStatus } from "@/hooks/useSubscription";
-import { Track } from "@/contexts/melodious/MusicProvider";
-import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useRepositoryData } from "@/hooks/useNoticesQuery";
 import { useMemo } from "react";
 

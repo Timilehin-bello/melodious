@@ -1,9 +1,9 @@
-import { Track } from "@/contexts/melodious/MusicProvider";
+import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 
 import type React from "react";
 import { Play, Pause, Trash2, Music } from "lucide-react";
 import Image from "next/image";
-import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 
 interface SongListProps {
   songList: Track[];
