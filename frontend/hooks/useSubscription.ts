@@ -113,7 +113,7 @@ export function useCreateSubscription() {
       toast.success("Subscription created successfully!");
     },
     onError: (error: any) => {
-      console.error("Failed to create subscription:", error);
+      console.log("Failed to create subscription:", error);
       // Error toast is handled by the global interceptor
     },
   });
@@ -142,7 +142,7 @@ export function useProcessPayment() {
       toast.success("Payment processed successfully!");
     },
     onError: (error: any) => {
-      console.error("Failed to process payment:", error);
+      console.log("Failed to process payment:", error);
       // Error toast is handled by the global interceptor
     },
   });
@@ -179,7 +179,7 @@ export function useUpdateSubscription() {
       toast.success("Subscription updated successfully!");
     },
     onError: (error: any) => {
-      console.error("Failed to update subscription:", error);
+      console.log("Failed to update subscription:", error);
       // Error toast is handled by the global interceptor
     },
   });

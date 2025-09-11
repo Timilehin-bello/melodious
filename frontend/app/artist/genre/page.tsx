@@ -48,7 +48,7 @@ const Genres = () => {
     } catch (error) {
       if (mounted.current) {
         toast.error("Failed to fetch genres");
-        console.error("Error fetching genres:", error);
+        console.log("Error fetching genres:", error);
       }
     } finally {
       if (mounted.current) {

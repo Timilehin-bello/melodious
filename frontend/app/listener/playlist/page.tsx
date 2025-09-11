@@ -65,11 +65,11 @@ const Playlist = () => {
       // Use the existing fetchMethod to get playlist data
       const playlistResponse = await fetchMethod(`get_playlist/${playlistId}`);
       const playlist = playlistResponse?.data;
-      
+
       if (!playlist?.tracks || playlist.tracks.length === 0) {
         return; // No tracks to play
       }
-      
+
       // Transform tracks to match Track interface
       const transformedTracks: Track[] = playlist.tracks.map((track: any) => ({
         id: track.id,
@@ -82,11 +82,11 @@ const Playlist = () => {
         audioUrl: track.audioUrl,
         artistId: track.artistId,
       }));
-      
+
       // Start playing the playlist from the first track
       playPlaylist(transformedTracks, 0);
     } catch (error) {
-      console.error('Failed to play playlist:', error);
+      console.log("Failed to play playlist:", error);
     }
   };
 
@@ -197,7 +197,7 @@ const Playlist = () => {
                           }}
                         />
                         {playlist.tracks && playlist.tracks.length > 0 && (
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.preventDefault(); // Prevent navigation to playlist page
                               handlePlayPlaylist(playlist.id);

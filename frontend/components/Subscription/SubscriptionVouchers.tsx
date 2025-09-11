@@ -82,7 +82,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
         return;
       }
     } catch (error) {
-      console.error("Error checking voucher execution status:", error);
+      console.log("Error checking voucher execution status:", error);
       toast.error("Failed to check voucher execution status");
       return;
     }
@@ -167,7 +167,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
           );
           toast.success("Subscription status updated!");
         } catch (error) {
-          console.error("Failed to update backend subscription status:", error);
+          console.log("Failed to update backend subscription status:", error);
           toast.error("Failed to update subscription status");
         }
       } else {
@@ -185,7 +185,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
         queryKey: subscriptionKeys.lists(),
       });
     } catch (error) {
-      console.error("Error executing voucher:", error);
+      console.log("Error executing voucher:", error);
       toast.error("Failed to execute voucher");
     } finally {
       setIsExecuting(false);

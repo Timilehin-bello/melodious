@@ -9,7 +9,7 @@ console.log("redisURL: " + url);
 const redisClient = new Redis(config.env === "production" ? prodUrl : url);
 
 redisClient.on("error", (err) => {
-  console.error("redis error", err);
+  console.log("redis error", err);
 });
 
 export default redisClient;

@@ -87,7 +87,7 @@ const Wallet = () => {
         setUserDetails(getUserDetails);
       }
     } catch (error) {
-      console.error("Error fetching user details:", error);
+      console.log("Error fetching user details:", error);
     } finally {
       setIsLoading(false);
     }

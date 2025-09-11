@@ -143,7 +143,7 @@ export const clearAllListeningTimeRecords = async () => {
       count: deletedRecords.count,
     };
   } catch (error) {
-    console.error("Error clearing listening time records:", error);
+    console.log("Error clearing listening time records:", error);
 
     return {
       success: false,
@@ -244,7 +244,7 @@ export const runRewardUpdateCycle = async () => {
       clearResult,
     };
   } catch (error) {
-    console.error("Error running reward update cycle:", error);
+    console.log("Error running reward update cycle:", error);
     return {
       success: false,
       message: `Error running reward update cycle: ${

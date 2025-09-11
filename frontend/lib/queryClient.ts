@@ -24,7 +24,7 @@ apiClient.interceptors.request.use(
           const parsedData = JSON.parse(userData);
           token = parsedData?.tokens?.token?.access?.token;
         } catch (error) {
-          console.error("Error parsing user data from localStorage:", error);
+          console.log("Error parsing user data from localStorage:", error);
         }
       }
     }
@@ -45,7 +45,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error("❌ Request Error:", error);
+    console.log("❌ Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -72,7 +72,7 @@ apiClient.interceptors.response.use(
     const errorMessage = getErrorMessage(error);
     const statusCode = error.response?.status;
 
-    console.error(
+    console.log(
       `❌ API Error: ${error.config?.method?.toUpperCase()} ${
         error.config?.url
       }`,

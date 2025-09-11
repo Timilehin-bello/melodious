@@ -141,7 +141,7 @@ const SubscriptionPage = () => {
         depositTxHash: workflowState?.depositTxHash,
       });
     } catch (error) {
-      console.error("Manual voucher execution failed:", error);
+      console.log("Manual voucher execution failed:", error);
     }
   };
 
@@ -223,7 +223,7 @@ const SubscriptionPage = () => {
       });
     } catch (error) {
       // Error handling is done in the mutation's onError callback
-      console.error("Subscription workflow failed:", error);
+      console.log("Subscription workflow failed:", error);
     } finally {
       setSelectedPlan(null);
     }

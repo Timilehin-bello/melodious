@@ -188,7 +188,7 @@ export const MusicPlayerProvider = ({
         }
       };
     } catch (error) {
-      console.error("Failed to initialize socket:", error);
+      console.log("Failed to initialize socket:", error);
     }
   }, [currentTrack]);
 
@@ -287,7 +287,7 @@ export const MusicPlayerProvider = ({
   //       console.warn("Playback not allowed without user interaction");
   //       setIsPlaying(false);
   //     } else {
-  //       console.error("Playback error:", error);
+  //       console.log("Playback error:", error);
   //       setIsPlaying(false);
   //       emitSocketEvent("playbackError", { error: (error as any).message });
   //     }
@@ -324,7 +324,7 @@ export const MusicPlayerProvider = ({
           // Retry playback after a short delay
           setTimeout(() => playAudio(), 100);
         } else {
-          console.error("Playback error:", error);
+          console.log("Playback error:", error);
           setIsPlaying(false);
           emitSocketEvent("playback_error", { error: error.message });
         }
@@ -452,7 +452,7 @@ export const MusicPlayerProvider = ({
     };
 
     const onError = (e: ErrorEvent) => {
-      console.error("Audio error:", e);
+      console.log("Audio error:", e);
       setIsPlaying(false);
       emitSocketEvent("playbackError", { error: "Audio playback error" });
     };

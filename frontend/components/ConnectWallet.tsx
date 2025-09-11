@@ -80,9 +80,13 @@ const ConnectWallet = () => {
     async (user: User) => {
       const currentPath = pathname;
 
-      if (user?.artist && !currentPath.startsWith("/artist")) {
+      if (user?.artist && currentPath && !currentPath.startsWith("/artist")) {
         router.replace("/artist/dashboard");
-      } else if (user?.listener && !currentPath.startsWith("/listener")) {
+      } else if (
+        user?.listener &&
+        currentPath &&
+        !currentPath.startsWith("/listener")
+      ) {
         // router.replace("/listener/dashboard");
         window.location.href = "/listener/dashboard";
       }
@@ -225,7 +229,7 @@ const ConnectWallet = () => {
               })
               .catch((error) => {
                 localStorage.clear();
-                console.error("Error during logout:", error);
+                console.log("Error during logout:", error);
               });
           },
         }}

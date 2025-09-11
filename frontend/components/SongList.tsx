@@ -107,7 +107,7 @@ import { Track } from "@/contexts/melodious/MusicProvider";
 // }
 
 import type React from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Trash2, Music } from "lucide-react";
 import Image from "next/image";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
@@ -116,12 +116,16 @@ interface SongListProps {
   songList: Track[];
   onPlayPause: (track: Track, index: number) => void;
   isLoading: boolean;
+  onRemove?: (track: Track) => void;
+  showRemoveButton?: boolean;
 }
 
 const SongList: React.FC<SongListProps> = ({
   songList,
   onPlayPause,
   isLoading,
+  onRemove,
+  showRemoveButton = false,
 }) => {
   const { currentTrack, isPlaying } = useMusicPlayer();
 
@@ -159,13 +163,31 @@ const SongList: React.FC<SongListProps> = ({
             <th className="text-left pb-4">Title</th>
             <th className="text-left pb-4">Date</th>
             <th className="text-right pb-4 pr-4">Duration</th>
+            {showRemoveButton && (
+              <th className="text-right pb-4 pr-4">Action</th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-800">
-          {!Array.isArray(songList) ? (
+          {!Array.isArray(songList) || songList.length === 0 ? (
             <tr>
-              <td colSpan={4} className="text-center py-8 text-zinc-400">
-                No songs found
+              <td
+                colSpan={showRemoveButton ? 5 : 4}
+                className="text-center py-16"
+              >
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center">
+                    <Music className="w-8 h-8 text-zinc-500" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium text-zinc-300 mb-1">
+                      No tracks available
+                    </h3>
+                    <p className="text-sm text-zinc-500">
+                      This playlist is empty. Add some tracks to get started!
+                    </p>
+                  </div>
+                </div>
               </td>
             </tr>
           ) : (
@@ -219,12 +241,24 @@ const SongList: React.FC<SongListProps> = ({
                     </div>
                   </div>
                 </td>
-                <td className="py-3 text-sm text-zinc-400">
-                  Recently added
-                </td>
+                <td className="py-3 text-sm text-zinc-400">Recently added</td>
                 <td className="py-3 pr-4 text-right text-sm text-zinc-400">
                   {song.duration} mins
                 </td>
+                {showRemoveButton && onRemove && (
+                  <td className="py-3 pr-4 text-right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(song);
+                      }}
+                      className="p-2 text-zinc-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all duration-200 "
+                      title="Remove from playlist"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))
           )}
