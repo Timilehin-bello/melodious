@@ -69,22 +69,30 @@ export default function Page() {
 
   // Enhanced recently played tracks with artist details
   const recentlyPlayedWithArtistDetails = useMemo(() => {
-    if (!recentlyPlayed || !users) return recentlyPlayed;
+    if (!recentlyPlayed || !users) return recentlyPlayed || [];
 
-    return recentlyPlayed.map((track: Track) => {
-      // Find the artist user by artistId
-      const artistUser = users.find(
-        (user: any) =>
-          (track.artistId && user.id === parseInt(track.artistId)) ||
-          (track.artistId && user.artist?.id === parseInt(track.artistId))
-      );
+    return recentlyPlayed
+      .filter((track: Track) => {
+        // Filter out tracks that are missing essential data or have been removed
+        return track && track.id && track.title && track.duration;
+      })
+      .map((track: Track) => {
+        // Find the artist user by artistId
+        const artistUser = users.find(
+          (user: any) =>
+            (track.artistId && user.id === parseInt(track.artistId)) ||
+            (track.artistId && user.artist?.id === parseInt(track.artistId))
+        );
 
-      return {
-        ...track,
-        artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
-        artistDetails: artistUser || null,
-      };
-    });
+        return {
+          ...track,
+          artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+          artistDetails: artistUser || null,
+          // Provide fallback values for potentially missing data
+          imageUrl: track.imageUrl || "/images/artist.svg",
+          duration: track.duration || 0,
+        };
+      });
   }, [recentlyPlayed, users]);
 
   const handlePlayTrack = (track: Track, index: number) => {
@@ -94,6 +102,34 @@ export default function Page() {
       playTrack(track); // Play a single track if there's only one
     } else {
       playPlaylist(tracks, index); // Allow playing from any index
+    }
+  };
+
+  const handlePlayRecentTrack = (track: Track, index: number) => {
+    try {
+      // Validate track data before attempting to play
+      if (!track || !track.id || !track.title) {
+        toast.error("This track is no longer available");
+        return;
+      }
+
+      // Check if the track still exists in the main tracks list
+      const trackExists = tracks?.some((t: Track) => t.id === track.id);
+      if (!trackExists) {
+        toast.error("This track has been removed and is no longer available");
+        // Note: The track will be automatically filtered out on next render
+        // due to the validation in recentlyPlayedWithArtistDetails
+        return;
+      }
+
+      if (currentTrack?.id === track.id) {
+        togglePlay();
+      } else {
+        playTrack(track);
+      }
+    } catch (error) {
+      console.error("Error playing recently played track:", error);
+      toast.error("Unable to play this track");
     }
   };
 
@@ -263,13 +299,13 @@ export default function Page() {
                       key={track.id || index}
                       title={track.title}
                       artistName={track.artist}
-                      duration={`${track.duration}`}
+                      duration={`${track.duration}`.includes(':') ? `${track.duration}` : `${track.duration}:00`}
                       // duration={`${Math.floor(track.duration / 60)}:${String(
                       //   track.duration % 60
                       // ).padStart(2, "0")}`}
                       imageUrl={track.imageUrl}
                       isPlaying={currentTrack?.id === track.id && isPlaying}
-                      onPlay={() => handlePlayTrack(track, index)}
+                      onPlay={() => handlePlayRecentTrack(track, index)}
                     />
                   ))
                 )}
