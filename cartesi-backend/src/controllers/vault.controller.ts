@@ -108,7 +108,8 @@ class VaultController {
 
       console.log("voucher", voucher);
 
-      getConfigService.vaultBalance -= withdrawBody.amount;
+      // Note: Vault balance is already decremented in ListeningRewardService
+      // getConfigService.vaultBalance -= withdrawBody.amount;
 
       //TODO: Check later if this gives the expected value
       getConfigService.lastVaultBalanceDistributed -= withdrawBody.amount;

@@ -32,8 +32,20 @@ export default function WithdrawCTSIModal({
 
   const handleWithdrawCTSI = async () => {
     const amount = Number(ctsiAmount);
+    const availableBalance = Number(userDetails?.cartesiTokenBalance || 0);
+    
     if (!amount) {
       toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (amount <= 0) {
+      toast.error("Amount must be greater than zero");
+      return;
+    }
+
+    if (amount > availableBalance) {
+      toast.error(`Insufficient balance. Available: ${availableBalance} CTSI`);
       return;
     }
 
@@ -92,15 +104,22 @@ export default function WithdrawCTSIModal({
                   value={ctsiAmount}
                   onChange={handleChange}
                   className={cn(
-                    "w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg",
+                    "w-full px-4 py-3 pr-20 bg-zinc-800/50 border border-zinc-700 rounded-lg",
                     "focus:outline-none focus:ring-2 focus:ring-[#950844] focus:border-transparent",
                     "placeholder-zinc-500 text-white text-lg",
                     "transition-all duration-200"
                   )}
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">
-                  CTSI
-                </span>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCtsiAmount(userDetails?.cartesiTokenBalance || "0")}
+                    className="text-xs px-2 py-1 bg-[#950844] text-white rounded hover:bg-[#7a0636] transition-colors"
+                  >
+                    MAX
+                  </button>
+                  <span className="text-zinc-400 font-medium">CTSI</span>
+                </div>
               </div>
             </div>
 

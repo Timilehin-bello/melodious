@@ -206,8 +206,8 @@ class ListeningRewardService {
     // Deduct the amount from the user's balance
     user.cartesiTokenBalance -= withdrawalRewardBody.amount;
 
-    // Simulate transferring tokens from the vault
-    //     getConfigService.vaultBalance -= withdrawalRewardBody.amount;
+    // Deduct the amount from the vault balance
+    getConfigService.vaultBalance -= withdrawalRewardBody.amount;
 
     return true;
   }
