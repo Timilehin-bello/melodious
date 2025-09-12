@@ -58,12 +58,12 @@ export default function Home() {
     <>
       <Hero />
       <About />
-      <HowItWorks />
-      <RepositoryNoticesDemo />
-      <Trending />
-      <FeaturedArtists />
+      {/* <HowItWorks /> */}
+      {/* <RepositoryNoticesDemo /> */}
+      {/* <Trending /> */}
+      {/* <FeaturedArtists /> */}
       {/* <ListenerSubscription /> */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
