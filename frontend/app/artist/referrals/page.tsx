@@ -83,7 +83,7 @@ const ConvertPointsModal = ({
       {
         onSuccess: () => {
           setConvertAmount("");
-          toast.success("Conversion successful!");
+
           refetch();
           onClose();
         },
@@ -213,6 +213,7 @@ const ConvertPointsModal = ({
 
 const ArtistReferrals = () => {
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [referralsToShow, setReferralsToShow] = useState(10);
   const activeAccount = useActiveAccount();
   const {
     stats,
@@ -287,8 +288,8 @@ const ArtistReferrals = () => {
     <div className="min-h-screen  text-white">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="max-w-5xl mx-auto">
+        <div className="mb-8 w-full">
+          <div className="max-w-7xl mx-auto">
             <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -461,7 +462,7 @@ const ArtistReferrals = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
             <h2 className="text-xl font-semibold text-white mb-6">
               Recent Activity
@@ -525,32 +526,62 @@ const ArtistReferrals = () => {
                       ) : stats?.recentReferrals &&
                         stats.recentReferrals.length > 0 ? (
                         <div className="space-y-3">
-                          {stats.recentReferrals.map((referral: any) => (
-                            <div
-                              key={referral.id}
-                              className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                <CheckCircle className="w-4 h-4 text-green-400" />
-                                <div>
-                                  <p className="text-sm font-medium text-white">
-                                    {referral.referredWalletAddress.slice(0, 6)}
-                                    ...
-                                    {referral.referredWalletAddress.slice(-4)}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    {formatDate(referral.completedAt)}
-                                  </p>
-                                </div>
-                              </div>
-                              <Badge
-                                variant="outline"
-                                className=" text-green-500 border-green-500"
+                          {stats.recentReferrals
+                            .slice(0, referralsToShow)
+                            .map((referral: any) => (
+                              <div
+                                key={referral.id}
+                                className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                               >
-                                +{referral.pointsEarned} points
-                              </Badge>
+                                <div className="flex items-center gap-3">
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                  <div>
+                                    <p className="text-sm font-medium text-white">
+                                      {referral.referredName ||
+                                        referral.referrerName ||
+                                        `${referral.referredWalletAddress.slice(
+                                          0,
+                                          6
+                                        )}...${referral.referredWalletAddress.slice(
+                                          -4
+                                        )}`}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      {referral.referredWalletAddress.slice(
+                                        0,
+                                        6
+                                      )}
+                                      ...
+                                      {referral.referredWalletAddress.slice(
+                                        -4
+                                      )}{" "}
+                                      • {formatDate(referral.completedAt)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className=" text-green-500 border-green-500"
+                                >
+                                  +{referral.pointsEarned} points
+                                </Badge>
+                              </div>
+                            ))}
+                          {stats.recentReferrals.length > referralsToShow && (
+                            <div className="text-center pt-4">
+                              <Button
+                                variant="outline"
+                                onClick={() =>
+                                  setReferralsToShow((prev) => prev + 10)
+                                }
+                                className="text-[#950844] border-[#950844] hover:bg-[#950844] hover:text-white"
+                              >
+                                Load More (
+                                {stats.recentReferrals.length - referralsToShow}{" "}
+                                remaining)
+                              </Button>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ) : (
                         <div className="text-center py-12">
@@ -621,6 +652,11 @@ const ArtistReferrals = () => {
                               >
                                 {transaction.type === "EARNED" ? "+" : "-"}
                                 {transaction.meloPoints} MP
+                                {transaction.ctsiAmount && (
+                                  <p className="text-xs ">
+                                    +{transaction.ctsiAmount.toFixed(4)} CTSI
+                                  </p>
+                                )}
                               </Badge>
                               {/* <div className="text-right">
                                 <p

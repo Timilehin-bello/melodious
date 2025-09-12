@@ -124,7 +124,7 @@ const Wallet = () => {
       <div className="max-w-screen-2xl mx-auto px-4 py-8">
         {/* Wallet Header */}
         <div className="mb-8">
-          <div className="max-w-5xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
               {/* Title */}
               <div className="flex items-center gap-3 mb-6">
@@ -169,7 +169,7 @@ const Wallet = () => {
         </div>
 
         {/* Transfers Section */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
             <h2 className="text-xl font-semibold text-white mb-6">
               Recent Transactions

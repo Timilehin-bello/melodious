@@ -3,7 +3,7 @@ import { apiClient } from "@/lib/queryClient";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
-import { useNoticesQuery, useRepositoryData } from "./useNoticesQuery";
+import { useNoticesQuery, useRepositoryData, noticesKeys } from "./useNoticesQuery";
 import { useMemo } from "react";
 
 // Referral types
@@ -25,6 +25,8 @@ export interface ReferralStats {
   recentReferrals: Array<{
     id: string;
     referredWalletAddress: string;
+    referredName: string;
+    referrerName: string;
     pointsEarned: number;
     createdAt: string;
     completedAt: string;
@@ -155,7 +157,13 @@ export const useReferralStats = (walletAddress?: string) => {
         .map((referral: any) => ({
           id: referral.id,
           referredWalletAddress: referral.referredWalletAddress,
-          pointsEarned: referral.pointsEarned || 100,
+          referredName: referral.referredName || "Unknown User",
+          referrerName: referral.referrerName || "Unknown",
+          pointsEarned:
+            referral.pointsEarned ||
+            referral.meloPointsEarned ||
+            repositoryData.config?.referralPoints ||
+            100,
           createdAt: referral.createdAt,
           completedAt: referral.completedAt || referral.createdAt,
         }));
@@ -259,13 +267,21 @@ export const useConversionInfo = () => {
         throw new Error("Repository data not available");
       }
 
-      // Get conversion info from repository data or use defaults
-      const conversionInfo = repositoryData.conversionInfo || {
-        conversionRate: 0.001, // Default rate: 1000 Melo = 1 CTSI
-        minConversion: 1000,
-        maxDailyConversion: 10000,
-        referralPoints: 100,
-      };
+      // Get conversion info from config in repository data or use defaults
+      const config = repositoryData.config;
+      const conversionInfo = config
+        ? {
+            conversionRate: config.conversionRate,
+            minConversion: config.minConversion,
+            maxDailyConversion: config.maxDailyConversion,
+            referralPoints: config.referralPoints,
+          }
+        : {
+            conversionRate: 0.001, // Default rate: 1000 Melo = 1 CTSI
+            minConversion: 1000,
+            maxDailyConversion: 10000,
+            referralPoints: 100,
+          };
 
       return conversionInfo;
     },
@@ -315,7 +331,7 @@ export const useValidateReferralCode = (referralCode: string) => {
           username: referrer.username,
           totalReferrals: referrer.totalReferrals || 0,
         },
-        pointsToEarn: 100, // Default points to earn
+        pointsToEarn: repositoryData.config?.referralPoints || 100, // Get from config or use default
       };
     },
     enabled: !!referralCode.trim() && !!repositoryData,
@@ -367,6 +383,11 @@ export const useConvertMeloPoints = () => {
       toast.success(
         `Successfully converted ${variables.meloPoints} Melo points to CTSI!`
       );
+
+      // Invalidate notices query to refresh repository data
+      queryClient.invalidateQueries({
+        queryKey: noticesKeys.lists(),
+      });
 
       // Invalidate and refetch related queries
       queryClient.invalidateQueries({

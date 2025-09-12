@@ -5,7 +5,7 @@ import { useMyReferralData, useConvertMeloPoints } from "@/hooks/useReferral";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tab } from "@headlessui/react";
+import { Tab, Dialog } from "@headlessui/react";
 import {
   Users,
   Gift,
@@ -21,13 +21,202 @@ import {
   UserPlus,
   Share2,
   Loader2,
+  X,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { useActiveAccount } from "thirdweb/react";
 
+// Convert Points Modal Component
+const ConvertPointsModal = ({
+  isOpen,
+  onClose,
+  stats,
+  conversionInfo,
+  convertMutation,
+  refetch,
+}: any) => {
+  const [convertAmount, setConvertAmount] = useState("");
+  const activeAccount = useActiveAccount();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (Number(value) >= 0 || value === "") {
+      setConvertAmount(value);
+    }
+  };
+
+  const handleConvert = async () => {
+    const amount = parseInt(convertAmount);
+    if (!amount || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+
+    if (
+      !conversionInfo?.minConversion ||
+      amount < conversionInfo.minConversion
+    ) {
+      toast.error(
+        `Minimum conversion amount is ${
+          conversionInfo?.minConversion || 100
+        } Melo points`
+      );
+      return;
+    }
+
+    if (
+      !stats?.statistics?.currentBalance ||
+      amount > stats.statistics.currentBalance
+    ) {
+      toast.error("Insufficient Melo points balance");
+      return;
+    }
+
+    if (!activeAccount?.address) {
+      toast.error("Wallet not connected");
+      return;
+    }
+
+    convertMutation.mutate(
+      {
+        walletAddress: activeAccount.address,
+        meloPoints: amount,
+      },
+      {
+        onSuccess: () => {
+          setConvertAmount("");
+
+          refetch();
+          onClose();
+        },
+        onError: (error: any) => {
+          toast.error(error?.message || "Conversion failed");
+        },
+      }
+    );
+  };
+
+  const calculateCtsiAmount = (meloPoints: number) => {
+    if (!conversionInfo?.conversionRate) return 0;
+    return (meloPoints / conversionInfo.conversionRate).toFixed(4);
+  };
+
+  return (
+    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      <div
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+        aria-hidden="true"
+      />
+
+      <div className="fixed inset-0 flex items-center justify-center p-4">
+        <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-[#181425] p-6 shadow-xl transition-all">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Dialog.Title className="text-xl font-semibold text-white flex items-center gap-2">
+              <Coins className="w-5 h-5 text-[#950844]" />
+              Convert Melo Points
+            </Dialog.Title>
+            <button
+              onClick={onClose}
+              className="rounded-full p-2 text-zinc-400 hover:bg-zinc-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-6">
+            {/* Amount Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-400">
+                Melo Points to Convert
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={convertAmount}
+                  onChange={handleChange}
+                  className={cn(
+                    "w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-lg",
+                    "focus:outline-none focus:ring-2 focus:ring-[#950844] focus:border-transparent",
+                    "placeholder-zinc-500 text-white text-lg",
+                    "transition-all duration-200"
+                  )}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">
+                  MP
+                </span>
+              </div>
+            </div>
+
+            {/* Conversion Info */}
+            {convertAmount && (
+              <div className="bg-zinc-800/30 rounded-lg p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-400">You will receive:</span>
+                  <span className="text-white font-medium">
+                    {calculateCtsiAmount(parseInt(convertAmount))} CTSI
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-400">Conversion Rate:</span>
+                  <span className="text-zinc-400">
+                    {conversionInfo?.conversionRate || 0} MP = 1 CTSI
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Balance Info */}
+            <div className="flex justify-between items-center text-sm text-zinc-400">
+              <span>Available Balance</span>
+              <span className="font-medium">
+                {stats?.statistics?.currentBalance || 0} MP
+              </span>
+            </div>
+
+            {/* Convert Button */}
+            <button
+              onClick={handleConvert}
+              disabled={convertMutation.isPending || !convertAmount}
+              className={cn(
+                "w-full px-4 py-3 rounded-lg font-medium",
+                "bg-gradient-to-r from-[#950844] to-[#7e0837]",
+                "hover:from-[#7e0837] hover:to-[#950844]",
+                "text-white transition-all duration-200",
+                "flex items-center justify-center gap-2",
+                "disabled:opacity-50 disabled:cursor-not-allowed"
+              )}
+            >
+              {convertMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Converting...
+                </>
+              ) : (
+                <>
+                  <ArrowUpRight className="w-5 h-5" />
+                  Convert Points
+                </>
+              )}
+            </button>
+
+            {/* Info Text */}
+            <p className="text-xs text-zinc-500 text-center">
+              Converting points may take a few moments to process
+            </p>
+          </div>
+        </Dialog.Panel>
+      </div>
+    </Dialog>
+  );
+};
+
 const ReferralsPage = () => {
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [referralsToShow, setReferralsToShow] = useState(10);
   const activeAccount = useActiveAccount();
 
   const {
@@ -140,8 +329,8 @@ const ReferralsPage = () => {
     <div className="min-h-screen  text-white">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="max-w-5xl mx-auto">
+        <div className="mb-8 w-full">
+          <div className=" mx-auto">
             <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -314,7 +503,7 @@ const ReferralsPage = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
             <h2 className="text-xl font-semibold text-white mb-6">
               Recent Activity
@@ -378,32 +567,57 @@ const ReferralsPage = () => {
                       ) : stats?.recentReferrals &&
                         stats.recentReferrals.length > 0 ? (
                         <div className="space-y-3">
-                          {stats.recentReferrals.map((referral: any) => (
-                            <div
-                              key={referral.id}
-                              className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                <CheckCircle className="w-4 h-4 text-green-400" />
-                                <div>
-                                  <p className="text-sm font-medium text-white">
-                                    {referral.referredWalletAddress.slice(0, 6)}
-                                    ...
-                                    {referral.referredWalletAddress.slice(-4)}
-                                  </p>
-                                  <p className="text-xs text-gray-400">
-                                    {formatDate(referral.completedAt)}
-                                  </p>
-                                </div>
-                              </div>
-                              <Badge
-                                variant="outline"
-                                className=" text-green-500 border-green-500"
+                          {stats.recentReferrals
+                            .slice(0, referralsToShow)
+                            .map((referral: any) => (
+                              <div
+                                key={referral.id}
+                                className="flex items-center justify-between p-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
                               >
-                                +{referral.pointsEarned} points
-                              </Badge>
+                                <div className="flex items-center gap-3">
+                                  <CheckCircle className="w-4 h-4 text-green-400" />
+                                  <div>
+                                    <p className="text-sm font-medium text-white">
+                                      {referral.referredName ||
+                                        referral.referrerName ||
+                                        "Unknown User"}
+                                    </p>
+                                    <p className="text-xs text-gray-400">
+                                      {referral.referredWalletAddress.slice(
+                                        0,
+                                        6
+                                      )}
+                                      ...
+                                      {referral.referredWalletAddress.slice(
+                                        -4
+                                      )}{" "}
+                                      • {formatDate(referral.completedAt)}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Badge
+                                  variant="outline"
+                                  className=" text-green-500 border-green-500"
+                                >
+                                  +{referral.pointsEarned} points
+                                </Badge>
+                              </div>
+                            ))}
+                          {stats.recentReferrals.length > referralsToShow && (
+                            <div className="text-center pt-4">
+                              <Button
+                                variant="outline"
+                                onClick={() =>
+                                  setReferralsToShow((prev) => prev + 10)
+                                }
+                                className="text-[#950844] border-[#950844] hover:bg-[#950844] hover:text-white"
+                              >
+                                Load More (
+                                {stats.recentReferrals.length - referralsToShow}{" "}
+                                remaining)
+                              </Button>
                             </div>
-                          ))}
+                          )}
                         </div>
                       ) : (
                         <div className="text-center py-12">
@@ -472,6 +686,11 @@ const ReferralsPage = () => {
                               >
                                 {transaction.type === "EARNED" ? "+" : "-"}
                                 {transaction.meloPoints} MP
+                                {transaction.ctsiAmount && (
+                                  <p className="text-xs ">
+                                    +{transaction.ctsiAmount.toFixed(4)} CTSI
+                                  </p>
+                                )}
                               </Badge>
                               {/* <div className="text-right">
                                 <p
@@ -514,6 +733,16 @@ const ReferralsPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Convert Points Modal */}
+        <ConvertPointsModal
+          isOpen={isConvertModalOpen}
+          onClose={() => setIsConvertModalOpen(false)}
+          stats={stats}
+          conversionInfo={conversionInfo}
+          convertMutation={convertMutation}
+          refetch={refetch}
+        />
       </div>
     </div>
   );

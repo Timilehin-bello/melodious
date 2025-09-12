@@ -5,6 +5,8 @@ class Referral {
   id: number;
   referrerWalletAddress: string; // Wallet address of user who made the referral
   referredWalletAddress: string; // Wallet address of user who was referred
+  referrerName: string; // Display name of the referrer
+  referredName: string; // Display name of the referred user
   referralCode: string; // Code used for referral
   meloPointsEarned: number; // Points earned from this referral
   status: "PENDING" | "COMPLETED" | "CANCELLED";
@@ -14,6 +16,8 @@ class Referral {
   constructor(
     referrerWalletAddress: string,
     referredWalletAddress: string,
+    referrerName: string,
+    referredName: string,
     referralCode: string,
     meloPointsEarned: number,
     createdAt: Date,
@@ -43,6 +47,8 @@ class Referral {
     this.id = Referral.nextId++;
     this.referrerWalletAddress = referrerWalletAddress.toLowerCase();
     this.referredWalletAddress = referredWalletAddress.toLowerCase();
+    this.referrerName = referrerName.trim();
+    this.referredName = referredName.trim();
     this.referralCode = referralCode.toUpperCase();
     this.meloPointsEarned = meloPointsEarned;
     this.status = status;

@@ -72,14 +72,15 @@ class ReferralTransaction {
     userWalletAddress: string,
     meloPoints: number,
     referralId: number,
-    referredUserName: string
+    referredUserName: string,
+    referredWalletAddress: string
   ): ReferralTransaction {
     return new ReferralTransaction(
       userWalletAddress,
       "EARNED",
       meloPoints,
       new Date(),
-      `Earned ${meloPoints} Melo points for referring ${referredUserName}`,
+      `Earned ${meloPoints} Melo points for referring ${referredUserName} (${referredWalletAddress})`,
       undefined,
       undefined,
       referralId

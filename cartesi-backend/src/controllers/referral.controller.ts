@@ -1,12 +1,17 @@
 import { Error_out, Log, Notice } from "cartesi-wallet";
-import { User, Referral, ReferralTransaction } from "../models";
+import { User, Referral, ReferralTransaction, Config } from "../models";
 import { RepositoryService } from "../services";
 
 class ReferralController {
-  private static readonly REFERRAL_POINTS = 100; // Points awarded per referral
-  private static readonly CONVERSION_RATE = 1000; // Melo points per CTSI
-  private static readonly MIN_CONVERSION = 1000; // Minimum points for conversion
-  private static readonly MAX_DAILY_CONVERSION = 10000; // Maximum daily conversion
+  private get config(): Config {
+    const config = RepositoryService.config;
+    if (!config) {
+      throw new Error(
+        "Config must be initialized before using ReferralController"
+      );
+    }
+    return config;
+  }
 
   /**
    * Process referral when a new user registers
@@ -44,8 +49,10 @@ class ReferralController {
       const referral = new Referral(
         referrer.walletAddress,
         newUserWalletAddress,
+        referrer.name,
+        newUserName,
         referralCode,
-        ReferralController.REFERRAL_POINTS,
+        this.config.referralPoints,
         new Date(),
         "COMPLETED",
         new Date()
@@ -55,15 +62,16 @@ class ReferralController {
       RepositoryService.referrals.push(referral);
 
       // Award points to referrer
-      referrer.addMeloPoints(ReferralController.REFERRAL_POINTS);
+      referrer.addMeloPoints(this.config.referralPoints);
       referrer.incrementReferrals();
 
       // Create transaction record
       const transaction = ReferralTransaction.createEarnedTransaction(
         referrer.walletAddress,
-        ReferralController.REFERRAL_POINTS,
+        this.config.referralPoints,
         referral.id,
-        newUserName
+        newUserName,
+        newUserWalletAddress
       );
       RepositoryService.referralTransactions.push(transaction);
 
@@ -82,7 +90,7 @@ class ReferralController {
             walletAddress: newUserWalletAddress,
             name: newUserName,
           },
-          pointsAwarded: ReferralController.REFERRAL_POINTS,
+          pointsAwarded: this.config.referralPoints,
         }
       );
 
@@ -93,7 +101,7 @@ class ReferralController {
       );
 
       console.log(
-        `Referral processed: ${referrer.name} referred ${newUserName}, awarded ${ReferralController.REFERRAL_POINTS} Melo points`
+        `Referral processed: ${referrer.name} referred ${newUserName}, awarded ${this.config.referralPoints} Melo points`
       );
 
       return referralNotice;
@@ -121,15 +129,15 @@ class ReferralController {
       }
 
       // Validate conversion amount
-      if (meloPoints < ReferralController.MIN_CONVERSION) {
+      if (meloPoints < this.config.minConversion) {
         return new Error_out(
-          `Minimum conversion is ${ReferralController.MIN_CONVERSION} Melo points`
+          `Minimum conversion is ${this.config.minConversion} Melo points`
         );
       }
 
-      if (meloPoints > ReferralController.MAX_DAILY_CONVERSION) {
+      if (meloPoints > this.config.maxDailyConversion) {
         return new Error_out(
-          `Maximum daily conversion is ${ReferralController.MAX_DAILY_CONVERSION} Melo points`
+          `Maximum daily conversion is ${this.config.maxDailyConversion} Melo points`
         );
       }
 
@@ -143,7 +151,7 @@ class ReferralController {
       // Perform conversion
       const ctsiAmount = user.convertMeloToCtsi(
         meloPoints,
-        ReferralController.CONVERSION_RATE
+        this.config.conversionRate
       );
 
       // Create transaction record
@@ -151,7 +159,7 @@ class ReferralController {
         user.walletAddress,
         meloPoints,
         ctsiAmount,
-        ReferralController.CONVERSION_RATE
+        this.config.conversionRate
       );
       RepositoryService.referralTransactions.push(transaction);
 
@@ -171,7 +179,7 @@ class ReferralController {
           conversion: {
             meloPointsConverted: meloPoints,
             ctsiReceived: ctsiAmount,
-            conversionRate: ReferralController.CONVERSION_RATE,
+            conversionRate: this.config.conversionRate,
           },
           transaction,
         }
@@ -251,9 +259,11 @@ class ReferralController {
           totalCtsiReceived,
           currentBalance: user.meloPoints,
         },
-        recentReferrals: userReferrals.slice(-5).map((ref) => ({
+        recentReferrals: userReferrals.map((ref) => ({
           id: ref.id,
           referredWalletAddress: ref.referredWalletAddress,
+          referredName: ref.referredName,
+          referrerName: ref.referrerName,
           pointsEarned: ref.meloPointsEarned,
           createdAt: ref.createdAt,
           completedAt: ref.completedAt,
@@ -388,7 +398,7 @@ class ReferralController {
           username: user.username,
           totalReferrals: user.totalReferrals,
         },
-        pointsToEarn: ReferralController.REFERRAL_POINTS,
+        pointsToEarn: this.config.referralPoints,
       };
 
       const resultJson = JSON.stringify(validationResult);
@@ -431,10 +441,10 @@ class ReferralController {
   public getConversionInfo() {
     try {
       const info = {
-        conversionRate: ReferralController.CONVERSION_RATE,
-        minConversion: ReferralController.MIN_CONVERSION,
-        maxDailyConversion: ReferralController.MAX_DAILY_CONVERSION,
-        referralPoints: ReferralController.REFERRAL_POINTS,
+        conversionRate: this.config.conversionRate,
+        minConversion: this.config.minConversion,
+        maxDailyConversion: this.config.maxDailyConversion,
+        referralPoints: this.config.referralPoints,
       };
 
       const infoJson = JSON.stringify(info);

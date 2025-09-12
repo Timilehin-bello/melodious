@@ -54,7 +54,7 @@ const Reports: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       <div className="bg-zinc-900/50 rounded-lg border border-zinc-800/50 overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-zinc-800/50 flex items-center justify-between">
