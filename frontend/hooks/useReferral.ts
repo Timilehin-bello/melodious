@@ -3,7 +3,11 @@ import { apiClient } from "@/lib/queryClient";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
-import { useNoticesQuery, useRepositoryData, noticesKeys } from "./useNoticesQuery";
+import {
+  useNoticesQuery,
+  useRepositoryData,
+  noticesKeys,
+} from "./useNoticesQuery";
 import { useMemo } from "react";
 
 // Referral types
@@ -153,7 +157,7 @@ export const useReferralStats = (walletAddress?: string) => {
 
       // Get recent referrals with referred user info
       const recentReferrals = userReferrals
-        .slice(-5) // Last 5 referrals
+        // .slice(-5) // Last 5 referrals
         .map((referral: any) => ({
           id: referral.id,
           referredWalletAddress: referral.referredWalletAddress,
@@ -166,11 +170,12 @@ export const useReferralStats = (walletAddress?: string) => {
             100,
           createdAt: referral.createdAt,
           completedAt: referral.completedAt || referral.createdAt,
-        }));
+        }))
+        .reverse();
 
       // Get recent transactions
       const recentTransactions = userTransactions
-        .slice(-10) // Last 10 transactions
+        // .slice(-10) // Last 10 transactions
         .map((transaction: any) => ({
           id: transaction.id,
           type: transaction.type,
@@ -179,7 +184,8 @@ export const useReferralStats = (walletAddress?: string) => {
           description:
             transaction.description || `${transaction.type} transaction`,
           createdAt: transaction.createdAt,
-        }));
+        }))
+        .reverse();
 
       return {
         user: {
@@ -231,8 +237,8 @@ export const useReferralTransactions = (walletAddress?: string) => {
       );
 
       // Transform repository transactions into the expected format
-      const transactions: ReferralTransaction[] = userTransactions.map(
-        (transaction: any) => {
+      const transactions: ReferralTransaction[] = userTransactions
+        .map((transaction: any) => {
           return {
             id: transaction.id,
             type: transaction.type,
@@ -244,8 +250,8 @@ export const useReferralTransactions = (walletAddress?: string) => {
               transaction.description || `${transaction.type} transaction`,
             createdAt: transaction.createdAt,
           };
-        }
-      );
+        })
+        .reverse();
 
       return transactions;
     },
@@ -384,23 +390,36 @@ export const useConvertMeloPoints = () => {
         `Successfully converted ${variables.meloPoints} Melo points to CTSI!`
       );
 
-      // Invalidate notices query to refresh repository data
+      // Immediate invalidation
       queryClient.invalidateQueries({
         queryKey: noticesKeys.lists(),
       });
 
-      // Invalidate and refetch related queries
-      queryClient.invalidateQueries({
-        queryKey: referralKeys.stats(variables.walletAddress),
-      });
-      queryClient.invalidateQueries({
-        queryKey: referralKeys.transactions(variables.walletAddress),
-      });
+      // Add a small delay to allow backend processing, then force refetch
+      setTimeout(() => {
+        // Force refetch notices query to refresh repository data immediately
+        // Reset staleTime to 0 to force fresh data fetch
+        queryClient.resetQueries({
+          queryKey: noticesKeys.lists(),
+        });
+        queryClient.refetchQueries({
+          queryKey: noticesKeys.lists(),
+          type: "active",
+        });
 
-      // Also invalidate user data if you have user queries
-      queryClient.invalidateQueries({
-        queryKey: ["users", variables.walletAddress],
-      });
+        // Invalidate and refetch related queries
+        queryClient.invalidateQueries({
+          queryKey: referralKeys.stats(variables.walletAddress),
+        });
+        queryClient.invalidateQueries({
+          queryKey: referralKeys.transactions(variables.walletAddress),
+        });
+
+        // Also invalidate user data if you have user queries
+        queryClient.invalidateQueries({
+          queryKey: ["users", variables.walletAddress],
+        });
+      }, 3000); // 3 second delay to allow backend processing
     },
     onError: (error: any) => {
       const errorMessage =
