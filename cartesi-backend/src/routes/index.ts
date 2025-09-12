@@ -62,6 +62,16 @@ import {
   PlaylistsByWalletRoute,
 } from "./playlist.route";
 
+import {
+  ConvertMeloToCtsiRoute,
+  ProcessReferralRoute,
+  ReferralStatsRoute,
+  UserReferralsRoute,
+  ReferralTransactionsRoute,
+  ValidateReferralCodeRoute,
+  ConversionInfoRoute,
+} from "./referral.route";
+
 export {
   // User
   CreateUserRoute,
@@ -121,4 +131,13 @@ export {
   PlaylistRoute,
   PlaylistsByListenerRoute,
   PlaylistsByWalletRoute,
+
+  // Referral routes
+  ConvertMeloToCtsiRoute,
+  ProcessReferralRoute,
+  ReferralStatsRoute,
+  UserReferralsRoute,
+  ReferralTransactionsRoute,
+  ValidateReferralCodeRoute,
+  ConversionInfoRoute,
 };

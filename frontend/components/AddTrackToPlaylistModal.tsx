@@ -36,7 +36,7 @@ const AddTrackToPlaylistModal: React.FC<AddTrackToPlaylistModalProps> = ({
   const activeAccount = useActiveAccount();
   const addTrackMutation = useAddTrackToPlaylist();
 
-  const tracks = allTracks || [];
+  const tracks = useMemo(() => allTracks || [], [allTracks]);
 
   useEffect(() => {
     if (isError) {

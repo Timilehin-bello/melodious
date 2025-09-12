@@ -20,6 +20,9 @@ class User {
   country: string | null;
   artist: Artist | null;
   listener: Listener | null;
+  referralCode: string; // Unique referral code for this user
+  meloPoints: number; // Current Melo points balance
+  totalReferrals: number; // Count of successful referrals
   createdAt: Date;
   updatedAt: Date;
 
@@ -66,8 +69,77 @@ class User {
     this.country = country || null;
     this.artist = artist || null;
     this.listener = listener || null;
+    this.referralCode = this.generateReferralCode();
+    this.meloPoints = 0;
+    this.totalReferrals = 0;
     this.createdAt = createAt;
     this.updatedAt = updatedAt;
+  }
+
+  /**
+   * Generate a unique referral code for the user
+   */
+  private generateReferralCode(): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "MELO-";
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * Add Melo points to user's balance
+   */
+  public addMeloPoints(points: number): void {
+    if (points <= 0) {
+      throw new Error_out("Points to add must be positive");
+    }
+    this.meloPoints += points;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Deduct Melo points from user's balance
+   */
+  public deductMeloPoints(points: number): void {
+    if (points <= 0) {
+      throw new Error_out("Points to deduct must be positive");
+    }
+    if (this.meloPoints < points) {
+      throw new Error_out("Insufficient Melo points balance");
+    }
+    this.meloPoints -= points;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Increment total referrals count
+   */
+  public incrementReferrals(): void {
+    this.totalReferrals += 1;
+    this.updatedAt = new Date();
+  }
+
+  /**
+   * Convert Melo points to CTSI tokens
+   */
+  public convertMeloToCtsi(meloPoints: number, conversionRate: number): number {
+    if (meloPoints <= 0) {
+      throw new Error_out("Melo points to convert must be positive");
+    }
+    if (conversionRate <= 0) {
+      throw new Error_out("Conversion rate must be positive");
+    }
+    if (this.meloPoints < meloPoints) {
+      throw new Error_out("Insufficient Melo points balance");
+    }
+
+    const ctsiAmount = meloPoints / conversionRate;
+    this.deductMeloPoints(meloPoints);
+    this.cartesiTokenBalance += ctsiAmount;
+
+    return ctsiAmount;
   }
 }
 

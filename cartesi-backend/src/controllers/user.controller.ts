@@ -3,6 +3,7 @@ import { User } from "../models";
 import { UserType } from "../configs/enum";
 import { ListenerController } from "./listener.controller";
 import { ArtistController } from "./artist.controller";
+import { ReferralController } from "./referral.controller";
 import { Json } from "../interfaces";
 import { RepositoryService } from "../services";
 
@@ -12,6 +13,7 @@ class UserController {
       userType: "LISTENER" | "ARTIST";
       biography?: string;
       socialMediaLinks?: Json;
+      referralCode?: string;
     }
   ) {
     if (
@@ -71,10 +73,34 @@ class UserController {
         `User ${user.name} created with wallet address ${user.walletAddress}`
       );
 
+      // Process referral if referral code is provided
+      let referralNotice: Notice | Error_out | null = null;
+      if (userBody.referralCode && userBody.referralCode.trim()) {
+        console.log(`Processing referral with code: ${userBody.referralCode}`);
+        const referralController = new ReferralController();
+        referralNotice = referralController.processReferral(
+          userBody.referralCode.trim(),
+          user.walletAddress,
+          user.name
+        );
+
+        if (referralNotice instanceof Error_out) {
+          console.warn(`Referral processing failed: ${referralNotice}`);
+          // Don't fail user creation if referral fails, just log the warning
+          referralNotice = null;
+        } else {
+          console.log(`Referral processed successfully for user ${user.name}`);
+        }
+      }
+
       // Create repository notice with user creation data
       const repositoryNotice = RepositoryService.createRepositoryNotice(
         "user_created",
-        user
+        {
+          user,
+          referralProcessed: !!referralNotice,
+          referralCode: userBody.referralCode || null,
+        }
       );
 
       // Also create specific user notice

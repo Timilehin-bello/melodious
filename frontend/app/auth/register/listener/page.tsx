@@ -29,7 +29,7 @@ import { useCallback, useEffect, useState } from "react";
 import { client } from "@/lib/client";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
-import { User, AtSign, MapPin, Music, Headphones } from "lucide-react";
+import { User, AtSign, MapPin, Music, Headphones, Gift } from "lucide-react";
 import axios from "axios";
 import { generateRandomLetter } from "@/lib/utils";
 
@@ -50,6 +50,7 @@ const formSchema = z.object({
   country: z.string({
     message: "You must select a country",
   }),
+  referralCode: z.string().optional(),
 });
 
 const RegisterListener = () => {
@@ -66,6 +67,7 @@ const RegisterListener = () => {
       username: "",
       displayName: "",
       country: "",
+      referralCode: "",
     },
   });
 
@@ -123,6 +125,7 @@ const RegisterListener = () => {
       username: values.username + generateRandomLetter(),
       userType: "LISTENER",
       country: values.country,
+      referralCode: values.referralCode || undefined,
     })
       .then((data) => {
         // console.log("User created with transaction hash:", data);
@@ -308,6 +311,32 @@ const RegisterListener = () => {
                       )}
                     />
                   </div>
+
+                  {/* Referral Code Section */}
+                  <FormField
+                    control={form.control}
+                    name="referralCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-200 flex items-center gap-2">
+                          <Gift className="w-4 h-4" />
+                          Referral Code (Optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter referral code from a friend"
+                            {...field}
+                            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#950944] transition-colors"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-400" />
+                        <p className="text-xs text-gray-400 mt-1">
+                          Have a referral code? Enter it to earn bonus Melo
+                          points!
+                        </p>
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 {/* Submit Button */}
