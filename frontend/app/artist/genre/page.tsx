@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import fetchMethod from "@/lib/readState";
+import { useGenres } from "@/hooks/useGenres";
 import Link from "next/link";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Plus, Pencil, ExternalLink, Music } from "lucide-react";
@@ -24,51 +24,16 @@ type Genre = {
 };
 
 const Genres = () => {
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { genres, isLoading: loading, isError, error, refetch } = useGenres();
   console.log("Genres", genres);
 
-  const fetchGenre = useCallback(async () => {
-    if (!mounted.current) return;
-
-    try {
-      setLoading(true);
-      const genreList: Genre[] = await fetchMethod("get_genres");
-
-      if (!Array.isArray(genreList)) {
-        toast.error("Invalid data received from server");
-        return;
-      }
-
-      // Only update state if component is still mounted
-      if (mounted.current) {
-        setGenres(genreList);
-      }
-    } catch (error) {
-      if (mounted.current) {
-        toast.error("Failed to fetch genres");
-        console.error("Error fetching genres:", error);
-      }
-    } finally {
-      if (mounted.current) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-  // Add this at the top of your component
-  const mounted = useRef(false);
-
-  // Use this useEffect for mounting/unmounting
   useEffect(() => {
-    mounted.current = true;
-    fetchGenre();
-
-    return () => {
-      mounted.current = false;
-    };
-  }, [fetchGenre]);
+    if (isError) {
+      console.error("Error fetching genres:", error);
+      toast.error("Failed to load genres");
+    }
+  }, [isError, error]);
 
   if (loading) {
     return <BlockLoader message="Loading Genres" />;
@@ -112,7 +77,7 @@ const Genres = () => {
           </TableHeader>
           <TableBody>
             {genres.length > 0 ? (
-              genres.map((genre) => (
+              genres.map((genre: Genre) => (
                 <TableRow
                   key={genre.id}
                   className="hover:bg-white/5 transition-colors duration-200"
@@ -187,8 +152,8 @@ const Genres = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={() => {
+          refetch(); // Refresh the genres data
           setIsCreateModalOpen(false);
-          fetchGenre();
         }}
       />
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import GenreItem from "@/components/GenreItem";
-import { PopularArtistCarousel } from "@/components/PopularArtistCarousel";
+import { MostPlayedTracks } from "@/components/MostPlayedTracks";
 import RecentItem from "@/components/RecentItem";
 import TrendingSoundItem from "@/components/TrendingSoundItem";
 import Image from "next/image";
@@ -10,37 +10,90 @@ import { useActiveWalletConnectionStatus } from "thirdweb/react";
 import { useConnectModal } from "thirdweb/react";
 import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
-import { useCallback, useEffect, useState } from "react";
-import fetchMethod from "@/lib/readState";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import { useTracks } from "@/hooks/useTracks";
+import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import toast from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProvider";
+import {
+  useMusicPlayer,
+  Track,
+} from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import SongList from "@/components/SongList";
 import { SidebarAd } from "@/components/ads";
+import { Clock } from "lucide-react";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
-    useMusicPlayer();
+  const { tracks, isLoading, isError, error } = useTracks();
+  const { users } = useRepositoryData();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    playPlaylist,
+    togglePlay,
+    recentlyPlayed,
+    isLoadingRecentlyPlayed,
+    clearRecentlyPlayed,
+  } = useMusicPlayer();
 
   useEffect(() => {
-    const loadTracks = async () => {
-      try {
-        const trackList = await await fetchMethod("get_tracks");
-        console.log("tracklist", trackList);
-        setTracks(trackList);
-        setIsLoading(false);
-      } catch (error) {
-        console.log("Failed to fetch tracks:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (isError) {
+      console.error("Error fetching tracks:", error);
+      toast.error("Failed to load tracks");
+    }
+  }, [isError, error]);
 
-    loadTracks();
-  }, []);
+  console.log("tracklist", tracks);
+
+  // Enhanced tracks with artist details
+  const tracksWithArtistDetails = useMemo(() => {
+    if (!tracks || !users) return tracks;
+
+    return tracks.map((track: Track) => {
+      // Find the artist user by matching user.artist.id with track.artistId
+      const artistUser = users.find(
+        (user: any) =>
+          user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+      );
+      console.log("artistUser", artistUser, "track", JSON.stringify(track));
+      return {
+        ...track,
+        artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+        artistDetails: artistUser || null,
+      };
+    });
+  }, [tracks, users]);
+
+  // Enhanced recently played tracks with artist details
+  const recentlyPlayedWithArtistDetails = useMemo(() => {
+    if (!recentlyPlayed || !users) return recentlyPlayed || [];
+
+    return recentlyPlayed
+      .filter((track: Track) => {
+        // Filter out tracks that are missing essential data or have been removed
+        return track && track.id && track.title && track.duration;
+      })
+      .map((track: Track) => {
+        // Find the artist user by matching user.artist.id with track.artistId
+        const artistUser = users.find(
+          (user: any) =>
+            user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+        );
+
+        return {
+          ...track,
+          artist:
+            artistUser?.displayName || artistUser?.name || "Unknown Artist",
+          artistDetails: artistUser || null,
+          // Provide fallback values for potentially missing data
+          imageUrl: track.imageUrl || "/images/artist.svg",
+          duration: track.duration || 0,
+        };
+      });
+  }, [recentlyPlayed, users]);
 
   const handlePlayTrack = (track: Track, index: number) => {
     if (currentTrack?.id === track.id) {
@@ -52,48 +105,41 @@ export default function Page() {
     }
   };
 
+  const handlePlayRecentTrack = (track: Track, index: number) => {
+    try {
+      // Validate track data before attempting to play
+      if (!track || !track.id || !track.title) {
+        toast.error("This track is no longer available");
+        return;
+      }
+
+      // Check if the track still exists in the main tracks list
+      const trackExists = tracks?.some((t: Track) => t.id === track.id);
+      if (!trackExists) {
+        toast.error("This track has been removed and is no longer available");
+        // Note: The track will be automatically filtered out on next render
+        // due to the validation in recentlyPlayedWithArtistDetails
+        return;
+      }
+
+      if (currentTrack?.id === track.id) {
+        togglePlay();
+      } else {
+        playTrack(track);
+      }
+    } catch (error) {
+      console.error("Error playing recently played track:", error);
+      toast.error("Unable to play this track");
+    }
+  };
+
   const { connect } = useConnectModal();
   // const onPlay = useOnPlay(tracks);
   const status = useActiveWalletConnectionStatus();
   const { setConditionFulfilled } = useMelodiousContext();
 
-  const recentlyPlayed = [
-    {
-      title: "Perfect",
-      artistName: "Ed Sheran",
-      duration: "2 mins",
-    },
-    {
-      title: "Title Deluxe",
-      artistName: "Taini Song",
-      duration: "6 mins",
-    },
-    {
-      title: "Shape of You",
-      artistName: "Ed Sheran",
-      duration: "4 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-    {
-      title: "Bad Habits",
-      artistName: "Ed Sheran",
-      duration: "3 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-    {
-      title: "Feel Something",
-      artistName: "Jaymes Young",
-      duration: "2 mins",
-    },
-  ];
+  // Recently played tracks are now managed by the enhanced music provider
+  // and automatically populated when tracks are played
 
   const likeSong = async () => {
     if (status === "disconnected") {
@@ -164,13 +210,13 @@ export default function Page() {
             </div>
             <div className="overflow-x-auto  pb-4">
               <div className="flex gap-4 min-w-min">
-                {tracks.map((track, index) => (
+                {tracksWithArtistDetails?.map((track: any, index: number) => (
                   <div key={track.id} className="w-[250px] flex-shrink-0">
                     <TrendingSoundItem
                       song={track}
                       imageUrl={track.imageUrl}
                       songTitle={track.title}
-                      songDetails={String(track.duration)}
+                      songDetails={track.artist || "Unknown Artist"}
                       playSong={() => handlePlayTrack(track, index)}
                       likeSong={likeSong}
                       isLoading={isLoading}
@@ -183,9 +229,9 @@ export default function Page() {
 
           {/* Song List Section */}
           <section className="space-y-4">
-            <div className="pt-2">
+            <div className="mb-14">
               <SongList
-                songList={tracks}
+                songList={tracksWithArtistDetails}
                 onPlayPause={handlePlayTrack}
                 isLoading={isLoading}
               />
@@ -197,18 +243,21 @@ export default function Page() {
       {/* Sidebar - Scrollable */}
       <aside className="md:col-span-1 h-screen w-full">
         <div className="h-full w-full overflow-y-auto  pt-[9px] pb-8 pr-4">
-          {/* Popular Artists Section */}
+          {/* Most Played Tracks Section */}
           <section className="w-full mb-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">
-                Popular Artist
+                Most Played Tracks
               </h3>
               <button className="text-[#910a43] hover:text-gray-300 transition-colors text-sm">
                 See All
               </button>
             </div>
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
-              <PopularArtistCarousel />
+              <MostPlayedTracks
+                tracks={tracksWithArtistDetails}
+                onPlayTrack={handlePlayTrack}
+              />
             </div>
           </section>
 
@@ -219,24 +268,62 @@ export default function Page() {
 
           {/* Recently Played Section */}
           <section className="w-full">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">
                 Recently Played
               </h3>
-              <button className="text-[#950944] hover:text-gray-300 transition-colors text-sm font-medium">
-                See All
-              </button>
+              <div className="flex gap-2">
+                {recentlyPlayedWithArtistDetails.length > 0 && (
+                  <button
+                    onClick={clearRecentlyPlayed}
+                    className="text-red-400 hover:text-red-300 transition-colors text-sm font-medium"
+                  >
+                    Clear
+                  </button>
+                )}
+                {/* <button className="text-[#950944] hover:text-gray-300 transition-colors text-sm font-medium">
+                  See All
+                </button> */}
+              </div>
             </div>
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
               <div className="space-y-3">
-                {recentlyPlayed.map((item, index) => (
-                  <RecentItem
-                    key={index}
-                    title={item.title}
-                    artistName={item.artistName}
-                    duration={item.duration}
-                  />
-                ))}
+                {isLoadingRecentlyPlayed ? (
+                  <div className="text-gray-400 text-sm">
+                    Loading recently played...
+                  </div>
+                ) : recentlyPlayedWithArtistDetails.length === 0 ? (
+                  <div className="flex items-center justify-center h-32 text-gray-400">
+                    <div className="text-center">
+                      <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm font-medium">
+                        No recently played tracks
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Your listening history will appear here
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  recentlyPlayedWithArtistDetails.map((track, index) => (
+                    <RecentItem
+                      key={track.id || index}
+                      title={track.title}
+                      artistName={track.artist}
+                      duration={`${
+                        `${track.duration}`.includes(":")
+                          ? track.duration
+                          : `${track.duration}:00`
+                      }`}
+                      // duration={`${Math.floor(track.duration / 60)}:${String(
+                      //   track.duration % 60
+                      // ).padStart(2, "0")}`}
+                      imageUrl={track.imageUrl}
+                      isPlaying={currentTrack?.id === track.id && isPlaying}
+                      onPlay={() => handlePlayRecentTrack(track, index)}
+                    />
+                  ))
+                )}
               </div>
             </div>
           </section>

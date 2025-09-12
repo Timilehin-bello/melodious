@@ -2,7 +2,10 @@ import Image from "next/image";
 import { Card, CardContent } from "./ui/card";
 import { HeartIcon } from "lucide-react";
 import PlayButton from "./PlayButton";
-import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import {
+  Track,
+  useMusicPlayer,
+} from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useState } from "react";
 
 interface TrendingSoundProps {

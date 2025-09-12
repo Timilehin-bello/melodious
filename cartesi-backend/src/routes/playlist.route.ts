@@ -1,5 +1,5 @@
 import { AdvanceRoute, DefaultRoute } from "cartesi-router";
-import { Error_out, Output } from "cartesi-wallet";
+import { Error_out, Log, Output } from "cartesi-wallet";
 import { PlaylistController } from "../controllers/playlist.controller";
 
 class CreatePlaylistRoute extends AdvanceRoute {
@@ -150,7 +150,7 @@ class PlaylistRoute extends InspectRoute {
     if (!playlist) {
       return new Error_out(`Playlist with ID ${playlistId} not found`);
     }
-    return new Error_out(JSON.stringify(playlist)); // Using Error_out as Log equivalent
+    return new Log(JSON.stringify(playlist));
   };
 }
 

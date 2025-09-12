@@ -1,6 +1,9 @@
 "use client";
 
-import { Track, useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import {
+  Track,
+  useMusicPlayer,
+} from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { Pause, Play } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 

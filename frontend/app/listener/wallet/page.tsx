@@ -21,8 +21,9 @@ import {
   Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import fetchMethod from "@/lib/readState";
+import { useUserByWallet } from "@/hooks/useUserByWallet";
 import { IUser } from "@/app/artist/dashboard/page";
+import NoticesQueryTest from "@/components/NoticesQueryTest";
 
 const Wallet = () => {
   const account = useActiveAccount();
@@ -32,8 +33,14 @@ const Wallet = () => {
   const [isWithdrawalCTSModalOpen, setIsWithdrawalCTSModalOpen] =
     useState(false);
   const { reports, decodedReports, inspectCall } = useInspectCall();
-  const [isLoading, setIsLoading] = useState(false);
-  const [userDetails, setUserDetails] = useState<any>(null);
+
+  // Get user details using notice-based approach
+  const {
+    user: userDetails,
+    isLoading,
+    isError,
+    error,
+  } = useUserByWallet(account?.address);
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
@@ -77,30 +84,15 @@ const Wallet = () => {
     setProviderInstance(provider);
   }, [account]);
 
-  const fetchData = async (user: IUser) => {
-    setIsLoading(true);
-    try {
-      const getUserDetails = await fetchMethod(
-        "get_user_info/" + user.walletAddress
-      );
-      if (getUserDetails) {
-        setUserDetails(getUserDetails);
-      }
-    } catch (error) {
-      console.error("Error fetching user details:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Log user details when they change
   useEffect(() => {
-    let user = localStorage.getItem("xx-mu") as any;
-    user = JSON.parse(user) ?? null;
-    user = user?.user;
-    if (user) {
-      fetchData(user);
+    if (userDetails) {
+      console.log("User details from notices:", userDetails);
     }
-  }, []);
+    if (isError) {
+      console.error("Error fetching user details:", error);
+    }
+  }, [userDetails, isError, error]);
 
   useEffect(() => {
     getData();
@@ -149,7 +141,7 @@ const Wallet = () => {
                   reports={reports}
                   decodedReports={decodedReports}
                   userDetails={userDetails}
-                  fetchData={fetchData}
+                  fetchData={async () => {}} // No longer needed with notice-based approach
                 />
               </div>
 
@@ -184,6 +176,11 @@ const Wallet = () => {
             </h2>
             <Transfers dappAddress={dappAddress} />
           </div>
+        </div>
+
+        {/* Notices Query Test Section */}
+        <div className="max-w-5xl mx-auto mt-8">
+          <NoticesQueryTest />
         </div>
       </div>
 

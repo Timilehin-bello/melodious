@@ -23,17 +23,29 @@ const Subscription = () => {
       const result = await addInput(rollups, jsonPayload, dappAddress);
 
       // Check if the result is a valid transaction receipt
-      if (result && typeof result === 'object' && 'transactionHash' in result && result.transactionHash) {
-        toast.success("Subscription request sent successfully! Your subscription is being processed.", { id: processingToastId });
+      if (
+        result &&
+        typeof result === "object" &&
+        "transactionHash" in result &&
+        result.transactionHash
+      ) {
+        toast.success(
+          "Subscription request sent successfully! Your subscription is being processed.",
+          { id: processingToastId }
+        );
       } else {
         // If result is not a valid receipt (e.g., it's an error object or null/undefined)
-        toast.error("Failed to send subscription request. Please try again.", { id: processingToastId });
+        toast.error("Failed to send subscription request. Please try again.", {
+          id: processingToastId,
+        });
       }
     } catch (error) {
-      console.error("Error during subscription:", error);
+      console.log("Error during subscription:", error);
       // Ensure toast is updated even if an error occurs before assignment or if toast.loading itself failed
       if (processingToastId) {
-        toast.error("An error occurred while processing your subscription.", { id: processingToastId });
+        toast.error("An error occurred while processing your subscription.", {
+          id: processingToastId,
+        });
       } else {
         // Fallback if processingToastId was never assigned (e.g., toast.loading failed)
         toast.error("An error occurred while processing your subscription.");
@@ -48,10 +60,10 @@ const Subscription = () => {
           Choose Your Plan
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-<div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
-  <h3 className="text-2xl font-bold mb-4">Free</h3>
-  <p className="text-5xl font-bold mb-6">$0</p>
-  <ul className="text-left mb-4 space-y-2">
+          <div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
+            <h3 className="text-2xl font-bold mb-4">Free</h3>
+            <p className="text-5xl font-bold mb-6">$0</p>
+            <ul className="text-left mb-4 space-y-2">
               <li>✔️ Access to limited music library</li>
               <li>✔️ Ad-supported listening</li>
               <li>✔️ Standard audio quality</li>
@@ -63,10 +75,10 @@ const Subscription = () => {
               Get Started
             </Button>
           </div>
-<div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
-  <h3 className="text-2xl font-bold mb-4">Bronze</h3>
-  <p className="text-5xl font-bold mb-6">$4.99</p>
-  <ul className="text-left mb-4 space-y-2">
+          <div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
+            <h3 className="text-2xl font-bold mb-4">Bronze</h3>
+            <p className="text-5xl font-bold mb-6">$4.99</p>
+            <ul className="text-left mb-4 space-y-2">
               <li>✔️ Ad-free listening</li>
               <li>✔️ Access to full music library</li>
               <li>✔️ Standard audio quality</li>
@@ -78,10 +90,10 @@ const Subscription = () => {
               Subscribe Now
             </Button>
           </div>
-<div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
-  <h3 className="text-2xl font-bold mb-4">Silver</h3>
-  <p className="text-5xl font-bold mb-6">$9.99</p>
-  <ul className="text-left mb-4 space-y-2">
+          <div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
+            <h3 className="text-2xl font-bold mb-4">Silver</h3>
+            <p className="text-5xl font-bold mb-6">$9.99</p>
+            <ul className="text-left mb-4 space-y-2">
               <li>✔️ All Bronze features</li>
               <li>✔️ High-fidelity audio</li>
               <li>✔️ Offline downloads</li>
@@ -93,10 +105,10 @@ const Subscription = () => {
               Subscribe Now
             </Button>
           </div>
-<div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
-  <h3 className="text-2xl font-bold mb-4">Gold</h3>
-  <p className="text-5xl font-bold mb-6">$14.99</p>
-  <ul className="text-left mb-4 space-y-2">
+          <div className="bg-gray-800 bg-opacity-50 rounded-lg p-8 text-center flex flex-col justify-between h-full">
+            <h3 className="text-2xl font-bold mb-4">Gold</h3>
+            <p className="text-5xl font-bold mb-6">$14.99</p>
+            <ul className="text-left mb-4 space-y-2">
               <li>✔️ All Silver features</li>
               <li>✔️ Access to exclusive content</li>
               <li>✔️ Early access to new releases</li>

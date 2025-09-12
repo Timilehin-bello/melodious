@@ -118,12 +118,24 @@ const playlist = new Controllers.PlaylistController();
 router.addRoute("create_playlist", new Routes.CreatePlaylistRoute(playlist));
 router.addRoute("update_playlist", new Routes.UpdatePlaylistRoute(playlist));
 router.addRoute("delete_playlist", new Routes.DeletePlaylistRoute(playlist));
-router.addRoute("add_track_to_playlist", new Routes.AddTrackToPlaylistRoute(playlist));
-router.addRoute("remove_track_from_playlist", new Routes.RemoveTrackFromPlaylistRoute(playlist));
+router.addRoute(
+  "add_track_to_playlist",
+  new Routes.AddTrackToPlaylistRoute(playlist)
+);
+router.addRoute(
+  "remove_track_from_playlist",
+  new Routes.RemoveTrackFromPlaylistRoute(playlist)
+);
 router.addRoute("get_playlists", new Routes.PlaylistsRoute(playlist));
 router.addRoute("get_playlist", new Routes.PlaylistRoute(playlist));
-router.addRoute("get_playlists_by_listener", new Routes.PlaylistsByListenerRoute(playlist));
-router.addRoute("get_playlists_by_wallet", new Routes.PlaylistsByWalletRoute(playlist));
+router.addRoute(
+  "get_playlists_by_listener",
+  new Routes.PlaylistsByListenerRoute(playlist)
+);
+router.addRoute(
+  "get_playlists_by_wallet",
+  new Routes.PlaylistsByWalletRoute(playlist)
+);
 
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {

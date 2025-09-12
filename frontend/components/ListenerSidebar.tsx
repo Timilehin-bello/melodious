@@ -26,7 +26,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 // import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
@@ -75,13 +75,33 @@ const items = [
 ];
 
 export function ListenerSidebar() {
-  const [activeMenu, setActiveMenu] = useState("Home");
+  const pathname = usePathname();
   const { state } = useSidebar();
   const { currentTrack } = useMusic();
   const { isPremiumUser } = useSubscriptionStatus();
 
+  // Add this function to determine if a menu item is active
+  const isActiveRoute = (itemUrl: string) => {
+    // Return false if pathname is null
+    if (!pathname) {
+      return false;
+    }
+
+    // Handle exact matches
+    if (pathname === itemUrl) {
+      return true;
+    }
+
+    // Handle dynamic routes - if current path starts with the menu item URL
+    if (pathname.startsWith(itemUrl + "/")) {
+      return true;
+    }
+
+    return false;
+  };
+
   // Filter menu items based on premium status
-  const filteredItems = items.filter(item => {
+  const filteredItems = items.filter((item) => {
     // Show Playlist only for premium users
     if (item.title === "Playlist") {
       return isPremiumUser;
@@ -132,11 +152,10 @@ export function ListenerSidebar() {
                   <SidebarMenuButton
                     asChild
                     className={
-                      activeMenu === item.title
+                      isActiveRoute(item.url)
                         ? "hover:bg-[#950944] bg-[#950944] text-white py-6"
                         : "hover:bg-[#950944] hover:text-white py-6 text-white"
                     }
-                    onClick={() => setActiveMenu(item.title)}
                   >
                     <Link
                       href={item.url}

@@ -37,8 +37,13 @@ interface MusicPlayerContextType {
   duration: number;
   playlist: Track[] | null;
   currentIndex: number;
+  currentPlaylistId: string | null;
   playTrack: (track: Track) => void;
-  playPlaylist: (playlist: Track[], startIndex?: number) => void;
+  playPlaylist: (
+    playlist: Track[],
+    startIndex?: number,
+    playlistId?: string
+  ) => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
   seek: (time: number) => void;
@@ -121,11 +126,14 @@ export const MusicPlayerProvider = ({
 }) => {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
+  const [volume, setVolume] = useState(0.8);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playlist, setPlaylist] = useState<Track[] | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentPlaylistId, setCurrentPlaylistId] = useState<string | null>(
+    null
+  );
   const [buffering, setBuffering] = useState(false);
   const [networkStrength, setNetworkStrength] = useState<
     "good" | "medium" | "poor" | "offline"
@@ -188,7 +196,7 @@ export const MusicPlayerProvider = ({
         }
       };
     } catch (error) {
-      console.error("Failed to initialize socket:", error);
+      console.log("Failed to initialize socket:", error);
     }
   }, [currentTrack]);
 
@@ -287,7 +295,7 @@ export const MusicPlayerProvider = ({
   //       console.warn("Playback not allowed without user interaction");
   //       setIsPlaying(false);
   //     } else {
-  //       console.error("Playback error:", error);
+  //       console.log("Playback error:", error);
   //       setIsPlaying(false);
   //       emitSocketEvent("playbackError", { error: (error as any).message });
   //     }
@@ -324,7 +332,7 @@ export const MusicPlayerProvider = ({
           // Retry playback after a short delay
           setTimeout(() => playAudio(), 100);
         } else {
-          console.error("Playback error:", error);
+          console.log("Playback error:", error);
           setIsPlaying(false);
           emitSocketEvent("playback_error", { error: error.message });
         }
@@ -452,7 +460,7 @@ export const MusicPlayerProvider = ({
     };
 
     const onError = (e: ErrorEvent) => {
-      console.error("Audio error:", e);
+      console.log("Audio error:", e);
       setIsPlaying(false);
       emitSocketEvent("playbackError", { error: "Audio playback error" });
     };
@@ -570,6 +578,7 @@ export const MusicPlayerProvider = ({
         setCurrentTrack(track);
         setPlaylist([track]);
         setCurrentIndex(0);
+        setCurrentPlaylistId(null); // Clear playlist ID when playing single track
         // Reset the audio currentTime when playing a new track
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
@@ -582,12 +591,13 @@ export const MusicPlayerProvider = ({
 
   // Play a playlist
   const playPlaylist = useCallback(
-    (tracks: Track[], startIndex = 0) => {
-      console.log("Playing playlist:", tracks, startIndex);
+    (tracks: Track[], startIndex = 0, playlistId?: string) => {
+      console.log("Playing playlist:", tracks, startIndex, playlistId);
       if (tracks.length === 0) return;
       setPlaylist(tracks);
       setCurrentIndex(startIndex);
       setCurrentTrack(tracks[startIndex]);
+      setCurrentPlaylistId(playlistId || null);
       setIsPlaying(true);
       emitSocketEvent("playPlaylist", {
         playlistLength: tracks.length,
@@ -606,6 +616,7 @@ export const MusicPlayerProvider = ({
     duration,
     playlist,
     currentIndex,
+    currentPlaylistId,
     buffering,
     networkStrength,
     deviceInfo,

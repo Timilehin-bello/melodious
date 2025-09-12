@@ -1,127 +1,26 @@
-// "use client";
-// import { Timer } from "lucide-react";
-
-// import { client } from "@/lib/client";
-
-// import {
-//   useActiveWalletConnectionStatus,
-//   useConnectModal,
-// } from "thirdweb/react";
-// import { useMelodiousContext } from "@/contexts/melodious";
-// import { usePlayer } from "@/contexts/melodious/PlayerContext";
-
-// import SongListItem from "./SongListItem";
-// import { useCallback } from "react";
-// import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { Track } from "@/contexts/melodious/MusicProvider";
-
-// const SongList = ({ songList }: any) => {
-//   const { connect } = useConnectModal();
-//   // const onPlay = useOnPlay(tracks);
-//   const status = useActiveWalletConnectionStatus();
-//   const { setConditionFulfilled } = useMelodiousContext();
-
-//   // const playSong = useCallback(
-//   //   async (song: any) => {
-//   //     try {
-//   //       if (status === "disconnected") {
-//   //         await connect({ client, size: "compact" });
-//   //       }
-
-//   //       if (typeof song === "object") {
-//   //         // Stop current playback first
-//   //         setIsPlaying(false);
-
-//   //         // Short delay to ensure clean state
-//   //         await new Promise((resolve) => setTimeout(resolve, 100));
-
-//   //         // Play new track
-//   //         await playTrack(song);
-//   //       }
-//   //     } catch (error) {
-//   //       console.log("Error playing song:", error);
-//   //     }
-//   //   },
-//   //   [status, connect, playTrack, setIsPlaying]
-//   // );
-
-//   const { currentTrack, isPlaying, playTrack, pauseTrack, resumeTrack } =
-//     useMusic();
-
-//   const handlePlayPause = (track: Track) => {
-//     if (currentTrack?.id === track.id) {
-//       if (isPlaying) {
-//         pauseTrack();
-//       } else {
-//         resumeTrack();
-//       }
-//     } else {
-//       playTrack(track);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <div>
-//         <table className="table-auto w-full mb-24">
-//           <thead className="bg-[#1C1C32]/[0.5] text-left rounded text-gray-200 uppercase font-normal text-sm">
-//             <tr>
-//               <th>
-//                 <span className="p-4">{"#"}</span>
-//               </th>
-//               <th>
-//                 <span className="p-2">{"Title"}</span>
-//               </th>
-//               <th>
-//                 <span className="p-2">{"Album"}</span>
-//               </th>
-//               <th>
-//                 <span className="p-2 ">
-//                   <Timer />
-//                 </span>
-//               </th>
-//               <th></th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {songList.map((song: any, index: number) => {
-//               return (
-//                 <SongListItem
-//                   key={index}
-//                   index={index}
-//                   song={song}
-//                   playSong={() => handlePlayPause(song)}
-//                 />
-//               );
-//             })}
-//           </tbody>
-//         </table>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SongList;
-// function setIsPlaying(arg0: boolean) {
-//   throw new Error("Function not implemented.");
-// }
+import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 
 import type React from "react";
-import { Play, Pause } from "lucide-react";
+import { Play, Pause, Trash2, Music } from "lucide-react";
 import Image from "next/image";
-import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
-import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 
 interface SongListProps {
   songList: Track[];
   onPlayPause: (track: Track, index: number) => void;
   isLoading: boolean;
+  onRemove?: (track: Track) => void;
+  showRemoveButton?: boolean;
+  removingTrackId?: string;
 }
 
 const SongList: React.FC<SongListProps> = ({
   songList,
   onPlayPause,
   isLoading,
+  onRemove,
+  showRemoveButton = false,
+  removingTrackId,
 }) => {
   const { currentTrack, isPlaying } = useMusicPlayer();
 
@@ -159,13 +58,31 @@ const SongList: React.FC<SongListProps> = ({
             <th className="text-left pb-4">Title</th>
             <th className="text-left pb-4">Date</th>
             <th className="text-right pb-4 pr-4">Duration</th>
+            {showRemoveButton && (
+              <th className="text-right pb-4 pr-4">Action</th>
+            )}
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-800">
-          {!Array.isArray(songList) ? (
+          {!Array.isArray(songList) || songList.length === 0 ? (
             <tr>
-              <td colSpan={4} className="text-center py-8 text-zinc-400">
-                No songs found
+              <td
+                colSpan={showRemoveButton ? 5 : 4}
+                className="text-center py-16"
+              >
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-zinc-800/50 flex items-center justify-center">
+                    <Music className="w-8 h-8 text-zinc-500" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg font-medium text-zinc-300 mb-1">
+                      No tracks available
+                    </h3>
+                    <p className="text-sm text-zinc-500">
+                      This playlist is empty. Add some tracks to get started!
+                    </p>
+                  </div>
+                </div>
               </td>
             </tr>
           ) : (
@@ -219,12 +136,37 @@ const SongList: React.FC<SongListProps> = ({
                     </div>
                   </div>
                 </td>
-                <td className="py-3 text-sm text-zinc-400">
-                  Recently added
-                </td>
+                <td className="py-3 text-sm text-zinc-400">Recently added</td>
                 <td className="py-3 pr-4 text-right text-sm text-zinc-400">
                   {song.duration} mins
                 </td>
+                {showRemoveButton && onRemove && (
+                  <td className="py-3 pr-4 text-right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(song);
+                      }}
+                      disabled={removingTrackId === song.id.toString()}
+                      className={`p-2 rounded-md transition-all duration-200 ${
+                        removingTrackId === song.id.toString()
+                          ? "text-zinc-600 cursor-not-allowed"
+                          : "text-zinc-400 hover:text-red-400 hover:bg-red-400/10"
+                      }`}
+                      title={
+                        removingTrackId === song.id.toString()
+                          ? "Removing..."
+                          : "Remove from playlist"
+                      }
+                    >
+                      {removingTrackId === song.id.toString() ? (
+                        <div className="w-4 h-4 border-2 border-zinc-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </button>
+                  </td>
+                )}
               </tr>
             ))
           )}

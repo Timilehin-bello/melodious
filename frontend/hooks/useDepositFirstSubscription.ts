@@ -251,7 +251,7 @@ export function useDepositFirstSubscription() {
 
         return currentState;
       } catch (error: any) {
-        console.error("Deposit-first subscription workflow error:", error);
+        console.log("Deposit-first subscription workflow error:", error);
 
         const errorMessage = getErrorMessage(error);
         updateState({
@@ -282,7 +282,7 @@ export function useDepositFirstSubscription() {
       }
     },
     onError: (error: any) => {
-      console.error("Deposit-first subscription failed:", error);
+      console.log("Deposit-first subscription failed:", error);
 
       const errorMessage = getErrorMessage(error);
       toast.error(errorMessage, { duration: 5000 });
@@ -294,7 +294,10 @@ export function useDepositFirstSubscription() {
 function getErrorMessage(error: any): string {
   if (error?.message) {
     // Handle specific error types
-    if (error.message.includes("Insufficient balance") || error.message.includes("Insufficient token balance")) {
+    if (
+      error.message.includes("Insufficient balance") ||
+      error.message.includes("Insufficient token balance")
+    ) {
       return "Insufficient CTSI token balance. Please add more tokens to your wallet to proceed with the subscription.";
     } else if (error.message.includes("User rejected")) {
       return "Transaction was cancelled. Please try again.";
@@ -384,7 +387,7 @@ export function useManualVoucherExecution() {
       // );
     },
     onError: (error: any) => {
-      console.error("Manual voucher execution failed:", error);
+      console.log("Manual voucher execution failed:", error);
 
       const errorMessage = getErrorMessage(error);
       toast.error(`Voucher execution failed: ${errorMessage}`, {

@@ -19,7 +19,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import Image from "next/image";
-import { useMusicPlayer } from "@/contexts/melodious/MusicProvider";
+import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { BannerAd } from "@/components/ads";
 
 export const MelodiousMusicPlayer = () => {

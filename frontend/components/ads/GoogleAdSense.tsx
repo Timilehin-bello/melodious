@@ -34,7 +34,7 @@ const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (error) {
-        console.error("AdSense error:", error);
+        console.log("AdSense error:", error);
       }
     }
   }, [isPremiumUser, isLoading]);

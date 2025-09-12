@@ -32,7 +32,8 @@ import {
 } from "@/lib/extractDuration";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import fetchMethod from "@/lib/readState";
+import { useGenres } from "@/hooks/useGenres";
+import { useTracks } from "@/hooks/useTracks";
 import BlockLoader from "./BlockLoader";
 import Image from "next/image";
 
@@ -43,6 +44,7 @@ const SingleRelease = () => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [loadingRequest, setLoadingRequest] = useState<boolean>(false);
   const [myAudio, setMyAudio] = useState<string | null>(null);
+  const { refetch } = useTracks();
 
   const router = useRouter();
 
@@ -108,6 +110,8 @@ const SingleRelease = () => {
     const result = await createSingleTrack(values);
 
     if (result) {
+      // Refetch tracks to update the list immediately
+      await refetch();
       setLoadingRequest(false);
       router.push("/artist/release");
     } else {
@@ -163,28 +167,16 @@ const SingleRelease = () => {
     [uploadToIPFS, setFileUrl]
   );
 
-  const fetchTracks = async () => {
-    try {
-      // setLoading(true);
-      const genreList: any[] = await fetchMethod("get_genres");
-      // console.log("genreList", genreList);
-      if (Array.isArray(genreList)) {
-        setTimeout(() => {
-          setGenreList(genreList);
-          // setLoading(false);
-        }, 3000);
-      } else {
-        console.log("Fetched data is not an array");
-        // setLoading(false);
-      }
-    } catch (error) {
-      console.log(error);
-      // setLoading(false);
-    }
-  };
+  const { genres, isLoading: genresLoading, isError } = useGenres();
+
   useEffect(() => {
-    fetchTracks();
-  }, []);
+    if (genres.length > 0) {
+      setGenreList(genres);
+    }
+    if (isError) {
+      console.log("Error fetching genres");
+    }
+  }, [genres, isError]);
 
   if (loading) {
     return <BlockLoader message="Uploading File" />;

@@ -10,8 +10,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import fetchMethod from "@/lib/readState";
+import { useEffect, useState, useMemo } from "react";
+import { useUserByWallet } from "@/hooks/useUserByWallet";
+import { useTracks } from "@/hooks/useTracks";
+import { useActiveAccount } from "thirdweb/react";
 import {
   Popover,
   PopoverContent,
@@ -23,39 +25,40 @@ export interface IUser {
 }
 
 export default function Page() {
-  const [userDetails, setUserDetails] = useState<any>(null);
+  const account = useActiveAccount();
+  const {
+    user: userDetails,
+    isLoading,
+    isError,
+    error,
+  } = useUserByWallet(account?.address);
 
-  const fetchData = async (user: IUser) => {
-    const getUserDetails = await fetchMethod(
-      "get_user_info/" + user.walletAddress
-    );
+  const { tracks: allTracks } = useTracks();
 
-    console.log("getUserDetails", getUserDetails);
+  // Calculate the real number of tracks uploaded by this artist
+  const artistTrackCount = useMemo(() => {
+    if (!userDetails?.artist?.id || !allTracks) return 0;
+    return allTracks.filter(
+      (track: any) => track.artistId === userDetails.artist.id
+    ).length;
+  }, [allTracks, userDetails?.artist?.id]);
 
-    if (getUserDetails) {
-      setUserDetails(getUserDetails);
-      // console.log("getUserDetails", getUserDetails);
-    }
-  };
-
+  // Log user details when they change
   useEffect(() => {
-    let user = localStorage.getItem("xx-mu") as any;
-    //     console.log("token gotten", JSON.parse(data));
-
-    user = JSON.parse(user) ?? null;
-
-    user = user.user;
-    console.log("user", user);
-
-    fetchData(user);
-  }, []);
+    if (userDetails) {
+      console.log("User details from notices:", userDetails);
+    }
+    if (isError) {
+      console.error("Error fetching user details:", error);
+    }
+  }, [userDetails, isError, error]);
 
   return (
     <div className="px-4 mt-6 mb-4">
       <h1 className="text-white text-2xl">Dashboard Overview</h1>
 
       <div className="flex flex-1 flex-col gap-4  pt-0 mt-4">
-        <div className="grid auto-rows-min gap-4 md:grid-cols-4 sm:grid-cols-2">
+        <div className="grid auto-rows-min gap-4 md:grid-cols-3 sm:grid-cols-2">
           {/* <div className="aspect-video rounded-xl bg-muted/50" /> */}
           <div
             className="bg-gradient-to-br from-[rgba(230,230,248,0.35)] via-[#2A1A4B]/35 to-[rgba(199,198,216,0.35)] 
@@ -64,7 +67,9 @@ export default function Page() {
             <div className="flex justify-between flex-wrap items-start">
               <div>
                 <p className="text-white text-sm mb-3">Songs Uploaded</p>
-                <h4 className="text-white font-semibold text-2xl">40589</h4>
+                <h4 className="text-white font-semibold text-2xl">
+                  {artistTrackCount}
+                </h4>
               </div>
 
               <div className="rounded-lg w-10 h-10 bg-[#8280FF] py-1 px-2">
@@ -137,7 +142,7 @@ export default function Page() {
               </p>
             </div>
           </div>
-          <div
+          {/* <div
             className="bg-gradient-to-br from-[rgba(230,230,248,0.35)] via-[#2A1A4B]/35 to-[rgba(199,198,216,0.35)] 
       shadow-[0px_51px_69px_0px_rgba(23,18,43,0.58)] px-4 py-8 rounded-xl"
           >
@@ -158,7 +163,7 @@ export default function Page() {
                 <span className="text-green-700">8.5% Up</span> from yesterday
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* <div className="aspect-video rounded-xl bg-muted/50" /> */}
           {/* <div className="aspect-video rounded-xl bg-muted/50" /> */}

@@ -6,7 +6,7 @@ import { ThirdwebProvider } from "thirdweb/react";
 import { Toaster } from "@/components/ui/toaster";
 import LayoutWrapper from "@/components/LayoutWrapper/LayoutWrapper";
 import WalletConnectionHandler from "@/components/WalletConnectionHandler";
-import { MusicPlayerProvider } from "@/contexts/melodious/MusicProvider";
+import { EnhancedMusicPlayerProvider } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 import { Toaster as Toast } from "react-hot-toast";
 import { QueryProvider } from "@/components/providers/QueryProvider";
@@ -43,7 +43,7 @@ export default function RootLayout({
           <LayoutWrapper>
             <MelodiousProvider>
               <QueryProvider>
-                <MusicPlayerProvider>
+                <EnhancedMusicPlayerProvider>
                   <main>{children}</main>
                   {/* <Toaster /> */}
                   <Toast
@@ -55,7 +55,7 @@ export default function RootLayout({
                   />
 
                   <MelodiousMusicPlayer />
-                </MusicPlayerProvider>
+                </EnhancedMusicPlayerProvider>
               </QueryProvider>
             </MelodiousProvider>
           </LayoutWrapper>

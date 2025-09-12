@@ -168,7 +168,7 @@ export const depositErc20ToVault = async (
           approveReceipt.transactionHash
         );
       } catch (approveError: any) {
-        console.error("Token approval failed:", approveError);
+        console.log("Token approval failed:", approveError);
         throw new Error(
           `Token approval failed: ${approveError?.message || approveError}`
         );
@@ -204,7 +204,7 @@ export const depositErc20ToVault = async (
       );
       console.log("Deposit transaction submitted:", depositTx.hash);
     } catch (depositError: any) {
-      console.error("ERC20 portal deposit failed:", depositError);
+      console.log("ERC20 portal deposit failed:", depositError);
       throw new Error(
         `ERC20 portal deposit failed: ${depositError?.message || depositError}`
       );
@@ -218,7 +218,7 @@ export const depositErc20ToVault = async (
         receipt.transactionHash
       );
     } catch (receiptError: any) {
-      console.error("Deposit transaction confirmation failed:", receiptError);
+      console.log("Deposit transaction confirmation failed:", receiptError);
       throw new Error(
         `Deposit transaction confirmation failed: ${
           receiptError?.message || receiptError
@@ -234,7 +234,7 @@ export const depositErc20ToVault = async (
       inputTx = await rollups.inputContract.addInput(dappAddress, data);
       console.log("Input transaction submitted:", inputTx.hash);
     } catch (inputError: any) {
-      console.error("Add input failed:", inputError);
+      console.log("Add input failed:", inputError);
       throw new Error(`Add input failed: ${inputError?.message || inputError}`);
     }
 
@@ -243,10 +243,7 @@ export const depositErc20ToVault = async (
       inputReceipt = await inputTx.wait(1);
       console.log("Input transaction confirmed:", inputReceipt.transactionHash);
     } catch (inputReceiptError: any) {
-      console.error(
-        "Input transaction confirmation failed:",
-        inputReceiptError
-      );
+      console.log("Input transaction confirmation failed:", inputReceiptError);
       throw new Error(
         `Input transaction confirmation failed: ${
           inputReceiptError?.message || inputReceiptError
@@ -256,7 +253,7 @@ export const depositErc20ToVault = async (
 
     return { depositReceipt: receipt, inputReceipt };
   } catch (e: any) {
-    console.error("Vault deposit error:", e);
+    console.log("Vault deposit error:", e);
 
     // Provide more detailed error information
     let errorMessage = "Unknown error occurred during vault deposit";
@@ -271,7 +268,7 @@ export const depositErc20ToVault = async (
       errorMessage = e;
     }
 
-    console.error("Detailed error message:", errorMessage);
+    console.log("Detailed error message:", errorMessage);
 
     // Create a new error with better context
     const enhancedError = new Error(`Vault deposit failed: ${errorMessage}`);
@@ -379,7 +376,7 @@ export const depositErc20ToPortal = async (
     console.log("Deposit successful", transReceipt.transactionHash);
     return transReceipt;
   } catch (e: any) {
-    console.error("depositErc20ToPortal error:", e);
+    console.log("depositErc20ToPortal error:", e);
     // Re-throw the error with a more user-friendly message if it's a generic error
     if (e.message && e.message.includes("user rejected")) {
       throw new Error("Transaction was rejected by user");
@@ -762,7 +759,7 @@ export const executeVoucher = async (
     console.log("voucherWithProof", voucherWithProof);
 
     if (!voucherWithProof) {
-      console.error("Failed to get voucher with proof");
+      console.log("Failed to get voucher with proof");
       return { message: "Failed to get voucher with proof" };
     }
 
@@ -772,7 +769,7 @@ export const executeVoucher = async (
       !voucherWithProof.destination ||
       !voucherWithProof.payload
     ) {
-      console.error("Voucher proof data incomplete:", {
+      console.log("Voucher proof data incomplete:", {
         hasProof: !!voucherWithProof.proof,
         hasDestination: !!voucherWithProof.destination,
         hasPayload: !!voucherWithProof.payload,
@@ -794,7 +791,7 @@ export const executeVoucher = async (
       !Array.isArray(proof.validity.outputHashInOutputHashesSiblings) ||
       !Array.isArray(proof.validity.outputHashesInEpochSiblings)
     ) {
-      console.error("Proof structure incomplete - not ready for execution:", {
+      console.log("Proof structure incomplete - not ready for execution:", {
         hasValidity: !!proof.validity,
         hasContext: !!proof.context,
         hasInputIndexWithinEpoch:
@@ -890,7 +887,7 @@ export const executeVoucher = async (
           txHash: tx.hash,
         };
       } catch (contractError) {
-        console.error("Contract execution error:", contractError);
+        console.log("Contract execution error:", contractError);
 
         // Check if it's an ABI error that might resolve on retry
         if (

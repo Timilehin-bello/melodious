@@ -1,7 +1,5 @@
-import fetchMethod from "@/lib/readState";
-import { useState, useEffect, useMemo } from "react";
-// import { useSessionContext } from "@supabase/auth-helpers-react";
-// import { Song } from "@/types";
+import { useTrackById } from "@/hooks/useTracks";
+import { useMemo } from "react";
 import { toast } from "react-hot-toast";
 
 interface UseGetSongById {
@@ -11,62 +9,25 @@ interface UseGetSongById {
 }
 
 const useGetSongById = (id?: string) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [song, setSong] = useState<any | undefined>();
+  const trackId = id ? parseInt(id, 10) : undefined;
+  const { track, isLoading, isError, error } = useTrackById(trackId);
 
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
+  const song = useMemo(() => {
+    if (!track) return undefined;
 
-    setIsLoading(true);
-
-    const fetchSong = async () => {
-      const data = await fetchMethod(`get_track/${id}`);
-      //   if (error) {
-      //     setIsLoading(false);
-      //     return toast.error(error.message);
-      // //   }
-
-      if (data) {
-        const newData = {
-          id: data.id,
-          song_path: data.audioUrl,
-          title: data.title,
-          image_path: data.imageUrl,
-        };
-        setSong(newData);
-        setIsLoading(false);
-      } else {
-      }
-
-      try {
-        const data = await fetchMethod(`get_track/${id}`);
-        //   if (error) {
-        //     setIsLoading(false);
-        //     return toast.error(error.message);
-        // //   }
-
-        if (data) {
-          const newData = {
-            id: data.id,
-            song_path: data.audioUrl,
-            title: data.title,
-            image_path: data.imageUrl,
-          };
-          setSong(newData);
-          setIsLoading(false);
-        }
-      } catch (error: any) {
-        setIsLoading(false);
-        return toast.error(error.message);
-      }
+    return {
+      id: track.id,
+      song_path: track.audioUrl,
+      title: track.title,
+      image_path: track.imageUrl,
     };
+  }, [track]);
 
-    fetchSong();
-  }, [id]);
-
-  return useMemo(() => ({ isLoading, song }), [isLoading, song]);
+  return {
+    isLoading,
+    song,
+    error: isError ? error : undefined,
+  };
 };
 
 export default useGetSongById;
