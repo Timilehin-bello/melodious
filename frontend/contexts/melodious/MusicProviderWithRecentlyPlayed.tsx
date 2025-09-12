@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback } from 'react';
-import { MusicPlayerProvider, useMusicPlayer, Track } from './MusicProvider';
-import { useRecentlyPlayed } from '@/hooks/useRecentlyPlayed';
+import React, { useCallback } from "react";
+import { MusicPlayerProvider, useMusicPlayer, Track } from "./MusicProvider";
+import { useRecentlyPlayed } from "@/hooks/useRecentlyPlayed";
 
 // Enhanced context that includes recently played functionality
 interface EnhancedMusicPlayerContextType {
@@ -16,7 +16,11 @@ interface EnhancedMusicPlayerContextType {
   currentIndex: number;
   currentPlaylistId: string | null;
   playTrack: (track: Track) => void;
-  playPlaylist: (playlist: Track[], startIndex?: number, playlistId?: string) => void;
+  playPlaylist: (
+    playlist: Track[],
+    startIndex?: number,
+    playlistId?: string
+  ) => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
   seek: (time: number) => void;
@@ -36,43 +40,57 @@ interface EnhancedMusicPlayerContextType {
   clearRecentlyPlayed: () => void;
 }
 
-const EnhancedMusicPlayerContext = React.createContext<EnhancedMusicPlayerContextType | undefined>(undefined);
+const EnhancedMusicPlayerContext = React.createContext<
+  EnhancedMusicPlayerContextType | undefined
+>(undefined);
 
 export const useEnhancedMusicPlayer = () => {
   const context = React.useContext(EnhancedMusicPlayerContext);
   if (context === undefined) {
-    throw new Error('useEnhancedMusicPlayer must be used within an EnhancedMusicPlayerProvider');
+    throw new Error(
+      "useEnhancedMusicPlayer must be used within an EnhancedMusicPlayerProvider"
+    );
   }
   return context;
 };
 
 // Internal component that provides the enhanced functionality
-const EnhancedMusicPlayerProviderInternal = ({ children }: { children: React.ReactNode }) => {
+const EnhancedMusicPlayerProviderInternal = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const musicPlayer = useMusicPlayer();
-  const { 
-    recentlyPlayed, 
-    isLoading: isLoadingRecentlyPlayed, 
-    addToRecentlyPlayed, 
-    clearRecentlyPlayed 
+  const {
+    recentlyPlayed,
+    isLoading: isLoadingRecentlyPlayed,
+    addToRecentlyPlayed,
+    clearRecentlyPlayed,
   } = useRecentlyPlayed();
 
   // Enhanced playTrack that also adds to recently played
-  const enhancedPlayTrack = useCallback((track: Track) => {
-    // Call original playTrack
-    musicPlayer.playTrack(track);
-    // Add to recently played
-    addToRecentlyPlayed(track);
-  }, [musicPlayer.playTrack, addToRecentlyPlayed]);
+  const enhancedPlayTrack = useCallback(
+    (track: Track) => {
+      // Call original playTrack
+      musicPlayer.playTrack(track);
+      // Add to recently played
+      addToRecentlyPlayed(track);
+    },
+    [musicPlayer.playTrack, addToRecentlyPlayed]
+  );
 
   // Enhanced playPlaylist that also adds the first track to recently played
-  const enhancedPlayPlaylist = useCallback((tracks: Track[], startIndex = 0, playlistId?: string) => {
-    // Call original playPlaylist
-    musicPlayer.playPlaylist(tracks, startIndex, playlistId);
-    // Add the starting track to recently played
-    if (tracks.length > 0 && tracks[startIndex]) {
-      addToRecentlyPlayed(tracks[startIndex]);
-    }
-  }, [musicPlayer.playPlaylist, addToRecentlyPlayed]);
+  const enhancedPlayPlaylist = useCallback(
+    (tracks: Track[], startIndex = 0, playlistId?: string) => {
+      // Call original playPlaylist
+      musicPlayer.playPlaylist(tracks, startIndex, playlistId);
+      // Add the starting track to recently played
+      if (tracks.length > 0 && tracks[startIndex]) {
+        addToRecentlyPlayed(tracks[startIndex]);
+      }
+    },
+    [musicPlayer.playPlaylist, addToRecentlyPlayed]
+  );
 
   const value: EnhancedMusicPlayerContextType = {
     ...musicPlayer,
@@ -91,7 +109,11 @@ const EnhancedMusicPlayerProviderInternal = ({ children }: { children: React.Rea
 };
 
 // Main provider that wraps both MusicPlayerProvider and the enhanced functionality
-export const EnhancedMusicPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+export const EnhancedMusicPlayerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   return (
     <MusicPlayerProvider>
       <EnhancedMusicPlayerProviderInternal>
@@ -105,4 +127,4 @@ export const EnhancedMusicPlayerProvider = ({ children }: { children: React.Reac
 export { useEnhancedMusicPlayer as useMusicPlayer };
 
 // Also export the original types for backward compatibility
-export type { Track, Playlist } from './MusicProvider';
+export type { Track, Playlist } from "./MusicProvider";

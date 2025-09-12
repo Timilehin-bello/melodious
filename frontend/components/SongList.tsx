@@ -153,7 +153,11 @@ const SongList: React.FC<SongListProps> = ({
                           ? "text-zinc-600 cursor-not-allowed"
                           : "text-zinc-400 hover:text-red-400 hover:bg-red-400/10"
                       }`}
-                      title={removingTrackId === song.id.toString() ? "Removing..." : "Remove from playlist"}
+                      title={
+                        removingTrackId === song.id.toString()
+                          ? "Removing..."
+                          : "Remove from playlist"
+                      }
                     >
                       {removingTrackId === song.id.toString() ? (
                         <div className="w-4 h-4 border-2 border-zinc-600 border-t-transparent rounded-full animate-spin" />

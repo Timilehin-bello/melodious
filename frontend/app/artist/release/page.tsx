@@ -16,7 +16,10 @@ import SongList from "@/components/SongList";
 import BlockLoader from "@/components/BlockLoader";
 import { useTracks } from "@/hooks/useTracks";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
-import { useMusicPlayer, Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
+import {
+  useMusicPlayer,
+  Track,
+} from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useActiveAccount } from "thirdweb/react";
 import { useUserByWallet } from "@/hooks/useUserByWallet";

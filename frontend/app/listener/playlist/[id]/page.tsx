@@ -72,11 +72,10 @@ const Playlist = () => {
     if (!playlist?.tracks || !users) return [];
 
     return playlist.tracks.map((track: any) => {
-      // Find the artist user by artistId
+      // Find the artist user by matching user.artist.id with track.artistId
       const artistUser = users.find(
         (user: any) =>
-          (track.artistId && user.id === parseInt(track.artistId)) ||
-          (track.artistId && user.artist?.id === parseInt(track.artistId))
+          user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
       );
 
       return {

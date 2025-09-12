@@ -65,6 +65,7 @@ const Playlist = () => {
   // Fetch user's playlists from repository notices
   const {
     playlists: allPlaylists,
+    users,
     isLoading,
     error,
     refetch,
@@ -103,19 +104,28 @@ const Playlist = () => {
         return; // No tracks to play
       }
 
-      // Transform tracks to match Track interface
+      // Transform tracks to match Track interface with proper artist details
       const transformedTracks: Track[] = playlistItem.tracks.map(
-        (track: any) => ({
-          id: track.id,
-          title: track.title,
-          artist: track.artistId || "Unknown Artist",
-          album: track.albumId || "Unknown Album",
-          createdAt: track.createdAt,
-          duration: track.duration || 0,
-          imageUrl: track.imageUrl || "/images/artist.svg",
-          audioUrl: track.audioUrl,
-          artistId: track.artistId,
-        })
+        (track: any) => {
+          // Find the artist user by matching user.artist.id with track.artistId
+          const artistUser = users?.find(
+            (user: any) =>
+              user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+          );
+          
+          return {
+            id: track.id,
+            title: track.title,
+            artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+            album: track.albumId || "Unknown Album",
+            createdAt: track.createdAt,
+            duration: track.duration || 0,
+            imageUrl: track.imageUrl || "/images/artist.svg",
+            audioUrl: track.audioUrl,
+            artistId: track.artistId,
+            artistDetails: artistUser || null,
+          };
+        }
       );
 
       console.log("Transformed tracks:", transformedTracks);
@@ -142,17 +152,26 @@ const Playlist = () => {
         try {
           if (playlistItem?.tracks && playlistItem.tracks.length > 0) {
             const transformedTracks: Track[] = playlistItem.tracks.map(
-              (track: any) => ({
-                id: track.id,
-                title: track.title,
-                artist: track.artistId || "Unknown Artist",
-                album: track.albumId || "Unknown Album",
-                createdAt: track.createdAt,
-                duration: track.duration || 0,
-                imageUrl: track.imageUrl || "/images/artist.svg",
-                audioUrl: track.audioUrl,
-                artistId: track.artistId,
-              })
+              (track: any) => {
+                // Find the artist user by matching user.artist.id with track.artistId
+                const artistUser = users?.find(
+                  (user: any) =>
+                    user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+                );
+                
+                return {
+                  id: track.id,
+                  title: track.title,
+                  artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+                  album: track.albumId || "Unknown Album",
+                  createdAt: track.createdAt,
+                  duration: track.duration || 0,
+                  imageUrl: track.imageUrl || "/images/artist.svg",
+                  audioUrl: track.audioUrl,
+                  artistId: track.artistId,
+                  artistDetails: artistUser || null,
+                };
+              }
             );
             allTracks = [...allTracks, ...transformedTracks];
           }

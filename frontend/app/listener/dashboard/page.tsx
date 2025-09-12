@@ -1,7 +1,7 @@
 "use client";
 
 import GenreItem from "@/components/GenreItem";
-import { PopularArtistCarousel } from "@/components/PopularArtistCarousel";
+import { MostPlayedTracks } from "@/components/MostPlayedTracks";
 import RecentItem from "@/components/RecentItem";
 import TrendingSoundItem from "@/components/TrendingSoundItem";
 import Image from "next/image";
@@ -22,6 +22,7 @@ import {
 } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import SongList from "@/components/SongList";
 import { SidebarAd } from "@/components/ads";
+import { Clock } from "lucide-react";
 // import { usePlayer } from "@/contexts/melodious/PlayerContext";
 
 export default function Page() {
@@ -52,13 +53,12 @@ export default function Page() {
     if (!tracks || !users) return tracks;
 
     return tracks.map((track: Track) => {
-      // Find the artist user by artistId
+      // Find the artist user by matching user.artist.id with track.artistId
       const artistUser = users.find(
         (user: any) =>
-          (track.artistId && user.id === parseInt(track.artistId)) ||
-          (track.artistId && user.artist?.id === parseInt(track.artistId))
+          user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
       );
-
+      console.log("artistUser", artistUser, "track", JSON.stringify(track));
       return {
         ...track,
         artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
@@ -77,16 +77,16 @@ export default function Page() {
         return track && track.id && track.title && track.duration;
       })
       .map((track: Track) => {
-        // Find the artist user by artistId
+        // Find the artist user by matching user.artist.id with track.artistId
         const artistUser = users.find(
           (user: any) =>
-            (track.artistId && user.id === parseInt(track.artistId)) ||
-            (track.artistId && user.artist?.id === parseInt(track.artistId))
+            user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
         );
 
         return {
           ...track,
-          artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+          artist:
+            artistUser?.displayName || artistUser?.name || "Unknown Artist",
           artistDetails: artistUser || null,
           // Provide fallback values for potentially missing data
           imageUrl: track.imageUrl || "/images/artist.svg",
@@ -243,18 +243,21 @@ export default function Page() {
       {/* Sidebar - Scrollable */}
       <aside className="md:col-span-1 h-screen w-full">
         <div className="h-full w-full overflow-y-auto  pt-[9px] pb-8 pr-4">
-          {/* Popular Artists Section */}
+          {/* Most Played Tracks Section */}
           <section className="w-full mb-8">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-white">
-                Popular Artist
+                Most Played Tracks
               </h3>
               <button className="text-[#910a43] hover:text-gray-300 transition-colors text-sm">
                 See All
               </button>
             </div>
             <div className="w-full bg-zinc-900/30 rounded-xl p-4">
-              <PopularArtistCarousel />
+              <MostPlayedTracks
+                tracks={tracksWithArtistDetails}
+                onPlayTrack={handlePlayTrack}
+              />
             </div>
           </section>
 
@@ -290,8 +293,16 @@ export default function Page() {
                     Loading recently played...
                   </div>
                 ) : recentlyPlayedWithArtistDetails.length === 0 ? (
-                  <div className="text-gray-400 text-sm">
-                    No recently played tracks
+                  <div className="flex items-center justify-center h-32 text-gray-400">
+                    <div className="text-center">
+                      <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm font-medium">
+                        No recently played tracks
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Your listening history will appear here
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   recentlyPlayedWithArtistDetails.map((track, index) => (
@@ -299,7 +310,11 @@ export default function Page() {
                       key={track.id || index}
                       title={track.title}
                       artistName={track.artist}
-                      duration={`${track.duration}`.includes(':') ? `${track.duration}` : `${track.duration}:00`}
+                      duration={`${
+                        `${track.duration}`.includes(":")
+                          ? track.duration
+                          : `${track.duration}:00`
+                      }`}
                       // duration={`${Math.floor(track.duration / 60)}:${String(
                       //   track.duration % 60
                       // ).padStart(2, "0")}`}
