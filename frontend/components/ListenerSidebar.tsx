@@ -8,6 +8,7 @@ import {
   Settings,
   CreditCard,
   Wallet,
+  Users,
 } from "lucide-react";
 
 import {
@@ -51,7 +52,11 @@ const items = [
     url: "/listener/subscription",
     icon: CreditCard,
   },
-
+  {
+    title: "Referrals",
+    url: "/listener/referrals",
+    icon: Users,
+  },
   {
     title: "Playlist",
     url: "/listener/playlist",

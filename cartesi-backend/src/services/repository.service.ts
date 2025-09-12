@@ -9,6 +9,8 @@ class RepositoryService {
   static artists: Model.Artist[] = [];
   static listeners: Model.Listener[] = [];
   static playlists: Model.Playlist[] = [];
+  static referrals: Model.Referral[] = [];
+  static referralTransactions: Model.ReferralTransaction[] = [];
   static config: Model.Config | null = null;
 
   // Auto-notice configuration
@@ -25,6 +27,8 @@ class RepositoryService {
       artists: this.artists,
       listeners: this.listeners,
       playlists: this.playlists,
+      referrals: this.referrals,
+      referralTransactions: this.referralTransactions,
       config: this.config,
       stats: {
         usersCount: this.users.length,
@@ -34,6 +38,8 @@ class RepositoryService {
         artistsCount: this.artists.length,
         listenersCount: this.listeners.length,
         playlistsCount: this.playlists.length,
+        referralsCount: this.referrals.length,
+        referralTransactionsCount: this.referralTransactions.length,
         hasConfig: !!this.config,
       },
       timestamp: new Date().toISOString(),

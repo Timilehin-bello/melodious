@@ -6,6 +6,7 @@ import {
   ListCheck,
   LogOut,
   Wallet,
+  Users,
 } from "lucide-react";
 
 import {
@@ -54,6 +55,11 @@ const items = [
     title: "Wallet",
     url: "/artist/wallet",
     icon: Wallet,
+  },
+  {
+    title: "Referrals",
+    url: "/artist/referrals",
+    icon: Users,
   },
 ];
 

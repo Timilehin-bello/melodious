@@ -54,7 +54,7 @@ export default function Page() {
   }, [userDetails, isError, error]);
 
   return (
-    <div className="px-4 mt-6 mb-4">
+    <div className="px-4 mt-6 mb-4 max-w-7xl mx-auto">
       <h1 className="text-white text-2xl">Dashboard Overview</h1>
 
       <div className="flex flex-1 flex-col gap-4  pt-0 mt-4">

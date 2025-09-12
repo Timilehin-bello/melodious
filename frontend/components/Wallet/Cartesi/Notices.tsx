@@ -210,7 +210,7 @@ const Notices: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-[1000px] mx-auto px-4">
+    <div className="w-full max-w-7xl mx-auto px-4">
       {" "}
       {/* Added px-4 for mobile padding */}
       <div className="space-y-6">

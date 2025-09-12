@@ -20,6 +20,7 @@ declare global {
 interface IMelodiousContext {
   uploadToIPFS: (file: File) => Promise<string>;
   signMessages: (message: any) => Promise<any>;
+  sendTransaction: (data: any) => Promise<any>;
   createUser: (user: ICreateUser) => Promise<any>;
   createGenre: (genre: ICreateGenre) => Promise<any>;
   withdrawCTSI: (amount: number) => Promise<any>;
@@ -84,6 +85,7 @@ interface ICreateUser {
     instagram: string;
     facebook: string;
   };
+  referralCode?: string;
 }
 
 interface ICreateTrack {
@@ -135,6 +137,9 @@ export const MelodiousContext = React.createContext<IMelodiousContext>({
     return "";
   },
   signMessages: async (message: any) => {
+    return "";
+  },
+  sendTransaction: async (data: any) => {
     return "";
   },
   createUser: async (user: ICreateUser) => {
@@ -356,6 +361,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
     username,
     country,
     userType,
+    referralCode,
   }: ICreateUser): Promise<any> => {
     const userPayload = {
       method: "create_user",
@@ -365,6 +371,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
         username: username,
         country: country,
         userType: userType,
+        referralCode: referralCode,
       },
     };
 
@@ -561,6 +568,7 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         uploadToIPFS,
         signMessages,
+        sendTransaction,
         createUser,
         getUser,
         createGenre,

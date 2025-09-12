@@ -14,6 +14,10 @@ class Config {
   dappContractAddress: string;
   melodiousNftAddress: string;
   lastVaultBalanceDistributed: number;
+  referralPoints: number;
+  conversionRate: number;
+  minConversion: number;
+  maxDailyConversion: number;
 
   constructor(
     adminWalletAddresses: string[],
@@ -28,7 +32,11 @@ class Config {
     melodiousNftAddress: string,
     vaultBalance: number = 0,
     lastVaultBalanceDistributed: number = 0,
-    feeBalance: number = 0
+    feeBalance: number = 0,
+    referralPoints: number = 100,
+    conversionRate: number = 1000,
+    minConversion: number = 1000,
+    maxDailyConversion: number = 10000
   ) {
     const addressFields = [
       ...adminWalletAddresses,
@@ -58,6 +66,10 @@ class Config {
     this.relayerAddress = relayerAddress;
     this.dappContractAddress = dappContractAddress;
     this.melodiousNftAddress = melodiousNftAddress;
+    this.referralPoints = referralPoints;
+    this.conversionRate = conversionRate;
+    this.minConversion = minConversion;
+    this.maxDailyConversion = maxDailyConversion;
   }
 }
 

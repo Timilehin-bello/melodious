@@ -11,6 +11,7 @@ import {
 } from "./reward.controller";
 import { ConfigController } from "./config.controller";
 import { PlaylistController } from "./playlist.controller";
+import { ReferralController } from "./referral.controller";
 
 export {
   ArtistController,
@@ -24,4 +25,5 @@ export {
   ReferralRewardController,
   ConfigController,
   PlaylistController,
+  ReferralController,
 };

@@ -137,6 +137,28 @@ router.addRoute(
   new Routes.PlaylistsByWalletRoute(playlist)
 );
 
+// Referral routes
+const referral = new Controllers.ReferralController();
+router.addRoute(
+  "convert_melo_to_ctsi",
+  new Routes.ConvertMeloToCtsiRoute(referral)
+);
+router.addRoute("process_referral", new Routes.ProcessReferralRoute(referral));
+router.addRoute("get_referral_stats", new Routes.ReferralStatsRoute(referral));
+router.addRoute("get_user_referrals", new Routes.UserReferralsRoute(referral));
+router.addRoute(
+  "get_referral_transactions",
+  new Routes.ReferralTransactionsRoute(referral)
+);
+router.addRoute(
+  "validate_referral_code",
+  new Routes.ValidateReferralCodeRoute(referral)
+);
+router.addRoute(
+  "get_conversion_info",
+  new Routes.ConversionInfoRoute(referral)
+);
+
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
     let endpoint;

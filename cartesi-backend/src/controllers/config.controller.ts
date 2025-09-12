@@ -1,6 +1,6 @@
 import { Error_out, Log, Notice } from "cartesi-wallet";
 import { Config } from "../models";
-import { ConfigService } from "../services";
+import { ConfigService, RepositoryService } from "../services";
 
 class ConfigController {
   private configService: ConfigService;
@@ -18,12 +18,22 @@ class ConfigController {
     }
 
     try {
-      const config_json = JSON.stringify(config);
-      console.log("config", config_json);
+      console.log("config created", JSON.stringify(config));
 
-      const notice_payload = `{{"type":"create_config", "content":${config_json} }}`;
+      // Create repository notice with config creation data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "config_created",
+        config
+      );
 
-      return new Notice(notice_payload);
+      // Also create specific config notice
+      const configNotice = RepositoryService.createDataNotice(
+        "config",
+        "created",
+        config
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.log("Failed to create config", error);
       return new Error_out(`Failed to create config`);
@@ -48,12 +58,22 @@ class ConfigController {
       return updatedConfig;
     }
     try {
-      const config_json = JSON.stringify(updatedConfig);
-      console.log("updated config", config_json);
+      console.log("updated config", JSON.stringify(updatedConfig));
 
-      const notice_payload = `{{"type":"update_config", "content":${config_json} }}`;
+      // Create repository notice with config update data
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "config_updated",
+        updatedConfig
+      );
 
-      return new Notice(notice_payload);
+      // Also create specific config notice
+      const configNotice = RepositoryService.createDataNotice(
+        "config",
+        "updated",
+        updatedConfig
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.log("Failed to update config", error);
       return new Error_out(`Failed to update config`);

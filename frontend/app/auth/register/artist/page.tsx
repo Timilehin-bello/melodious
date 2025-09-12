@@ -13,6 +13,7 @@ import {
   MapPin,
   AtSign,
   FileText,
+  Gift,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -74,6 +75,7 @@ const formSchema = z.object({
     instagram: z.string().url(),
     facebook: z.string().url(),
   }),
+  referralCode: z.string().optional(),
 });
 
 const RegisterArtist = () => {
@@ -95,6 +97,7 @@ const RegisterArtist = () => {
         instagram: "",
         facebook: "",
       },
+      referralCode: "",
     },
   });
 
@@ -163,6 +166,7 @@ const RegisterArtist = () => {
           instagram: values.socialMediaLinks.instagram,
           facebook: values.socialMediaLinks.facebook,
         },
+        referralCode: values.referralCode,
       })
         .then((data) => {
           // console.log("User created with transaction hash:", data);
@@ -435,6 +439,34 @@ const RegisterArtist = () => {
                     />
                   </div>
                 </div>
+
+                {/* Referral Code Section */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                    <Gift className="w-5 h-5" />
+                    Referral Code (Optional)
+                  </h2>
+                  <FormField
+                    control={form.control}
+                    name="referralCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-200">
+                          Referral Code
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter referral code if you have one"
+                            {...field}
+                            className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#950944] transition-colors"
+                          />
+                        </FormControl>
+                        <FormMessage className="text-red-400" />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 {/* Submit Button */}
                 <motion.div
                   whileHover={{ scale: 1.01 }}

@@ -83,7 +83,7 @@ const Release = () => {
   };
 
   return (
-    <div className="m-4">
+    <div className="max-w-7xl mx-auto">
       <div className="w-full flex flex-wrap items-center gap-8 bg-gradient-to-b from-[#3D2250] to-[#1E1632] rounded-md px-6 py-8 sm:px-4 sm:justify-between md:justify-between justify-between text-white">
         <div className="w-2/3">
           <div className="mb-3 py-4 px-6">

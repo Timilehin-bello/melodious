@@ -7,6 +7,8 @@ import { Track } from "./track.model";
 import { Album } from "./album.model";
 import { Genre } from "./genre.model";
 import { Config } from "./config.model";
+import { Referral } from "./referral.model";
+import { ReferralTransaction } from "./referralTransaction.model";
 
 export {
   User,
@@ -18,4 +20,6 @@ export {
   Album,
   Genre,
   Config,
+  Referral,
+  ReferralTransaction,
 };
