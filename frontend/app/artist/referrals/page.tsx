@@ -544,8 +544,8 @@ const ArtistReferrals = () => {
                                 </div>
                               </div>
                               <Badge
-                                variant="secondary"
-                                className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-300 border-green-500/30"
+                                variant="outline"
+                                className=" text-green-500 border-green-500"
                               >
                                 +{referral.pointsEarned} points
                               </Badge>
@@ -614,7 +614,15 @@ const ArtistReferrals = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="text-right">
+
+                              <Badge
+                                variant="outline"
+                                className=" text-green-500 border-green-500"
+                              >
+                                {transaction.type === "EARNED" ? "+" : "-"}
+                                {transaction.meloPoints} MP
+                              </Badge>
+                              {/* <div className="text-right">
                                 <p
                                   className={cn(
                                     "text-sm font-medium",
@@ -631,7 +639,7 @@ const ArtistReferrals = () => {
                                     +{transaction.ctsiAmount.toFixed(4)} CTSI
                                   </p>
                                 )}
-                              </div>
+                              </div> */}
                             </div>
                           ))}
                         </div>
