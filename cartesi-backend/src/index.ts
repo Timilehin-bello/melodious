@@ -5,6 +5,7 @@ import deployments from "./rollups.json";
 
 import * as Controllers from "./controllers";
 import * as Routes from "./routes";
+import { RepositoryService } from "./services/repository.service";
 
 let rollup_address = "";
 const rollup_server: string = <string>process.env.ROLLUP_HTTP_SERVER_URL;
@@ -85,10 +86,7 @@ router.addRoute(
 // Vault Route
 const vault = new Controllers.VaultController();
 router.addRoute("vault_deposit", new Routes.DepositVaultRoute(vault));
-router.addRoute(
-  "withdraw_artist_vault",
-  new Routes.WithdrawalArtistVaultRoute(vault)
-);
+router.addRoute("withdraw_reward", new Routes.WithdrawalRewardRoute(vault));
 
 // Reward Route
 const reward = new Controllers.ListeningRewardController();
@@ -262,7 +260,18 @@ async function handle_advance(data: any) {
         data.metadata.msg_sender = jsonpayload.args.signer.toLowerCase();
       }
 
-      return router.process(jsonpayload.method, data);
+      const result = router.process(jsonpayload.method, data);
+      
+      // Emit any queued notices after processing the route
+      const queuedNotices = RepositoryService.getQueuedNotices();
+      if (queuedNotices.length > 0) {
+        console.log(`Emitting ${queuedNotices.length} queued notices`);
+        queuedNotices.forEach(notice => {
+          send_request(notice);
+        });
+      }
+      
+      return result;
     } catch (e) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
     }

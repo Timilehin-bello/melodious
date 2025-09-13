@@ -36,7 +36,7 @@ class DepositVaultRoute extends AdvanceRoute {
   };
 }
 
-class WithdrawalArtistVaultRoute extends AdvanceRoute {
+class WithdrawalRewardRoute extends AdvanceRoute {
   vault: VaultController;
   constructor(vault: VaultController) {
     super();
@@ -55,7 +55,7 @@ class WithdrawalArtistVaultRoute extends AdvanceRoute {
 
     try {
       console.log(
-        "Executing artist withdrawal vault request",
+        "Executing reward withdrawal request",
         request_payload.amount
       );
       const vault = this.vault.withdraw({
@@ -94,7 +94,7 @@ class WithdrawalArtistVaultRoute extends AdvanceRoute {
 
 export {
   DepositVaultRoute,
-  WithdrawalArtistVaultRoute,
+  WithdrawalRewardRoute,
   //   VaultsRoute,
   //   VaultRoute,
 };

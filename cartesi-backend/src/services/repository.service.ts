@@ -69,9 +69,8 @@ class RepositoryService {
 
   // Helper method for specific data type notices
   static createDataNotice(dataType: string, action: string, data: any): Notice {
-    const currentData = this[
-      dataType as keyof typeof RepositoryService
-    ] as any[];
+    const currentData =
+      (this[dataType as keyof typeof RepositoryService] as any[]) || [];
     const notice_payload = JSON.stringify({
       type: `repository_${dataType}_${action}`,
       content: {

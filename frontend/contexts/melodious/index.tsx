@@ -9,6 +9,7 @@ import { io, Socket } from "socket.io-client";
 import { DeviceInfo } from "@/lib/getDeviceInfo";
 import { disconnectSocket, initSocket } from "@/lib/socket";
 import { RollupsContracts, useRollups } from "@/cartesi/hooks/useRollups";
+import { withdrawCTSIReward } from "@/cartesi/Portals";
 import toast from "react-hot-toast";
 
 declare global {
@@ -431,21 +432,22 @@ export const MelodiousProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const withdrawCTSI = async (amount: number): Promise<any> => {
-    const genrePayload = {
-      method: "withdraw_artist_vault",
-      args: {
-        amount,
-      },
-    };
-
     try {
-      const txhash = await signMessages(genrePayload);
+      const receipt = await withdrawCTSIReward(rollups, amount, dappAddress);
 
-      console.log(`Transaction hash is: ${txhash}`);
-      return txhash;
+      if (receipt && (receipt as any).transactionHash) {
+        console.log(`Transaction hash is: ${(receipt as any).transactionHash}`);
+        return {
+          status: true,
+          transactionHash: (receipt as any).transactionHash,
+        };
+      } else {
+        return { status: false, message: "Transaction failed" };
+      }
     } catch (error) {
       toast.error("Error withdrawing CTSI " + error);
-      console.log("Error creating user:", error);
+      console.log("Error withdrawing CTSI:", error);
+      return { status: false, message: error };
     }
   };
 

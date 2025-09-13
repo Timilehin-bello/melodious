@@ -112,7 +112,8 @@ const Release = () => {
               Manage your music from one place
             </p>
           </div>
-          <Popover>
+
+          {/* <Popover>
             <PopoverTrigger asChild>
               <button className="bg-gray-700 px-2 mr-8 rounded-md text-sm text-white">
                 Create Release
@@ -142,7 +143,7 @@ const Release = () => {
                 </Link>
               </div>
             </PopoverContent>
-          </Popover>
+          </Popover> */}
         </div>
         <div className="flex flex-wrap gap-4 items-center">
           <SearchInput />
@@ -167,11 +168,15 @@ const Release = () => {
           <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
             <Music2 size={54} className="mb-4" />
             <p className="font-bold">You have not released anything yet</p>
-            <Popover>
+
+            <Link href={`/artist/release/single`}>
+              <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
+                Create Release
+              </button>
+            </Link>
+            {/* <Popover>
               <PopoverTrigger asChild>
-                <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
-                  Create Release
-                </button>
+             
               </PopoverTrigger>
               <PopoverContent className="w-40">
                 <div className="grid gap-4">
@@ -197,7 +202,7 @@ const Release = () => {
                   </Link>
                 </div>
               </PopoverContent>
-            </Popover>
+            </Popover> */}
           </div>
         )}
       </div>

@@ -2,7 +2,11 @@ import { Error_out, Log, Voucher } from "cartesi-wallet";
 import { IDeposit, IWithdrawal } from "../interfaces";
 import { encodeFunctionData, hexToBytes, parseEther } from "viem";
 import { ctsiTokenConfigABI, MelodiousVaultConfigABI } from "../configs";
-import { ConfigService, ListeningRewardService } from "../services";
+import {
+  ConfigService,
+  ListeningRewardService,
+  RepositoryService,
+} from "../services";
 import { UserController } from "./user.controller";
 
 class VaultController {
@@ -113,6 +117,21 @@ class VaultController {
 
       //TODO: Check later if this gives the expected value
       getConfigService.lastVaultBalanceDistributed -= withdrawBody.amount;
+
+      // Create and queue repository notice for withdrawal
+      RepositoryService.createRepositoryNotice(
+        'reward_withdrawal',
+        {
+          walletAddress: withdrawBody.walletAddress,
+          amount: withdrawBody.amount,
+          userType: user.artist ? 'artist' : 'listener',
+          timestamp: new Date().toISOString(),
+          voucher: {
+            destination: voucher.destination,
+            payload: voucher.payload,
+          },
+        }
+      );
 
       return voucher;
     } catch (error) {
