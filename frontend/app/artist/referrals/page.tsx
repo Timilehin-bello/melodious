@@ -316,7 +316,7 @@ const ArtistReferrals = () => {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
@@ -357,7 +357,7 @@ const ArtistReferrals = () => {
             </div>
           </div>
 
-          <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
+          {/* <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-zinc-400">CTSI Earned</p>
@@ -367,7 +367,7 @@ const ArtistReferrals = () => {
               </div>
               <Wallet className="w-8 h-8 text-[#950844]" />
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Main Content */}
