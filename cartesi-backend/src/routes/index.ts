@@ -36,7 +36,7 @@ import {
   TrackByWalletAddressRoute,
 } from "./track.route";
 
-import { DepositVaultRoute, WithdrawalArtistVaultRoute } from "./vault.route";
+import { DepositVaultRoute, WithdrawalRewardRoute } from "./vault.route";
 
 import {
   ArtistDistributionRewardRoute,
@@ -109,7 +109,7 @@ export {
 
   // Vault
   DepositVaultRoute,
-  WithdrawalArtistVaultRoute,
+  WithdrawalRewardRoute,
 
   // Reward
   ArtistDistributionRewardRoute,

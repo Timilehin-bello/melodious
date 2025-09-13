@@ -12,12 +12,14 @@ interface WithdrawalCTSIModalProps {
   onClose: () => void;
   updateTransactionStatus: (status: boolean) => void;
   userDetails: any;
+  refetchUserDetails?: () => void;
 }
 
 export default function WithdrawCTSIModal({
   isOpen,
   onClose,
   userDetails,
+  refetchUserDetails,
 }: WithdrawalCTSIModalProps) {
   const [ctsiAmount, setCtsiAmount] = useState<string>("");
   const [loadWithdrawCTSI, setLoadWithdrawCTSI] = useState(false);
@@ -33,7 +35,7 @@ export default function WithdrawCTSIModal({
   const handleWithdrawCTSI = async () => {
     const amount = Number(ctsiAmount);
     const availableBalance = Number(userDetails?.cartesiTokenBalance || 0);
-    
+
     if (!amount) {
       toast.error("Please enter a valid amount");
       return;
@@ -57,6 +59,12 @@ export default function WithdrawCTSIModal({
         toast.error(res.message || "Withdrawal failed");
       } else {
         toast.success("CTSI withdrawn successfully");
+        // Invalidate user details cache to reflect updated balance
+        if (refetchUserDetails) {
+          setTimeout(() => {
+            refetchUserDetails();
+          }, 2000); // Wait 2 seconds for backend processing
+        }
         onClose();
         setCtsiAmount("");
       }
@@ -113,7 +121,9 @@ export default function WithdrawCTSIModal({
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setCtsiAmount(userDetails?.cartesiTokenBalance || "0")}
+                    onClick={() =>
+                      setCtsiAmount(userDetails?.cartesiTokenBalance || "0")
+                    }
                     className="text-xs px-2 py-1 bg-[#950844] text-white rounded hover:bg-[#7a0636] transition-colors"
                   >
                     MAX

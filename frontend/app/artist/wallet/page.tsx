@@ -39,6 +39,7 @@ const Wallet = () => {
     isLoading,
     isError,
     error,
+    refetch: refetchUserDetails,
   } = useUserByWallet(account?.address);
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
@@ -202,6 +203,7 @@ const Wallet = () => {
         onClose={() => setIsWithdrawalCTSModalOpen(false)}
         updateTransactionStatus={setTransactionStatus}
         userDetails={userDetails}
+        refetchUserDetails={refetchUserDetails}
       />
     </div>
   );

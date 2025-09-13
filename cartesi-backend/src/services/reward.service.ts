@@ -173,16 +173,10 @@ class ListeningRewardService {
       value: withdrawalRewardBody.walletAddress.toLowerCase(),
     });
 
-    if (!user || user.artist === null) {
+    if (!user) {
       return new Error_out(
-        `User with wallet address ${withdrawalRewardBody.walletAddress} does not exist or is not an artist`
+        `User with wallet address ${withdrawalRewardBody.walletAddress} does not exist`
       );
-    }
-
-    const artist = new ArtistController().getArtistByUserId(user.id);
-
-    if (!artist) {
-      return new Error_out(`Artist with user ID ${user.id} does not exist`);
     }
 
     const getConfigService = new ConfigService().getConfig();

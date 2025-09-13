@@ -26,7 +26,6 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
   const { loading, error, vouchers, refetch, client } = useVouchers();
   const [voucherToExecute, setVoucherToExecute] = useState<any>();
   const [isExecuting, setIsExecuting] = useState(false);
-  // Remove local state as TanStack Query will manage this
   const checkedVouchersRef = useRef<Set<string>>(new Set());
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();

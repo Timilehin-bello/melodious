@@ -71,7 +71,22 @@ export function ArtistSidebar() {
 
   // Add this function to determine if a menu item is active
   const isActiveRoute = (itemUrl: string) => {
-    return pathname === itemUrl;
+    // Return false if pathname is null
+    if (!pathname) {
+      return false;
+    }
+
+    // Handle exact matches
+    if (pathname === itemUrl) {
+      return true;
+    }
+
+    // Handle dynamic routes - if current path starts with the menu item URL
+    if (pathname.startsWith(itemUrl + "/")) {
+      return true;
+    }
+
+    return false;
   };
 
   return (

@@ -502,6 +502,31 @@ export const withdrawErc20 = async (
   }
 };
 
+export const withdrawCTSIReward = async (
+  rollups: RollupsContracts | undefined,
+  amount: number,
+  dappAddress: string
+) => {
+  try {
+    if (rollups) {
+      const input_obj = {
+        method: "withdraw_reward",
+        args: {
+          amount,
+        },
+      };
+      const data = JSON.stringify(input_obj);
+      const payload = ethers.utils.toUtf8Bytes(data);
+      const tx = await rollups.inputContract.addInput(dappAddress, payload);
+      const receipt = await tx.wait(1);
+      return receipt;
+    }
+  } catch (e) {
+    console.log(e);
+    return e;
+  }
+};
+
 export const withdrawErc721 = async (
   rollups: RollupsContracts | undefined,
   provider: ethers.providers.JsonRpcProvider | undefined,

@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Button } from "@headlessui/react";
 export interface IUser {
   id: string;
   walletAddress: string;
@@ -196,7 +197,12 @@ export default function Page() {
             </p>
 
             <div className="mx-auto text-center mt-4 mb-4">
-              <Popover>
+              <Link href={`/artist/release/single`}>
+                <Button className="bg-[#950944] hover:bg-[#8D184E] px-6 py-2 rounded-lg text-center text-white ">
+                  Create
+                </Button>
+              </Link>
+              {/* <Popover>
                 <PopoverTrigger asChild>
                   <button className="bg-[#8D184E] px-6 py-2 rounded-lg text-center text-white">
                     Create
@@ -226,7 +232,7 @@ export default function Page() {
                     </Link>
                   </div>
                 </PopoverContent>
-              </Popover>
+              </Popover> */}
             </div>
           </div>
         </div>
