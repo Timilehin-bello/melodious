@@ -5,7 +5,7 @@ import * as transactionService from "./transaction.service";
 import * as cronService from "./cron.service";
 import * as subscriptionService from "./subscription.service";
 import { PrismaClient } from "@prisma/client";
-
+import * as adService from "./ad.service";
 const prisma = new PrismaClient();
 export {
   prisma,
@@ -15,4 +15,5 @@ export {
   transactionService,
   cronService,
   subscriptionService,
+    adService,
 };

@@ -38,6 +38,11 @@ interface EnhancedMusicPlayerContextType {
   recentlyPlayed: Track[];
   isLoadingRecentlyPlayed: boolean;
   clearRecentlyPlayed: () => void;
+
+  // Ad-related properties
+  songsSinceAd: number;
+  incrementSongCount: () => void;
+  resetSongCount: () => void;
 }
 
 const EnhancedMusicPlayerContext = React.createContext<

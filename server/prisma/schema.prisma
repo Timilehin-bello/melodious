@@ -18,6 +18,7 @@ model User {
   walletAddress String         @unique
   token         Token[]
   listener      Listener?
+  role          String         @default("USER") // USER, ADMIN, SUPER_ADMIN
   artist        Artist?
   lastLogin     DateTime?
   createdAt     DateTime       @default(now())
@@ -42,6 +43,7 @@ model Listener {
   listeningSession  ListeningSession[]
   playbackQuality   PlaybackQuality[]
   playbackSession   PlaybackSession[]
+  adPlays           AdPlay[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -403,4 +405,29 @@ model SubscriptionPlan {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Ad {
+  id         Int       @id @default(autoincrement())
+  title      String
+  imageUrl   String
+  audioUrl   String
+  duration   Int       // Duration in seconds
+  isActive   Boolean   @default(true)
+  plays      AdPlay[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model AdPlay {
+  id         Int       @id @default(autoincrement())
+  adId       Int
+  listenerId Int
+  completed  Boolean   @default(false)
+  playedAt   DateTime  @default(now())
+  ad         Ad        @relation(fields: [adId], references: [id])
+  listener   Listener  @relation(fields: [listenerId], references: [id])
+
+  @@index([listenerId, playedAt])
+  @@index([adId, playedAt])
 }

@@ -23,6 +23,15 @@ export interface Track {
   artistId?: string;
 }
 
+
+export interface Ad {
+  id: number;
+  title: string;
+  imageUrl: string;
+  audioUrl: string;
+  duration: number;
+}
+
 export interface Playlist {
   id: string;
   title: string;
@@ -57,6 +66,10 @@ interface MusicPlayerContextType {
     os: string;
     networkType: string;
   };
+   // Ad-related properties
+  songsSinceAd: number;
+  incrementSongCount: () => void;
+  resetSongCount: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(
@@ -145,6 +158,9 @@ export const MusicPlayerProvider = ({
     networkType: "unknown",
   });
 
+  // Ad-related state
+  const [songsSinceAd, setSongsSinceAd] = useState(0);
+
   // Update device info after mount
   useEffect(() => {
     setDeviceInfo(getDeviceInfo());
@@ -153,6 +169,7 @@ export const MusicPlayerProvider = ({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const playPromiseRef = useRef<Promise<void> | null>(null);
+  const hasCountedCurrentSong = useRef(false);
 
   // Initialize audio element
   useEffect(() => {
@@ -405,6 +422,7 @@ export const MusicPlayerProvider = ({
       setCurrentIndex(nextIndex);
       setCurrentTrack(playlist[nextIndex]);
       setIsPlaying(true);
+       hasCountedCurrentSong.current = false;
       emitSocketEvent("skipTrack");
     } else if (playlist.length > 1) {
       // Loop back to first track
@@ -440,6 +458,12 @@ export const MusicPlayerProvider = ({
 
     const onEnded = () => {
       emitSocketEvent("stopPlaying");
+
+       // Increment song count for ad tracking
+      if (!hasCountedCurrentSong.current) {
+        incrementSongCount();
+        hasCountedCurrentSong.current = true;
+      }
 
       if (playlist && currentIndex < playlist.length - 1) {
         nextTrack();
@@ -545,6 +569,15 @@ export const MusicPlayerProvider = ({
     [emitSocketEvent]
   );
 
+    // Ad-related functions
+  const incrementSongCount = useCallback(() => {
+    setSongsSinceAd((prev) => prev + 1);
+  }, []);
+
+  const resetSongCount = useCallback(() => {
+    setSongsSinceAd(0);
+  }, []);
+
   // Play previous track
   const previousTrack = useCallback(() => {
     if (!audioRef.current || !playlist || playlist.length === 0) return;
@@ -583,6 +616,9 @@ export const MusicPlayerProvider = ({
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
         }
+
+         // Reset song counter flag for new track
+        hasCountedCurrentSong.current = false;
       }
       setIsPlaying(true);
     },
@@ -627,6 +663,10 @@ export const MusicPlayerProvider = ({
     seek,
     nextTrack,
     previousTrack,
+     // Ad-related values
+    songsSinceAd,
+    incrementSongCount,
+    resetSongCount,
   };
 
   return (
