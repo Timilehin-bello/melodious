@@ -119,19 +119,16 @@ class VaultController {
       getConfigService.lastVaultBalanceDistributed -= withdrawBody.amount;
 
       // Create and queue repository notice for withdrawal
-      RepositoryService.createRepositoryNotice(
-        'reward_withdrawal',
-        {
-          walletAddress: withdrawBody.walletAddress,
-          amount: withdrawBody.amount,
-          userType: user.artist ? 'artist' : 'listener',
-          timestamp: new Date().toISOString(),
-          voucher: {
-            destination: voucher.destination,
-            payload: voucher.payload,
-          },
-        }
-      );
+      RepositoryService.createRepositoryNotice("reward_withdrawal", {
+        walletAddress: withdrawBody.walletAddress,
+        amount: withdrawBody.amount,
+        userType: user.artist ? "artist" : "listener",
+        timestamp: new Date().toISOString(),
+        voucher: {
+          destination: voucher.destination,
+          payload: voucher.payload,
+        },
+      });
 
       return voucher;
     } catch (error) {

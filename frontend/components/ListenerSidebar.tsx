@@ -43,6 +43,11 @@ const items = [
     icon: Home,
   },
   {
+    title: "Playlist",
+    url: "/listener/playlist",
+    icon: Inbox,
+  },
+  {
     title: "Wallet",
     url: "/listener/wallet",
     icon: Wallet,
@@ -56,11 +61,6 @@ const items = [
     title: "Referrals",
     url: "/listener/referrals",
     icon: Users,
-  },
-  {
-    title: "Playlist",
-    url: "/listener/playlist",
-    icon: Inbox,
   },
   // {
   //   title: "Explore",

@@ -261,16 +261,16 @@ async function handle_advance(data: any) {
       }
 
       const result = router.process(jsonpayload.method, data);
-      
+
       // Emit any queued notices after processing the route
       const queuedNotices = RepositoryService.getQueuedNotices();
       if (queuedNotices.length > 0) {
         console.log(`Emitting ${queuedNotices.length} queued notices`);
-        queuedNotices.forEach(notice => {
+        queuedNotices.forEach((notice) => {
           send_request(notice);
         });
       }
-      
+
       return result;
     } catch (e) {
       return new Error_out(`failed to process command ${payloadStr} ${e}`);
