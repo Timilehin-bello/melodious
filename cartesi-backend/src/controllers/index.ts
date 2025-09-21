@@ -12,6 +12,7 @@ import {
 import { ConfigController } from "./config.controller";
 import { PlaylistController } from "./playlist.controller";
 import { ReferralController } from "./referral.controller";
+import { NFTController } from "./nft.controller";
 
 export {
   ArtistController,
@@ -26,4 +27,5 @@ export {
   ConfigController,
   PlaylistController,
   ReferralController,
+  NFTController,
 };

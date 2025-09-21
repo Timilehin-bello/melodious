@@ -11,12 +11,15 @@ class ConfigService {
     if (
       !configData.adminWalletAddresses ||
       !configData.cartesiTokenContractAddress ||
+      !configData.vaultContractAddress ||
       !configData.artistPercentage ||
       !configData.poolPercentage ||
       !configData.feePercentage ||
       !configData.serverAddress ||
       !configData.dappContractAddress ||
-      !configData.melodiousNftAddress
+      !configData.melodiousNftAddress ||
+      !configData.trackNftContractAddress ||
+      !configData.artistTokenContractAddress
     ) {
       return new Error_out("All fields are required.");
     }

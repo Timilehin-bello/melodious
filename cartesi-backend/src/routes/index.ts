@@ -72,6 +72,16 @@ import {
   ConversionInfoRoute,
 } from "./referral.route";
 
+import {
+  MintTrackNFTRoute,
+  MintArtistTokensRoute,
+  PurchaseArtistTokensRoute,
+  GetTrackNFTRoute,
+  GetArtistTokensRoute,
+  GetArtistTokenPurchasesRoute,
+  GetNFTStatsRoute,
+} from "./nft.route";
+
 export {
   // User
   CreateUserRoute,
@@ -140,4 +150,13 @@ export {
   ReferralTransactionsRoute,
   ValidateReferralCodeRoute,
   ConversionInfoRoute,
+
+  // NFT routes
+  MintTrackNFTRoute,
+  MintArtistTokensRoute,
+  PurchaseArtistTokensRoute,
+  GetTrackNFTRoute,
+  GetArtistTokensRoute,
+  GetArtistTokenPurchasesRoute,
+  GetNFTStatsRoute,
 };

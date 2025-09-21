@@ -13,6 +13,8 @@ class Config {
   relayerAddress: string;
   dappContractAddress: string;
   melodiousNftAddress: string;
+  trackNftContractAddress: `0x${string}`;
+  artistTokenContractAddress: `0x${string}`;
   lastVaultBalanceDistributed: number;
   referralPoints: number;
   conversionRate: number;
@@ -30,6 +32,8 @@ class Config {
     relayerAddress: string,
     dappContractAddress: string,
     melodiousNftAddress: string,
+    trackNftContractAddress: `0x${string}`,
+    artistTokenContractAddress: `0x${string}`,
     vaultBalance: number = 0,
     lastVaultBalanceDistributed: number = 0,
     feeBalance: number = 0,
@@ -41,10 +45,13 @@ class Config {
     const addressFields = [
       ...adminWalletAddresses,
       cartesiTokenContractAddress,
+      vaultContractAddress,
       serverAddress,
       relayerAddress,
       dappContractAddress,
       melodiousNftAddress,
+      trackNftContractAddress,
+      artistTokenContractAddress,
     ];
 
     addressFields.forEach((address) => {
@@ -66,6 +73,8 @@ class Config {
     this.relayerAddress = relayerAddress;
     this.dappContractAddress = dappContractAddress;
     this.melodiousNftAddress = melodiousNftAddress;
+    this.trackNftContractAddress = trackNftContractAddress;
+    this.artistTokenContractAddress = artistTokenContractAddress;
     this.referralPoints = referralPoints;
     this.conversionRate = conversionRate;
     this.minConversion = minConversion;

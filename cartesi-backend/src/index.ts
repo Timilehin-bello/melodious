@@ -157,6 +157,22 @@ router.addRoute(
   new Routes.ConversionInfoRoute(referral)
 );
 
+// NFT Route
+const nft = new Controllers.NFTController();
+router.addRoute("mint_track_nft", new Routes.MintTrackNFTRoute(nft));
+router.addRoute("mint_artist_tokens", new Routes.MintArtistTokensRoute(nft));
+router.addRoute(
+  "purchase_artist_tokens",
+  new Routes.PurchaseArtistTokensRoute(nft)
+);
+router.addRoute("get_track_nft", new Routes.GetTrackNFTRoute(nft));
+router.addRoute("get_artist_tokens", new Routes.GetArtistTokensRoute(nft));
+router.addRoute(
+  "get_artist_token_purchases",
+  new Routes.GetArtistTokenPurchasesRoute(nft)
+);
+router.addRoute("get_nft_stats", new Routes.GetNFTStatsRoute(nft));
+
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
     let endpoint;
@@ -218,6 +234,8 @@ async function handle_advance(data: any) {
       router.set_rollup_address(rollup_address, "ether_withdraw");
       router.set_rollup_address(rollup_address, "erc20_withdraw");
       router.set_rollup_address(rollup_address, "erc721_withdraw");
+      router.set_rollup_address(rollup_address, "erc1155_withdraw");
+      router.set_rollup_address(rollup_address, "erc1155_batch_withdraw");
 
       console.log("Setting DApp address");
       return new Notice(
@@ -243,7 +261,33 @@ async function handle_advance(data: any) {
       try {
         return router.process("erc721_deposit", payload);
       } catch (e) {
-        return new Error_out(`failed ot process ERC20Deposit ${payload} ${e}`);
+        return new Error_out(`failed to process ERC721Deposit ${payload} ${e}`);
+      }
+    }
+
+    if (
+      msg_sender.toLowerCase() ===
+      deployments.contracts.ERC1155SinglePortal.address.toLowerCase()
+    ) {
+      try {
+        return router.process("erc1155_deposit", payload);
+      } catch (e) {
+        return new Error_out(
+          `failed to process ERC1155SinglePortal ${payload} ${e}`
+        );
+      }
+    }
+
+    if (
+      msg_sender.toLowerCase() ===
+      deployments.contracts.ERC1155BatchPortal.address.toLowerCase()
+    ) {
+      try {
+        return router.process("erc1155_batch_deposit", payload);
+      } catch (e) {
+        return new Error_out(
+          `failed to process ERC1155BatchPortal ${payload} ${e}`
+        );
       }
     }
 

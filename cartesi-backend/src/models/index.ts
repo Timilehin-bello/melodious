@@ -9,6 +9,9 @@ import { Genre } from "./genre.model";
 import { Config } from "./config.model";
 import { Referral } from "./referral.model";
 import { ReferralTransaction } from "./referralTransaction.model";
+import { TrackNFT } from "./trackNFT.model";
+import { ArtistToken } from "./artistToken.model";
+import { ArtistTokenPurchase } from "./artistTokenPurchase.model";
 
 export {
   User,
@@ -22,4 +25,7 @@ export {
   Config,
   Referral,
   ReferralTransaction,
+  TrackNFT,
+  ArtistToken,
+  ArtistTokenPurchase,
 };
