@@ -28,7 +28,9 @@
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
     "docker:prisma:migrate": "docker-compose exec app yarn prisma migrate deploy",
-    "docker:prisma:studio": "docker-compose exec app yarn prisma studio"
+    "docker:prisma:studio": "docker-compose exec app yarn prisma studio",
+    "promote:admin": "ts-node ./scripts/promote-admin.ts",
+    "seed:ads": "ts-node ./scripts/seed-ads.ts"
   },
   "_moduleAliases": {
     "@": ".",

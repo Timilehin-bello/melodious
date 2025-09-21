@@ -163,6 +163,20 @@ const getAdStats = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+ /**
+   * Get ads configuration
+   * @route GET /v1/ads/config
+   * @access Private - requires authentication
+   */
+  const getAdsConfig = catchAsync(async (req: Request, res: Response) => {
+    const config = adService.getAdsConfig();
+
+    res.status(httpStatus.OK).send({
+      status: "success",
+      data: { config },
+    });
+  });
+
 export {
   getNextAd,
   completeAd,
@@ -170,5 +184,6 @@ export {
   updateAd,
   deleteAd,
   getAdStats,
-  getAllAds
+  getAllAds,
+  getAdsConfig
 };

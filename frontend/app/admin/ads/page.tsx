@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Removed Switch import as it doesn't exist
-import { Trash2, Edit, Plus } from "lucide-react";
+import { Trash2, Edit, Plus, Upload, Music, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useDropzone } from "react-dropzone";
+import { useMelodiousContext } from "@/contexts/melodious";
+import Image from "next/image";
 
 interface Ad {
   id: number;
@@ -19,7 +21,149 @@ interface Ad {
   createdAt: string;
 }
 
+// Banner Image Dropzone Component
+const BannerImageDropzone: React.FC<{
+  onFileUpload: (file: File) => void;
+  uploading: boolean;
+  preview: string;
+  onRemove: () => void;
+}> = ({ onFileUpload, uploading, preview, onRemove }) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      onFileUpload(acceptedFiles[0]);
+    }
+  }, [onFileUpload]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+    },
+    maxSize: 10 * 1024 * 1024, // 10MB
+    multiple: false
+  });
+
+  return (
+    <div className="space-y-2">
+      {!preview ? (
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+          } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center space-y-2">
+            <ImageIcon className="w-12 h-12 text-gray-400" />
+            <div>
+              <p className="text-sm font-medium">
+                {uploading ? 'Uploading...' : isDragActive ? 'Drop image here' : 'Upload banner image'}
+              </p>
+              <p className="text-xs text-gray-500">
+                Drag & drop or click to browse (max 10MB)
+              </p>
+              <p className="text-xs text-gray-500">
+                Recommended: 16:9 aspect ratio, JPG/PNG
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="relative">
+          <Image
+            src={preview}
+            alt="Banner preview"
+            width={300}
+            height={169}
+            className="rounded-lg border object-cover"
+          />
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            className="absolute top-2 right-2"
+            onClick={onRemove}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Audio File Dropzone Component
+const AudioFileDropzone: React.FC<{
+  onFileUpload: (file: File) => void;
+  uploading: boolean;
+  fileName: string;
+  onRemove: () => void;
+}> = ({ onFileUpload, uploading, fileName, onRemove }) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      onFileUpload(acceptedFiles[0]);
+    }
+  }, [onFileUpload]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac']
+    },
+    maxSize: 50 * 1024 * 1024, // 50MB
+    multiple: false
+  });
+
+  return (
+    <div className="space-y-2">
+      {!fileName ? (
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+            isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
+          } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+        >
+          <input {...getInputProps()} />
+          <div className="flex flex-col items-center space-y-2">
+            <Music className="w-12 h-12 text-gray-400" />
+            <div>
+              <p className="text-sm font-medium">
+                {uploading ? 'Uploading...' : isDragActive ? 'Drop audio here' : 'Upload audio file'}
+              </p>
+              <p className="text-xs text-gray-500">
+                Drag & drop or click to browse (max 50MB)
+              </p>
+              <p className="text-xs text-gray-500">
+                Recommended: MP3 format, 30-60 seconds
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+          <div className="flex items-center space-x-3">
+            <Music className="w-8 h-8 text-blue-500" />
+            <div>
+              <p className="text-sm font-medium">{fileName}</p>
+              <p className="text-xs text-gray-500">Audio file uploaded</p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={onRemove}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function AdminAdsPage() {
+  const { uploadToIPFS } = useMelodiousContext();
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -32,6 +176,13 @@ export default function AdminAdsPage() {
     duration: 30,
     isActive: true,
   });
+
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [audioFileName, setAudioFileName] = useState<string>("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
 
   // Get auth token
   const getAuthToken = () => {
@@ -48,7 +199,7 @@ export default function AdminAdsPage() {
         return;
       }
 
-      const apiUrl = `http://localhost:8088/v1/ads`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/ads`;
       console.log("Fetching ads from:", apiUrl);
       console.log("Using token:", token ? "Token present" : "No token");
 
@@ -73,7 +224,7 @@ export default function AdminAdsPage() {
       }
     } catch (error) {
       console.error("Error fetching ads:", error);
-      toast.error(`Error fetching ads: ${error}`);
+      toast.error(`Error fetching ads: ${ error}`);
     } finally {
       setLoading(false);
     }
@@ -89,8 +240,7 @@ export default function AdminAdsPage() {
       }
 
       console.log("Creating ad with data:", formData);
-      // const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/ads`;
-      const apiUrl = `http://localhost:8088/v1/ads`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/ads`;
       console.log("POST to:", apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -190,6 +340,49 @@ export default function AdminAdsPage() {
     }
   };
 
+  // Handle image upload
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    try {
+      const url = await uploadToIPFS(file);
+      setFormData({ ...formData, imageUrl: url });
+      setImagePreview(url);
+      setImageFile(file);
+      toast.success("Image uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Handle audio upload
+  const handleAudioUpload = async (file: File) => {
+    setUploadingAudio(true);
+    try {
+      const url = await uploadToIPFS(file);
+      setFormData({ ...formData, audioUrl: url });
+      setAudioFileName(file.name);
+      setAudioFile(file);
+
+      // Extract audio duration
+      const audio = document.createElement('audio');
+      audio.src = URL.createObjectURL(file);
+      audio.addEventListener('loadedmetadata', () => {
+        setFormData(prev => ({ ...prev, duration: Math.floor(audio.duration) }));
+        URL.revokeObjectURL(audio.src);
+      });
+
+      toast.success("Audio uploaded successfully!");
+    } catch (error) {
+      console.error("Error uploading audio:", error);
+      toast.error("Failed to upload audio");
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -198,6 +391,10 @@ export default function AdminAdsPage() {
       duration: 30,
       isActive: true,
     });
+    setImagePreview("");
+    setAudioFileName("");
+    setImageFile(null);
+    setAudioFile(null);
   };
 
   const startEdit = (ad: Ad) => {
@@ -209,6 +406,9 @@ export default function AdminAdsPage() {
       duration: ad.duration,
       isActive: ad.isActive,
     });
+    setImagePreview(ad.imageUrl);
+    const filename = ad.audioUrl.split('/').pop() || '';
+    setAudioFileName(filename);
   };
 
   useEffect(() => {
@@ -216,14 +416,31 @@ export default function AdminAdsPage() {
   }, []);
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container md:w-[850px] mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Ad Management</h1>
-        <Button onClick={() => setShowCreateForm(true)}>
+        <h1 className="text-3xl font-bold text-white">Ad Management</h1>
+        <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setShowCreateForm(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Create Ad
         </Button>
       </div>
+
+      {/* Instructions Card */}
+      {!showCreateForm && !editingAd && ads.length === 0 && (
+        <Card className="mb-6 bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-2">Getting Started with Ads</h3>
+            <ul className="text-sm space-y-1 text-gray-700">
+              <li>• Ads will play automatically based on the frequency set in your environment configuration</li>
+              <li>• Use the drag & drop upload areas to upload files directly to IPFS</li>
+              <li>• Recommended audio format: MP3 (30-60 seconds, max 50MB)</li>
+              <li>• Recommended image format: JPG/PNG (16:9 aspect ratio, max 10MB)</li>
+              <li>• Audio duration will be automatically detected from uploaded files</li>
+              <li>• Non-premium users will see ads at regular intervals</li>
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create/Edit Form */}
       {(showCreateForm || editingAd) && (
@@ -242,22 +459,59 @@ export default function AdminAdsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input
-                id="imageUrl"
-                value={formData.imageUrl}
-                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
+              <Label>Banner Image</Label>
+              <div className="space-y-4">
+                {/* Upload Dropzone */}
+                <BannerImageDropzone
+                  onFileUpload={handleImageUpload}
+                  uploading={uploadingImage}
+                  preview={imagePreview}
+                  onRemove={() => {
+                    setImagePreview("");
+                    setFormData({ ...formData, imageUrl: "" });
+                    setImageFile(null);
+                  }}
+                />
+
+                {/* Alternative: Manual URL Input */}
+                <div className="text-center text-sm text-gray-500">or</div>
+                <Input
+                  placeholder="Enter image URL manually"
+                  value={formData.imageUrl}
+                  onChange={(e) => {
+                    setFormData({ ...formData, imageUrl: e.target.value });
+                    setImagePreview(e.target.value);
+                  }}
+                />
+              </div>
             </div>
             <div>
-              <Label htmlFor="audioUrl">Audio URL</Label>
-              <Input
-                id="audioUrl"
-                value={formData.audioUrl}
-                onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
-                placeholder="https://example.com/audio.mp3"
-              />
+              <Label>Audio File</Label>
+              <div className="space-y-4">
+                {/* Upload Dropzone */}
+                <AudioFileDropzone
+                  onFileUpload={handleAudioUpload}
+                  uploading={uploadingAudio}
+                  fileName={audioFileName}
+                  onRemove={() => {
+                    setAudioFileName("");
+                    setFormData({ ...formData, audioUrl: "" });
+                    setAudioFile(null);
+                  }}
+                />
+
+                {/* Alternative: Manual URL Input */}
+                <div className="text-center text-sm text-gray-500">or</div>
+                <Input
+                  placeholder="Enter audio URL manually"
+                  value={formData.audioUrl}
+                  onChange={(e) => {
+                    setFormData({ ...formData, audioUrl: e.target.value });
+                    const filename = e.target.value.split('/').pop() || '';
+                    setAudioFileName(filename);
+                  }}
+                />
+              </div>
             </div>
             <div>
               <Label htmlFor="duration">Duration (seconds)</Label>

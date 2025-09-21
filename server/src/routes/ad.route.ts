@@ -7,6 +7,11 @@ import adValidation from "../validations/ad.validation";
 const router: Router = express.Router();
 
 // Public routes (require authentication)
+
+router
+    .route("/config")
+    .get(auth(), adController.getAdsConfig);
+    
 router
   .route("/next")
   .get(auth(), adController.getNextAd);

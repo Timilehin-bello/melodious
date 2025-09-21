@@ -70,6 +70,10 @@ interface MusicPlayerContextType {
   songsSinceAd: number;
   incrementSongCount: () => void;
   resetSongCount: () => void;
+   isAdPlaying: boolean;
+    setIsAdPlaying: (playing: boolean) => void;
+    pauseForAd: () => void;
+    resumeAfterAd: () => void;
 }
 
 const MusicPlayerContext = createContext<MusicPlayerContextType | undefined>(
@@ -160,6 +164,8 @@ export const MusicPlayerProvider = ({
 
   // Ad-related state
   const [songsSinceAd, setSongsSinceAd] = useState(0);
+  const [isAdPlaying, setIsAdPlaying] = useState(false);
+    const [wasPlayingBeforeAd, setWasPlayingBeforeAd] = useState(false);
 
   // Update device info after mount
   useEffect(() => {
@@ -415,8 +421,8 @@ export const MusicPlayerProvider = ({
 
   // Play next track
   const nextTrack = useCallback(() => {
-    if (!playlist || playlist.length === 0) return;
-
+      // Prevent track changes during ad playback
+      if (isAdPlaying || !playlist || playlist.length === 0) return;
     if (currentIndex < playlist.length - 1) {
       const nextIndex = currentIndex + 1;
       setCurrentIndex(nextIndex);
@@ -431,7 +437,7 @@ export const MusicPlayerProvider = ({
       setIsPlaying(true);
       emitSocketEvent("playlistLoop");
     }
-  }, [playlist, currentIndex, emitSocketEvent]);
+    }, [isAdPlaying, playlist, currentIndex, emitSocketEvent]);
 
   // Set up audio event listeners
   useEffect(() => {
@@ -542,6 +548,11 @@ export const MusicPlayerProvider = ({
 
   // Update the togglePlay function
   const togglePlay = () => {
+    // Prevent controls during ad playback
+      if (isAdPlaying) {
+        return;
+      }
+
     if (currentTrack) {
       if (isPlaying) {
         // Pause the playback
@@ -560,13 +571,14 @@ export const MusicPlayerProvider = ({
   // Seek to position
   const seek = useCallback(
     (time: number) => {
-      if (!audioRef.current) return;
+        // Prevent seeking during ad playback
+        if (isAdPlaying || !audioRef.current) return;
 
       audioRef.current.currentTime = time;
       setProgress(time);
       emitSocketEvent("seek", { position: time });
     },
-    [emitSocketEvent]
+    [isAdPlaying, emitSocketEvent]
   );
 
     // Ad-related functions
@@ -574,13 +586,39 @@ export const MusicPlayerProvider = ({
     setSongsSinceAd((prev) => prev + 1);
   }, []);
 
+   // Ad control functions
+    const pauseForAd = useCallback(() => {
+      if (audioRef.current && isPlaying) {
+        setWasPlayingBeforeAd(true);
+        audioRef.current.pause();
+        setIsPlaying(false);
+        setIsAdPlaying(true);
+        emitSocketEvent("pausedForAd");
+      } else {
+        setWasPlayingBeforeAd(false);
+        setIsAdPlaying(true);
+      }
+    }, [isPlaying, emitSocketEvent]);
+
+    const resumeAfterAd = useCallback(() => {
+      setIsAdPlaying(false);
+      if (wasPlayingBeforeAd && audioRef.current && currentTrack) {
+        setIsPlaying(true);
+        playAudio();
+        emitSocketEvent("resumedAfterAd");
+      }
+      setWasPlayingBeforeAd(false);
+    }, [wasPlayingBeforeAd, currentTrack, playAudio, emitSocketEvent]);
+    
+
   const resetSongCount = useCallback(() => {
     setSongsSinceAd(0);
   }, []);
 
   // Play previous track
-  const previousTrack = useCallback(() => {
-    if (!audioRef.current || !playlist || playlist.length === 0) return;
+   const previousTrack = useCallback(() => {
+      // Prevent track changes during ad playback
+      if (isAdPlaying || !audioRef.current || !playlist || playlist.length === 0) return;
 
     if (audioRef.current.currentTime > 3) {
       // If current track has played for more than 3 seconds, restart it
@@ -601,11 +639,13 @@ export const MusicPlayerProvider = ({
       setIsPlaying(true);
       emitSocketEvent("goToLastTrack");
     }
-  }, [playlist, currentIndex, seek, emitSocketEvent]);
+   }, [isAdPlaying, playlist, currentIndex, seek, emitSocketEvent]);
 
   // Play a single track
   const playTrack = useCallback(
-    (track: Track) => {
+     (track: Track) => {
+        // Prevent track changes during ad playback
+        if (isAdPlaying) return;
       // Only update if it's a different track
       if (track.id !== currentTrack?.id) {
         setCurrentTrack(track);
@@ -622,13 +662,15 @@ export const MusicPlayerProvider = ({
       }
       setIsPlaying(true);
     },
-    [currentTrack]
+     [isAdPlaying, currentTrack]
   );
 
   // Play a playlist
   const playPlaylist = useCallback(
     (tracks: Track[], startIndex = 0, playlistId?: string) => {
-      console.log("Playing playlist:", tracks, startIndex, playlistId);
+        // Prevent playlist changes during ad playback
+        if (isAdPlaying) return;
+      // console.log("Playing playlist:", tracks, startIndex, playlistId);
       if (tracks.length === 0) return;
       setPlaylist(tracks);
       setCurrentIndex(startIndex);
@@ -641,7 +683,7 @@ export const MusicPlayerProvider = ({
         startTrackTitle: tracks[startIndex].title,
       });
     },
-    [emitSocketEvent]
+    [isAdPlaying, emitSocketEvent]
   );
 
   const value = {
@@ -667,6 +709,10 @@ export const MusicPlayerProvider = ({
     songsSinceAd,
     incrementSongCount,
     resetSongCount,
+     isAdPlaying,
+      setIsAdPlaying,
+      pauseForAd,
+      resumeAfterAd,
   };
 
   return (

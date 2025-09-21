@@ -2,6 +2,7 @@ import httpStatus from "http-status";
 import { Ad, AdPlay, Prisma } from "@prisma/client";
 import ApiError from "../utils/ApiError";
 import { prisma } from ".";
+import { config } from "../configs/config";
 
 const getNextAd = async (listenerId: number): Promise<Ad | null> => {
   try {
@@ -127,6 +128,12 @@ const getAdStats = async (adId: number) => {
   };
 };
 
+const getAdsConfig = () => {
+    return {
+      frequencySongs: config.ads.frequencySongs,
+    };
+  };
+
 export {
   getNextAd,
   trackAdPlay,
@@ -135,5 +142,7 @@ export {
   updateAdById,
   deleteAdById,
   getAdStats,
-  getAllAds
+  getAllAds,
+  getAdsConfig
+
 };
