@@ -5,12 +5,15 @@ import {
   IERC1155__factory,
   IERC20__factory,
   IERC721__factory,
+  ERC721Portal__factory,
+  ERC1155SinglePortal__factory,
 } from "./generated/rollups";
 import { Report } from "./hooks/useReports";
 import { getVoucherWithProof, createUrqlClient } from "./VoucherService";
 import { errorAlert, successAlert } from "@/lib/customAlert";
 import { ApolloClient } from "@apollo/client";
 import toast from "react-hot-toast";
+import { TrackNFTABI } from "@/configs";
 
 export const sendAddress = async (
   rollups: RollupsContracts | undefined,
@@ -95,49 +98,29 @@ export const depositErc20ToVault = async (
 ) => {
   try {
     // Input validation
-    if (!rollups) {
-      throw new Error("Rollups contracts not initialized");
-    }
-    if (!signer) {
-      throw new Error("Signer not provided");
-    }
-    if (!token || !ethers.utils.isAddress(token)) {
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!token || !ethers.utils.isAddress(token))
       throw new Error("Invalid token address");
-    }
-    if (!dappAddress || !ethers.utils.isAddress(dappAddress)) {
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
       throw new Error("Invalid DApp address");
-    }
-    if (amount <= 0) {
-      throw new Error("Amount must be greater than 0");
-    }
+    if (amount <= 0) throw new Error("Amount must be greater than 0");
 
-    console.log(
-      "Depositing to vault:",
-      "rollups",
-      rollups,
-      "signer",
-      signer,
-      "token",
-      token,
-      "amount",
-      amount,
-      "dappAddress",
-      dappAddress
-    );
+    console.log("Depositing to vault:", { token, amount, dappAddress });
 
     const signerAddress = await signer.getAddress();
     const amountInWei = ethers.utils.parseEther(`${amount}`);
     const erc20PortalAddress = rollups.erc20PortalContract.address;
     const tokenContract = IERC20__factory.connect(token, signer);
 
-    console.log("signerAddress", signerAddress);
-    console.log("erc20PortalAddress", erc20PortalAddress);
-    console.log("amountInWei", amountInWei.toString());
+    console.log("Transaction details:", {
+      signerAddress,
+      erc20PortalAddress,
+      amountInWei: amountInWei.toString(),
+    });
 
     // Check user's token balance
     const userBalance = await tokenContract.balanceOf(signerAddress);
-    console.log("userBalance", userBalance.toString());
-
     if (userBalance.lt(amountInWei)) {
       throw new Error(
         `Insufficient balance. You have ${ethers.utils.formatEther(
@@ -146,133 +129,59 @@ export const depositErc20ToVault = async (
       );
     }
 
-    // Check current allowance
+    // Check and handle token approval
     const currentAllowance = await tokenContract.allowance(
       signerAddress,
       erc20PortalAddress
     );
-    console.log("currentAllowance", currentAllowance.toString());
-
-    // Approve tokens if needed
     if (currentAllowance.lt(amountInWei)) {
       console.log("Approving tokens...");
-      try {
-        const approveTx = await tokenContract.approve(
-          erc20PortalAddress,
-          amountInWei
-        );
-        console.log("Approval transaction submitted:", approveTx.hash);
-        const approveReceipt = await approveTx.wait(1);
-        console.log(
-          "Approval transaction confirmed:",
-          approveReceipt.transactionHash
-        );
-      } catch (approveError: any) {
-        console.log("Token approval failed:", approveError);
-        throw new Error(
-          `Token approval failed: ${approveError?.message || approveError}`
-        );
-      }
+      const approveTx = await tokenContract.approve(
+        erc20PortalAddress,
+        amountInWei
+      );
+      console.log("Approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("Token approval confirmed");
     }
 
-    // Create vault deposit payload matching backend expected format
+    // Create vault deposit payload
     const vaultPayload = JSON.stringify({
       method: "vault_deposit",
-      args: {
-        amount: amount,
-      },
+      args: { amount },
     });
-
     const data = ethers.utils.toUtf8Bytes(vaultPayload);
 
-    // Deposit tokens to portal with vault payload
+    // Execute deposit transaction
     console.log("Depositing tokens to vault...");
-    console.log("Deposit parameters:", {
+    const depositTx = await rollups.erc20PortalContract.depositERC20Tokens(
       token,
       dappAddress,
-      amount: amountInWei.toString(),
-      dataLength: data.length,
-    });
+      amountInWei,
+      data
+    );
+    console.log("Deposit transaction submitted:", depositTx.hash);
+    const receipt = await depositTx.wait(1);
+    console.log("Vault deposit confirmed:", receipt.transactionHash);
 
-    let depositTx;
-    try {
-      depositTx = await rollups.erc20PortalContract.depositERC20Tokens(
-        token,
-        dappAddress,
-        amountInWei,
-        data
-      );
-      console.log("Deposit transaction submitted:", depositTx.hash);
-    } catch (depositError: any) {
-      console.log("ERC20 portal deposit failed:", depositError);
-      throw new Error(
-        `ERC20 portal deposit failed: ${depositError?.message || depositError}`
-      );
-    }
-
-    let receipt;
-    try {
-      receipt = await depositTx.wait(1);
-      console.log(
-        "Vault deposit transaction confirmed:",
-        receipt.transactionHash
-      );
-    } catch (receiptError: any) {
-      console.log("Deposit transaction confirmation failed:", receiptError);
-      throw new Error(
-        `Deposit transaction confirmation failed: ${
-          receiptError?.message || receiptError
-        }`
-      );
-    }
-
-    // Send additional input after ERC20 portal deposit
-    console.log("Sending additional input after deposit...");
-
-    let inputTx;
-    try {
-      inputTx = await rollups.inputContract.addInput(dappAddress, data);
-      console.log("Input transaction submitted:", inputTx.hash);
-    } catch (inputError: any) {
-      console.log("Add input failed:", inputError);
-      throw new Error(`Add input failed: ${inputError?.message || inputError}`);
-    }
-
-    let inputReceipt;
-    try {
-      inputReceipt = await inputTx.wait(1);
-      console.log("Input transaction confirmed:", inputReceipt.transactionHash);
-    } catch (inputReceiptError: any) {
-      console.log("Input transaction confirmation failed:", inputReceiptError);
-      throw new Error(
-        `Input transaction confirmation failed: ${
-          inputReceiptError?.message || inputReceiptError
-        }`
-      );
-    }
+    // Send additional input
+    console.log("Sending additional input...");
+    const inputTx = await rollups.inputContract.addInput(dappAddress, data);
+    console.log("Input transaction submitted:", inputTx.hash);
+    const inputReceipt = await inputTx.wait(1);
+    console.log("Input transaction confirmed:", inputReceipt.transactionHash);
 
     return { depositReceipt: receipt, inputReceipt };
-  } catch (e: any) {
-    console.log("Vault deposit error:", e);
+  } catch (error: any) {
+    console.error("Vault deposit error:", error);
 
-    // Provide more detailed error information
-    let errorMessage = "Unknown error occurred during vault deposit";
-
-    if (e?.message) {
-      errorMessage = e.message;
-    } else if (e?.reason) {
-      errorMessage = e.reason;
-    } else if (e?.data?.message) {
-      errorMessage = e.data.message;
-    } else if (typeof e === "string") {
-      errorMessage = e;
-    }
-
-    console.log("Detailed error message:", errorMessage);
-
-    // Create a new error with better context
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during vault deposit";
     const enhancedError = new Error(`Vault deposit failed: ${errorMessage}`);
-    enhancedError.cause = e;
+    enhancedError.cause = error;
 
     throw enhancedError;
   }
@@ -977,6 +886,7 @@ export const executeVouchers = async (
     }
   }
 };
+
 export const inspectCall = async (inspectUrl: string, endpoint: string) => {
   try {
     const result = await fetch(`${inspectUrl}/${endpoint}`);
@@ -992,5 +902,748 @@ export const inspectCall = async (inspectUrl: string, endpoint: string) => {
     return reportData;
   } catch (error) {
     console.log(error);
+  }
+};
+
+// NFT Management Functions
+
+// Mint Track NFT (ERC-721)
+// Deposit Track NFT (ERC-721) to portal
+export const depositTrackNFT = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  nftContractAddress: string,
+  tokenId: number,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!nftContractAddress || !ethers.utils.isAddress(nftContractAddress))
+      throw new Error("Invalid NFT contract address");
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
+      throw new Error("Invalid DApp address");
+    if (tokenId < 0) throw new Error("Invalid token ID");
+
+    console.log("Depositing Track NFT:", {
+      nftContractAddress,
+      tokenId,
+      dappAddress,
+    });
+
+    const signerAddress = await signer.getAddress();
+    const nftContract = new ethers.Contract(
+      nftContractAddress,
+      TrackNFTABI,
+      signer
+    );
+    const erc721PortalAddress = rollups.erc721PortalContract.address;
+
+    // Check NFT ownership
+    const owner = await nftContract.ownerOf(tokenId);
+    if (owner.toLowerCase() !== signerAddress.toLowerCase()) {
+      throw new Error("You don't own this NFT");
+    }
+
+    // Check and handle NFT approval
+    const approvedAddress = await nftContract.getApproved(tokenId);
+    if (approvedAddress.toLowerCase() !== erc721PortalAddress.toLowerCase()) {
+      console.log("Approving NFT for portal...");
+      const approveTx = await nftContract.approve(erc721PortalAddress, tokenId);
+      console.log("NFT approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("NFT approval confirmed");
+    }
+
+    // Create deposit payload - using mint_track_nft route from backend
+    const depositPayload = JSON.stringify({
+      method: "mint_track_nft",
+      args: {
+        contractAddress: nftContractAddress,
+        tokenId,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const baseLayerData = ethers.utils.toUtf8Bytes("");
+    const execLayerData = ethers.utils.toUtf8Bytes(depositPayload);
+
+    // Execute NFT deposit through portal
+    console.log("Depositing NFT through portal...");
+    const depositTx = await rollups.erc721PortalContract.depositERC721Token(
+      nftContractAddress,
+      dappAddress,
+      tokenId,
+      baseLayerData,
+      execLayerData
+    );
+    console.log("NFT deposit transaction submitted:", depositTx.hash);
+    const receipt = await depositTx.wait(1);
+    console.log("NFT deposit confirmed:", receipt.transactionHash);
+
+    return receipt;
+  } catch (error: any) {
+    console.error("NFT deposit error:", error);
+
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during NFT deposit";
+    const enhancedError = new Error(`NFT deposit failed: ${errorMessage}`);
+    enhancedError.cause = error;
+
+    throw enhancedError;
+  }
+};
+
+export const mintTrackNFTPortal = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  nftContractAddress: string,
+  trackId: string,
+  ipfsHash: string,
+  royaltyPercentage: number,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!nftContractAddress || !ethers.utils.isAddress(nftContractAddress))
+      throw new Error("Invalid NFT contract address");
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
+      throw new Error("Invalid DApp address");
+    if (!trackId) throw new Error("Track ID cannot be empty");
+    if (!ipfsHash || ipfsHash.trim() === "")
+      throw new Error("IPFS hash cannot be empty");
+    if (royaltyPercentage < 0 || royaltyPercentage > 100)
+      throw new Error("Royalty percentage must be between 0 and 100");
+
+    console.log("Minting Track NFT:", {
+      nftContractAddress,
+      trackId,
+      ipfsHash,
+      royaltyPercentage,
+    });
+
+    const signerAddress = await signer.getAddress();
+    const nftContract = new ethers.Contract(
+      nftContractAddress,
+      TrackNFTABI,
+      signer
+    );
+    const erc721PortalAddress = rollups.erc721PortalContract.address;
+
+    console.log("Transaction details:", {
+      signerAddress,
+      erc721PortalAddress,
+      nftContractAddress,
+    });
+
+    // Check if contract is approved for all tokens or set approval
+    const isApprovedForAll = await nftContract.isApprovedForAll(
+      signerAddress,
+      erc721PortalAddress
+    );
+
+    if (!isApprovedForAll) {
+      console.log("Setting approval for all NFTs...");
+      const approveTx = await nftContract.setApprovalForAll(
+        erc721PortalAddress,
+        true
+      );
+      console.log("Approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("NFT approval confirmed");
+    }
+
+    // Create mint payload for ERC721 portal
+    const mintPayload = JSON.stringify({
+      method: "mint_track_nft", // Use backend NFT route
+      args: {
+        walletAddress: signerAddress,
+        trackId,
+        ipfsHash,
+        royaltyPercentage,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const data = ethers.utils.toUtf8Bytes(mintPayload);
+
+    // Get tokenId from total supply
+    const totalSupply = await nftContract.totalSupply();
+    const tokenId = totalSupply.add(1).toNumber();
+
+    console.log("totalSupply", totalSupply);
+    console.log("Token ID to be minted:", tokenId);
+
+    // Deposit NFT through ERC721 portal before adding input
+    console.log("Depositing NFT through ERC721 portal...");
+    // const depositTx = await rollups.erc721PortalContract.depositERC721Token(
+    //   nftContractAddress,
+    //   dappAddress,
+    //   tokenId,
+    //   "0x",
+    //   data
+    // );
+    // console.log("ERC721 deposit transaction submitted:", depositTx.hash);
+    // await depositTx.wait(1);
+    console.log("ERC721 deposit confirmed");
+
+    // Send mint request through input contract (backend will emit voucher)
+    console.log("Processing mint request...");
+    const mintTx = await rollups.inputContract.addInput(dappAddress, data);
+    console.log("Mint transaction submitted:", mintTx.hash);
+    const receipt = await mintTx.wait(1);
+    console.log("Mint confirmed:", receipt.transactionHash);
+
+    return receipt;
+  } catch (error: any) {
+    console.error("Track NFT mint error:", error);
+
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during Track NFT minting";
+    const enhancedError = new Error(`Track NFT mint failed: ${errorMessage}`);
+    enhancedError.cause = error;
+
+    throw enhancedError;
+  }
+};
+
+// Keep the original function for backward compatibility
+export const mintTrackNFT = async (
+  rollups: RollupsContracts | undefined,
+  dappAddress: string,
+  trackId: string,
+  ipfsHash: string,
+  royaltyPercentage: number,
+  walletAddress?: string // Optional wallet address, defaults to signer if not provided
+) => {
+  try {
+    if (!rollups) {
+      throw new Error("Rollups contracts not available");
+    }
+
+    // Input validation to match backend and smart contract expectations
+    if (!trackId) {
+      throw new Error("Track ID cannot be empty");
+    }
+    if (!ipfsHash || ipfsHash.trim() === "") {
+      throw new Error("IPFS hash cannot be empty");
+    }
+    if (royaltyPercentage < 0 || royaltyPercentage > 100) {
+      throw new Error("Royalty percentage must be between 0 and 100");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    // Backend expects: walletAddress, trackId, ipfsHash, royaltyPercentage
+    const payload = {
+      method: "mint_track_nft", // Use backend NFT route
+      args: {
+        walletAddress: walletAddress, // Backend will use msg.sender if not provided
+        trackId,
+        ipfsHash,
+        royaltyPercentage,
+        timestamp,
+      },
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+    const data = ethers.utils.toUtf8Bytes(jsonPayload);
+
+    const tx = await rollups.inputContract.addInput(dappAddress, data);
+    const receipt = await tx.wait(1);
+
+    console.log("Track NFT minting transaction:", receipt.transactionHash);
+    return receipt;
+  } catch (error) {
+    console.error("Error minting Track NFT:", error);
+    throw error;
+  }
+};
+
+// Purchase Artist Tokens (ERC-1155) through portal with payment
+export const purchaseArtistTokensPortal = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  nftContractAddress: string,
+  trackId: string, // Changed from tokenId to trackId to match backend expectations
+  amount: number,
+  paymentTokenAddress: string,
+  totalPayment: string,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!nftContractAddress || !ethers.utils.isAddress(nftContractAddress))
+      throw new Error("Invalid NFT contract address");
+    if (!paymentTokenAddress || !ethers.utils.isAddress(paymentTokenAddress))
+      throw new Error("Invalid payment token address");
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
+      throw new Error("Invalid DApp address");
+    if (!trackId || trackId.trim() === "") throw new Error("Invalid track ID");
+    if (amount <= 0) throw new Error("Amount must be greater than 0");
+    if (!totalPayment || ethers.BigNumber.from(totalPayment).lte(0))
+      throw new Error("Invalid payment amount");
+
+    console.log("Purchasing Artist Tokens:", {
+      nftContractAddress,
+      trackId,
+      amount,
+      totalPayment,
+    });
+
+    const signerAddress = await signer.getAddress();
+    const paymentToken = IERC20__factory.connect(paymentTokenAddress, signer);
+    const paymentAmount = ethers.BigNumber.from(totalPayment);
+
+    // Check payment token balance
+    const balance = await paymentToken.balanceOf(signerAddress);
+    if (balance.lt(paymentAmount)) {
+      throw new Error(
+        `Insufficient balance. Required: ${ethers.utils.formatEther(
+          paymentAmount
+        )}, Available: ${ethers.utils.formatEther(balance)}`
+      );
+    }
+
+    // Handle payment token approval and deposit
+    const currentAllowance = await paymentToken.allowance(
+      signerAddress,
+      rollups.erc20PortalContract.address
+    );
+    if (currentAllowance.lt(paymentAmount)) {
+      console.log("Approving payment tokens...");
+      const approveTx = await paymentToken.approve(
+        rollups.erc20PortalContract.address,
+        paymentAmount
+      );
+      console.log("Payment approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("Payment approval confirmed");
+    }
+
+    // Deposit payment tokens first
+    console.log("Depositing payment tokens...");
+    const paymentPayload = JSON.stringify({
+      method: "erc20_deposit", // Use backend portal route name
+      args: {
+        trackId,
+        amount,
+        paymentAmount: totalPayment,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const paymentData = ethers.utils.toUtf8Bytes(paymentPayload);
+    const paymentTx = await rollups.erc20PortalContract.depositERC20Tokens(
+      paymentTokenAddress,
+      dappAddress,
+      paymentAmount,
+      paymentData
+    );
+    console.log("Payment deposit transaction submitted:", paymentTx.hash);
+    await paymentTx.wait(1);
+    console.log("Payment deposit confirmed");
+
+    // Create purchase payload - backend expects buyerAddress, trackId, amount, totalPrice
+    const purchasePayload = JSON.stringify({
+      method: "purchase_artist_tokens", // Use backend NFT route
+      args: {
+        buyerAddress: signerAddress,
+        trackId: trackId,
+        amount: amount,
+        totalPrice: parseFloat(ethers.utils.formatEther(totalPayment)),
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const data = ethers.utils.toUtf8Bytes(purchasePayload);
+
+    // Send purchase request through input contract (backend will emit voucher)
+    console.log("Processing purchase request...");
+    const purchaseTx = await rollups.inputContract.addInput(dappAddress, data);
+    console.log("Purchase transaction submitted:", purchaseTx.hash);
+    const receipt = await purchaseTx.wait(1);
+    console.log("Purchase confirmed:", receipt.transactionHash);
+
+    return receipt;
+  } catch (error: any) {
+    console.error("Artist tokens purchase error:", error);
+
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during artist tokens purchase";
+    const enhancedError = new Error(
+      `Artist tokens purchase failed: ${errorMessage}`
+    );
+    enhancedError.cause = error;
+
+    throw enhancedError;
+  }
+};
+
+// Mint Artist Tokens (ERC-1155)
+export const mintArtistTokens = async (
+  rollups: RollupsContracts | undefined,
+  dappAddress: string,
+  trackId: string,
+  amount: number,
+  pricePerToken: number,
+  walletAddress?: string // Optional wallet address, defaults to signer if not provided
+) => {
+  try {
+    if (!rollups) {
+      throw new Error("Rollups contracts not available");
+    }
+
+    // Input validation to match backend expectations
+    if (!trackId) {
+      throw new Error("Track ID cannot be empty");
+    }
+    if (amount <= 0) {
+      throw new Error("Amount must be greater than 0");
+    }
+    if (pricePerToken <= 0) {
+      throw new Error("Price per token must be greater than 0");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    // Backend expects: walletAddress, trackId, amount, pricePerToken
+    const payload = {
+      method: "mint_artist_tokens", // Use backend NFT route
+      args: {
+        walletAddress,
+        trackId,
+        amount,
+        pricePerToken,
+        timestamp,
+      },
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+    const data = ethers.utils.toUtf8Bytes(jsonPayload);
+
+    const tx = await rollups.inputContract.addInput(dappAddress, data);
+    const receipt = await tx.wait(1);
+
+    console.log("Artist Tokens minting transaction:", receipt.transactionHash);
+    return receipt;
+  } catch (error) {
+    console.error("Error minting Artist Tokens:", error);
+    throw error;
+  }
+};
+
+// Purchase Artist Tokens
+// Legacy function - use purchaseArtistTokensPortal for new implementations
+export const purchaseArtistTokens = async (
+  rollups: RollupsContracts | undefined,
+  dappAddress: string,
+  tokenId: number,
+  amount: number,
+  totalPrice: number
+) => {
+  try {
+    if (!rollups) {
+      throw new Error("Rollups contracts not available");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const payload = {
+      method: "purchase_artist_tokens",
+      args: {
+        tokenId,
+        amount,
+        totalPrice,
+        timestamp,
+      },
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+    const data = ethers.utils.toUtf8Bytes(jsonPayload);
+
+    const tx = await rollups.inputContract.addInput(dappAddress, data);
+    const receipt = await tx.wait(1);
+
+    console.log("Artist Tokens purchase transaction:", receipt.transactionHash);
+    return receipt;
+  } catch (error) {
+    console.error("Error purchasing Artist Tokens:", error);
+    throw error;
+  }
+};
+
+// Transfer Track NFT (ERC-721) through portal
+export const transferTrackNFTPortal = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  nftContractAddress: string,
+  tokenId: number,
+  toAddress: string,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!nftContractAddress || !ethers.utils.isAddress(nftContractAddress))
+      throw new Error("Invalid NFT contract address");
+    if (!toAddress || !ethers.utils.isAddress(toAddress))
+      throw new Error("Invalid recipient address");
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
+      throw new Error("Invalid DApp address");
+    if (tokenId < 0) throw new Error("Invalid token ID");
+
+    console.log("Transferring Track NFT:", {
+      nftContractAddress,
+      tokenId,
+      toAddress,
+    });
+
+    const signerAddress = await signer.getAddress();
+    const nftContract = IERC721__factory.connect(nftContractAddress, signer);
+    const erc721PortalAddress = rollups.erc721PortalContract.address;
+
+    // Check NFT ownership
+    const owner = await nftContract.ownerOf(tokenId);
+    if (owner.toLowerCase() !== signerAddress.toLowerCase()) {
+      throw new Error("You don't own this NFT");
+    }
+
+    // Handle NFT approval for portal
+    const approvedAddress = await nftContract.getApproved(tokenId);
+    if (approvedAddress.toLowerCase() !== erc721PortalAddress.toLowerCase()) {
+      console.log("Approving NFT for portal...");
+      const approveTx = await nftContract.approve(erc721PortalAddress, tokenId);
+      console.log("NFT approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("NFT approval confirmed");
+    }
+
+    // Create transfer payload - using backend portal route
+    const transferPayload = JSON.stringify({
+      method: "erc721_deposit",
+      args: {
+        contractAddress: nftContractAddress,
+        tokenId,
+        toAddress,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const baseLayerData = ethers.utils.toUtf8Bytes("");
+    const execLayerData = ethers.utils.toUtf8Bytes(transferPayload);
+
+    // Execute transfer through portal
+    console.log("Transferring NFT through portal...");
+    const transferTx = await rollups.erc721PortalContract.depositERC721Token(
+      nftContractAddress,
+      dappAddress,
+      tokenId,
+      baseLayerData,
+      execLayerData
+    );
+    console.log("NFT transfer transaction submitted:", transferTx.hash);
+    const receipt = await transferTx.wait(1);
+    console.log("NFT transfer confirmed:", receipt.transactionHash);
+
+    return receipt;
+  } catch (error: any) {
+    console.error("NFT transfer error:", error);
+
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during NFT transfer";
+    const enhancedError = new Error(`NFT transfer failed: ${errorMessage}`);
+    enhancedError.cause = error;
+
+    throw enhancedError;
+  }
+};
+
+// Legacy Transfer Track NFT (ERC-721) - use transferTrackNFTPortal for new implementations
+export const transferTrackNFT = async (
+  rollups: RollupsContracts | undefined,
+  dappAddress: string,
+  tokenId: number,
+  toAddress: string
+) => {
+  try {
+    if (!rollups) {
+      throw new Error("Rollups contracts not available");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const payload = {
+      method: "transfer_track_nft",
+      args: {
+        tokenId,
+        toAddress,
+        timestamp,
+      },
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+    const data = ethers.utils.toUtf8Bytes(jsonPayload);
+
+    const tx = await rollups.inputContract.addInput(dappAddress, data);
+    const receipt = await tx.wait(1);
+
+    console.log("Track NFT transfer transaction:", receipt.transactionHash);
+    return receipt;
+  } catch (error) {
+    console.error("Error transferring Track NFT:", error);
+    throw error;
+  }
+};
+
+// Transfer Artist Tokens (ERC-1155) through portal
+export const transferArtistTokensPortal = async (
+  rollups: RollupsContracts | undefined,
+  signer: any,
+  nftContractAddress: string,
+  tokenId: number,
+  toAddress: string,
+  amount: number,
+  dappAddress: string
+) => {
+  try {
+    // Input validation
+    if (!rollups) throw new Error("Rollups contracts not initialized");
+    if (!signer) throw new Error("Signer not provided");
+    if (!nftContractAddress || !ethers.utils.isAddress(nftContractAddress))
+      throw new Error("Invalid NFT contract address");
+    if (!toAddress || !ethers.utils.isAddress(toAddress))
+      throw new Error("Invalid recipient address");
+    if (!dappAddress || !ethers.utils.isAddress(dappAddress))
+      throw new Error("Invalid DApp address");
+    if (tokenId < 0) throw new Error("Invalid token ID");
+    if (amount <= 0) throw new Error("Amount must be greater than 0");
+
+    console.log("Transferring Artist Tokens:", {
+      nftContractAddress,
+      tokenId,
+      toAddress,
+      amount,
+    });
+
+    const signerAddress = await signer.getAddress();
+    const nftContract = IERC1155__factory.connect(nftContractAddress, signer);
+    const erc1155PortalAddress = rollups.erc1155SinglePortalContract.address;
+
+    // Check token balance
+    const balance = await nftContract.balanceOf(signerAddress, tokenId);
+    if (balance.lt(amount)) {
+      throw new Error(
+        `Insufficient token balance. Required: ${amount}, Available: ${balance.toString()}`
+      );
+    }
+
+    // Handle token approval for portal
+    const isApproved = await nftContract.isApprovedForAll(
+      signerAddress,
+      erc1155PortalAddress
+    );
+    if (!isApproved) {
+      console.log("Approving tokens for portal...");
+      const approveTx = await nftContract.setApprovalForAll(
+        erc1155PortalAddress,
+        true
+      );
+      console.log("Token approval transaction submitted:", approveTx.hash);
+      await approveTx.wait(1);
+      console.log("Token approval confirmed");
+    }
+
+    // Create transfer payload - using backend portal route
+    const transferPayload = JSON.stringify({
+      method: "erc1155_deposit",
+      args: {
+        contractAddress: nftContractAddress,
+        tokenId,
+        toAddress,
+        amount,
+        timestamp: Math.floor(Date.now() / 1000),
+      },
+    });
+    const baseLayerData = ethers.utils.toUtf8Bytes("");
+    const execLayerData = ethers.utils.toUtf8Bytes(transferPayload);
+
+    // Execute transfer through portal
+    console.log("Transferring tokens through portal...");
+    const transferTx =
+      await rollups.erc1155SinglePortalContract.depositSingleERC1155Token(
+        nftContractAddress,
+        dappAddress,
+        tokenId,
+        amount,
+        baseLayerData,
+        execLayerData
+      );
+    console.log("Token transfer transaction submitted:", transferTx.hash);
+    const receipt = await transferTx.wait(1);
+    console.log("Token transfer confirmed:", receipt.transactionHash);
+
+    return receipt;
+  } catch (error: any) {
+    console.error("Artist tokens transfer error:", error);
+
+    const errorMessage =
+      error?.message ||
+      error?.reason ||
+      error?.data?.message ||
+      "Unknown error occurred during token transfer";
+    const enhancedError = new Error(
+      `Artist tokens transfer failed: ${errorMessage}`
+    );
+    enhancedError.cause = error;
+
+    throw enhancedError;
+  }
+};
+
+// Legacy Transfer Artist Tokens (ERC-1155) - use transferArtistTokensPortal for new implementations
+export const transferArtistTokens = async (
+  rollups: RollupsContracts | undefined,
+  dappAddress: string,
+  tokenId: number,
+  toAddress: string,
+  amount: number
+) => {
+  try {
+    if (!rollups) {
+      throw new Error("Rollups contracts not available");
+    }
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const payload = {
+      method: "transfer_artist_tokens",
+      args: {
+        tokenId,
+        toAddress,
+        amount,
+        timestamp,
+      },
+    };
+
+    const jsonPayload = JSON.stringify(payload);
+    const data = ethers.utils.toUtf8Bytes(jsonPayload);
+
+    const tx = await rollups.inputContract.addInput(dappAddress, data);
+    const receipt = await tx.wait(1);
+
+    console.log("Artist Tokens transfer transaction:", receipt.transactionHash);
+    return receipt;
+  } catch (error) {
+    console.error("Error transferring Artist Tokens:", error);
+    throw error;
   }
 };

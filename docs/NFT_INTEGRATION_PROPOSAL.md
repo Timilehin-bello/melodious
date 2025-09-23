@@ -919,12 +919,6 @@ router.addRoute("get_user_nfts", new Routes.GetUserNFTsRoute());
 - ERC721 Portal handling (`erc721_deposit`)
 - DApp Address Relay setup
 
-**❌ Missing Implementation:**
-
-- ERC1155SinglePortal handling
-- ERC1155BatchPortal handling
-- Actual route handlers for portal deposits
-
 **Current handle_advance function:**
 
 ```typescript

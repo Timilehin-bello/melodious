@@ -43,8 +43,13 @@ export function useTracks() {
       tracks.find((track: Track) => track.id === id),
     getTracksByArtist: (artistId: string) =>
       tracks.filter((track: Track) => track.artistId === artistId),
-    getTracksByWallet: (walletAddress: string) =>
-      tracks.filter((track: Track) => track.walletAddress === walletAddress),
+    getTracksByWallet: (walletAddress: string) => {
+      console.log("Track found:", tracks);
+      return tracks.filter(
+        (track: Track) =>
+          track.walletAddress?.toLowerCase() === walletAddress.toLowerCase()
+      );
+    },
     hasTracks: tracks.length > 0,
   };
 }

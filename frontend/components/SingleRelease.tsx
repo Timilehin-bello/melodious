@@ -418,7 +418,7 @@ const SingleRelease = () => {
           </div>
 
           {/* Submit Button */}
-          <div className="mt-8">
+          <div className="flex justify-end mt-8">
             <Button
               type="submit"
               className="w-full md:w-auto px-8 py-3 bg-[#950944] text-white hover:bg-[#950944]/90 transition-colors rounded-lg font-medium"
