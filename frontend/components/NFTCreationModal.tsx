@@ -51,8 +51,8 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
   const [currentStep, setCurrentStep] = useState<CreationStep>("selection");
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [royaltyPercentage, setRoyaltyPercentage] = useState<number>(10);
-  const [tokenAmount, setTokenAmount] = useState<number>(100);
-  const [pricePerToken, setPricePerToken] = useState<number>(0.01);
+  const [tokenAmount, setTokenAmount] = useState<string>("100");
+  const [pricePerToken, setPricePerToken] = useState<string>("0.01");
   const [ipfsHash, setIpfsHash] = useState<string>("");
 
   // Filter eligible tracks based on NFT type
@@ -110,8 +110,8 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
       } else {
         await onMintArtistTokens({
           trackId: selectedTrack.id.toString(),
-          amount: tokenAmount,
-          pricePerToken: pricePerToken,
+          amount: Number(tokenAmount) || 1,
+          pricePerToken: Number(pricePerToken) || 0.01,
         });
       }
 
@@ -145,8 +145,8 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
       setCurrentStep("selection");
       setSelectedTrack(null);
       setRoyaltyPercentage(10);
-      setTokenAmount(100);
-      setPricePerToken(0.01);
+      setTokenAmount("100");
+      setPricePerToken("0.01");
       setIpfsHash("");
     }
   };
@@ -383,6 +383,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                                 onChange={(e) => setIpfsHash(e.target.value)}
                                 placeholder="QmXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                                 className="bg-white/5 border-white/10 text-white mt-1"
+                                readOnly
                               />
                             </div>
                             <div>
@@ -397,6 +398,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                                 onChange={(e) =>
                                   setRoyaltyPercentage(Number(e.target.value))
                                 }
+                                readOnly
                                 className="bg-white/5 border-white/10 text-white mt-1"
                               />
                             </div>
@@ -409,7 +411,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                         </div>
                       ) : (
                         /* Artist Tokens (ERC-1155) */
-                        <div className="bg-white/5 rounded-lg p-6 border border-white/10 max-w-md w-full">
+                        <div className="bg-white/5 rounded-lg p-6 border border-white/10  w-full">
                           <div className="flex items-center gap-2 mb-4 justify-center">
                             <Coins className="w-5 h-5 text-[#950944]" />
                             <h4 className="text-lg font-medium text-white">
@@ -428,9 +430,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                                 type="number"
                                 min="1"
                                 value={tokenAmount}
-                                onChange={(e) =>
-                                  setTokenAmount(Number(e.target.value))
-                                }
+                                onChange={(e) => setTokenAmount(e.target.value)}
                                 className="bg-white/5 border-white/10 text-white mt-1"
                               />
                             </div>
@@ -443,9 +443,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                                 min="0.01"
                                 step="0.01"
                                 value={pricePerToken}
-                                onChange={(e) =>
-                                  setPricePerToken(Number(e.target.value))
-                                }
+                                onChange={(e) => setPricePerToken(e.target.value)}
                                 className="bg-white/5 border-white/10 text-white mt-1"
                               />
                             </div>

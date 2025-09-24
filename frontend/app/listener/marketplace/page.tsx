@@ -423,10 +423,7 @@ const NFTMarketplace = () => {
                       max={token.amount}
                       value={purchaseAmountStr}
                       onChange={(e) =>
-                        handleAmountChange(
-                          token.id,
-                          e.target.value
-                        )
+                        handleAmountChange(token.id, e.target.value)
                       }
                       placeholder="1"
                       className="flex-1 bg-zinc-800 border-zinc-600 text-white"

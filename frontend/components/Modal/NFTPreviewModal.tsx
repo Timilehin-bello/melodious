@@ -213,10 +213,8 @@ export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
                                 min="0"
                                 max="100"
                                 value={royaltyPercentage}
-                                onChange={(e) =>
-                                  setRoyaltyPercentage(Number(e.target.value))
-                                }
-                                className="bg-white/5 border-white/10 text-white mt-1"
+                                readOnly
+                                className="bg-white/5 border-white/10 text-white mt-1 cursor-not-allowed opacity-75"
                               />
                             </div>
                             <div className="text-xs text-gray-400 text-center">
