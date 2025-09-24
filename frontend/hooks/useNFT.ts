@@ -633,6 +633,13 @@ export const usePurchaseArtistTokens = () => {
         throw new Error("Rollups not available or wallet not connected");
       }
 
+      console.log(
+        "Purchase Artist Tokens request:",
+        request.tokenId,
+        request.amount,
+        request.totalPrice
+      );
+
       try {
         const response = await purchaseArtistTokens(
           rollups,

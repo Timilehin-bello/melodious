@@ -76,8 +76,11 @@ const NFTMarketplace = () => {
     max: "",
   });
   const [purchaseAmounts, setPurchaseAmounts] = useState<{
-    [key: number]: number;
+    [key: number]: string;
   }>({});
+  const [purchasingTokens, setPurchasingTokens] = useState<Set<number>>(
+    new Set()
+  );
 
   // Fetch marketplace data
   const { data: marketplaceData, isLoading } = useMarketplace();
@@ -147,10 +150,10 @@ const NFTMarketplace = () => {
   }, [enrichedTokens]);
 
   // Handle purchase amount change
-  const handleAmountChange = (tokenId: number, amount: number) => {
+  const handleAmountChange = (tokenId: number, amount: string) => {
     setPurchaseAmounts((prev) => ({
       ...prev,
-      [tokenId]: Math.max(1, amount),
+      [tokenId]: amount,
     }));
   };
 
@@ -161,11 +164,15 @@ const NFTMarketplace = () => {
       return;
     }
 
-    const amount = purchaseAmounts[token.id] || 1;
-    if (amount > token.amount) {
-      toast.error("Not enough tokens available");
+    const amountStr = purchaseAmounts[token.id] || "1";
+    const amount = parseInt(amountStr) || 1;
+    if (amount > token.amount || amount < 1) {
+      toast.error("Invalid amount or not enough tokens available");
       return;
     }
+
+    // Set loading state for this specific token
+    setPurchasingTokens((prev) => new Set(prev).add(token.id));
 
     try {
       const totalPrice = token.pricePerToken * amount;
@@ -178,10 +185,17 @@ const NFTMarketplace = () => {
       // Reset purchase amount
       setPurchaseAmounts((prev) => ({
         ...prev,
-        [token.id]: 1,
+        [token.id]: "1",
       }));
     } catch (error) {
       console.error("Purchase failed:", error);
+    } finally {
+      // Remove loading state for this specific token
+      setPurchasingTokens((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(token.id);
+        return newSet;
+      });
     }
   };
 
@@ -235,7 +249,7 @@ const NFTMarketplace = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
       {/* Header */}
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
@@ -316,10 +330,12 @@ const NFTMarketplace = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredTokens.map((token) => {
-            const purchaseAmount = purchaseAmounts[token.id] || 1;
+            const purchaseAmountStr = purchaseAmounts[token.id] || "";
+            const purchaseAmount = parseInt(purchaseAmountStr) || 1;
             const totalPrice = token.pricePerToken * purchaseAmount;
             const isCurrentTrack =
               Number(currentTrack?.id) === Number(token.track?.id);
+            const isPurchasing = purchasingTokens.has(token.id);
 
             return (
               <div
@@ -391,7 +407,7 @@ const NFTMarketplace = () => {
                     <div className="flex items-center gap-1">
                       <Coins className="w-4 h-4 text-yellow-500" />
                       <span className="font-semibold text-white">
-                        {token.pricePerToken.toFixed(4)} ETH
+                        {token.pricePerToken.toFixed(4)} CTSI
                       </span>
                     </div>
                   </div>
@@ -405,13 +421,14 @@ const NFTMarketplace = () => {
                       type="number"
                       min="1"
                       max={token.amount}
-                      value={purchaseAmount}
+                      value={purchaseAmountStr}
                       onChange={(e) =>
                         handleAmountChange(
                           token.id,
-                          parseInt(e.target.value) || 1
+                          e.target.value
                         )
                       }
+                      placeholder="1"
                       className="flex-1 bg-zinc-800 border-zinc-600 text-white"
                     />
                   </div>
@@ -421,7 +438,7 @@ const NFTMarketplace = () => {
                     <div className="flex items-center gap-1">
                       <Coins className="w-4 h-4 text-yellow-500" />
                       <span className="font-semibold text-white">
-                        {totalPrice.toFixed(4)} ETH
+                        {totalPrice.toFixed(4)} CTSI
                       </span>
                     </div>
                   </div>
@@ -429,13 +446,15 @@ const NFTMarketplace = () => {
                   <Button
                     onClick={() => handlePurchase(token)}
                     disabled={
-                      purchaseTokensMutation.isPending ||
+                      isPurchasing ||
                       !walletAddress ||
-                      purchaseAmount > token.amount
+                      purchaseAmount > token.amount ||
+                      purchaseAmount < 1 ||
+                      !purchaseAmountStr
                     }
                     className="w-full bg-[#950944] hover:bg-[#7a0735] text-white"
                   >
-                    {purchaseTokensMutation.isPending ? (
+                    {isPurchasing ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         Purchasing...

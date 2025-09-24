@@ -56,7 +56,9 @@ export default function Page() {
       // Find the artist user by matching user.artist.id with track.artistId
       const artistUser = users.find(
         (user: any) =>
-          user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+          user.artist &&
+          track.artistId &&
+          user.artist.id === parseInt(track.artistId)
       );
       console.log("artistUser", artistUser, "track", JSON.stringify(track));
       return {
@@ -80,7 +82,9 @@ export default function Page() {
         // Find the artist user by matching user.artist.id with track.artistId
         const artistUser = users.find(
           (user: any) =>
-            user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+            user.artist &&
+            track.artistId &&
+            user.artist.id === parseInt(track.artistId)
         );
 
         return {
