@@ -121,7 +121,7 @@ const Wallet = () => {
   ];
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
       <div className="max-w-screen-2xl mx-auto px-4 py-8">
         {/* Wallet Header */}
         <div className="mb-8">

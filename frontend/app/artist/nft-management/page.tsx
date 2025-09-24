@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { Tab } from "@headlessui/react";
@@ -22,13 +22,13 @@ import {
   TrackNFT,
   ArtistToken,
 } from "@/hooks/useNFT";
-import { useTracks, Track } from "@/hooks/useTracks";
-import { useUserByWallet } from "@/hooks/useUserByWallet";
+import { useTracksByArtistWallet, Track } from "@/hooks/useTracks";
+
 import { cn } from "@/lib/utils";
-import NFTStatsCards from "./components/NFTStatsCards";
-import { NFTCreationModal } from "./components/NFTCreationModal";
-import { TrackNFTCard } from "./components/TrackNFTCard";
-import { ArtistTokenCard } from "./components/ArtistTokenCard";
+import NFTStatsCards from "@/components/NFTStatsCards";
+import { NFTCreationModal } from "@/components/NFTCreationModal";
+import { TrackNFTCard } from "@/components/TrackNFTCard";
+import { ArtistTokenCard } from "@/components/ArtistTokenCard";
 
 interface MintTrackNFTFormData {
   trackId: string;
@@ -44,35 +44,10 @@ interface MintArtistTokensFormData {
 
 const NFTManagementPage = () => {
   const activeAccount = useActiveAccount();
-  const { tracks: allTracks } = useTracks();
   const walletAddress = activeAccount?.address;
 
-  // Get user/artist details by wallet address
-  const { user: artistUser, isLoading: userLoading } =
-    useUserByWallet(walletAddress);
-
-  // Filter tracks by artist ID - same logic as release page
-  const tracks = useMemo(() => {
-    if (!allTracks || !artistUser?.artist) return [];
-
-    const artistTracks = allTracks.filter(
-      (track: Track) => track.artistId === artistUser.artist.id
-    );
-
-    // Format tracks to include artist details
-    return artistTracks.map((track: Track) => ({
-      ...track,
-      artist: artistUser.displayName || artistUser.name,
-      artistDetails: {
-        id: artistUser.artist.id,
-        name: artistUser.name,
-        displayName: artistUser.displayName,
-        profileImage: artistUser.profileImage,
-        biography: artistUser.artist.biography,
-        socialMediaLinks: artistUser.artist.socialMediaLinks,
-      },
-    }));
-  }, [allTracks, artistUser]);
+  // Use the new hook to get tracks filtered by artist wallet with artist details
+  const { tracks, isLoading: tracksLoading, artistUser } = useTracksByArtistWallet(walletAddress);
 
   const { trackNFTs, artistTokens, nftStats, isLoading, refetch } =
     useMyNFTData();

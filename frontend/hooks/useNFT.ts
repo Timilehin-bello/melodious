@@ -12,8 +12,6 @@ import {
   mintTrackNFTPortal,
   mintArtistTokens,
   purchaseArtistTokens,
-  transferTrackNFT,
-  transferArtistTokens,
 } from "../cartesi/Portals";
 
 // NFT types
@@ -258,9 +256,16 @@ export const useNFTStats = (walletAddress?: string) => {
           (token: ArtistToken) =>
             token.owner?.toLowerCase() === walletAddress.toLowerCase()
         );
+
+        // Filter purchases by trackId that belongs to the artist's tokens
+        // Get trackIds from the artist's tokens
+        const artistTrackIds = filteredArtistTokens.map(
+          (token: ArtistToken) => token.trackId
+        );
+
         filteredPurchases = (artistTokenPurchases || []).filter(
           (purchase: ArtistTokenPurchase) =>
-            purchase.buyer?.toLowerCase() === walletAddress.toLowerCase()
+            artistTrackIds.includes(purchase.trackId)
         );
       }
 

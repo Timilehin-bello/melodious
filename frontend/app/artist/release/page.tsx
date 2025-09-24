@@ -14,7 +14,7 @@ import {
 import SearchInput from "@/components/SearchInput";
 import SongList from "@/components/SongList";
 import BlockLoader from "@/components/BlockLoader";
-import { useTracks } from "@/hooks/useTracks";
+import { useTracksByArtistWallet } from "@/hooks/useTracks";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import {
   useMusicPlayer,
@@ -22,43 +22,18 @@ import {
 } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useActiveAccount } from "thirdweb/react";
-import { useUserByWallet } from "@/hooks/useUserByWallet";
+
 import NFTManagement from "@/components/NFTManagement";
 
 const Release = () => {
   const activeAccount = useActiveAccount();
-  const { tracks: allTracks, isLoading, isError, error } = useTracks();
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
   const walletAddress = activeAccount?.address;
   const [activeTab, setActiveTab] = useState<"tracks" | "nfts">("tracks");
 
-  // Get user/artist details by wallet address
-  const { user: artistUser, isLoading: userLoading } =
-    useUserByWallet(walletAddress);
-
-  // Filter tracks by artist ID and format with artist details
-  const tracks = useMemo(() => {
-    if (!allTracks || !artistUser?.artist) return [];
-
-    const artistTracks = allTracks.filter(
-      (track: any) => track.artistId === artistUser.artist.id
-    );
-
-    // Format tracks to include artist details
-    return artistTracks.map((track: any) => ({
-      ...track,
-      artist: artistUser.displayName || artistUser.name, // Use string for SongList component
-      artistDetails: {
-        id: artistUser.artist.id,
-        name: artistUser.name,
-        displayName: artistUser.displayName,
-        profileImage: artistUser.profileImage,
-        biography: artistUser.artist.biography,
-        socialMediaLinks: artistUser.artist.socialMediaLinks,
-      },
-    }));
-  }, [allTracks, artistUser]);
+  // Use the new hook to get tracks filtered by artist wallet with artist details
+  const { tracks, isLoading, isError, error, artistUser } = useTracksByArtistWallet(walletAddress);
 
   useEffect(() => {
     if (isError) {
@@ -191,7 +166,7 @@ const Release = () => {
             <SongList
               songList={tracks}
               onPlayPause={handlePlayTrack}
-              isLoading={isLoading || userLoading}
+              isLoading={isLoading}
               showRemoveButton={false}
             />
           ) : (

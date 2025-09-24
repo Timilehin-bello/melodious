@@ -126,7 +126,7 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
       setTimeout(() => {
         onSuccess();
         handleClose();
-      }, 2000);
+      }, 5000);
     } catch (error) {
       console.error("Error minting NFTs:", error);
       setCurrentStep("preview");
