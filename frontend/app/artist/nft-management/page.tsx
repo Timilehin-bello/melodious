@@ -47,7 +47,11 @@ const NFTManagementPage = () => {
   const walletAddress = activeAccount?.address;
 
   // Use the new hook to get tracks filtered by artist wallet with artist details
-  const { tracks, isLoading: tracksLoading, artistUser } = useTracksByArtistWallet(walletAddress);
+  const {
+    tracks,
+    isLoading: tracksLoading,
+    artistUser,
+  } = useTracksByArtistWallet(walletAddress);
 
   const { trackNFTs, artistTokens, nftStats, isLoading, refetch } =
     useMyNFTData();

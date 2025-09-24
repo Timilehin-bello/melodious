@@ -21,8 +21,6 @@ export interface Track {
   audioUrl: string;
   imageUrl: string;
   artistId?: string;
-  hasErc721Nft?: boolean;
-  hasErc1155Nft?: boolean;
 }
 
 export interface Playlist {

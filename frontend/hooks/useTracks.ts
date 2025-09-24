@@ -106,8 +106,14 @@ export function useTracksByArtist(artistId: string | undefined) {
  * @returns Object containing filtered tracks with artist details, loading state, and error state
  */
 export function useTracksByArtistWallet(walletAddress: string | undefined) {
-  const { tracks: allTracks, isLoading: tracksLoading, isError, error } = useTracks();
-  const { user: artistUser, isLoading: userLoading } = useUserByWallet(walletAddress);
+  const {
+    tracks: allTracks,
+    isLoading: tracksLoading,
+    isError,
+    error,
+  } = useTracks();
+  const { user: artistUser, isLoading: userLoading } =
+    useUserByWallet(walletAddress);
 
   const tracks = useMemo(() => {
     if (!allTracks || !artistUser?.artist) return [];

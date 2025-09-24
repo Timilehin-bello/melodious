@@ -13,6 +13,8 @@ import {
   mintArtistTokens,
   purchaseArtistTokens,
 } from "../cartesi/Portals";
+import { Track } from "@/types";
+import { User } from "./useUserByWallet";
 
 // NFT types
 export interface TrackNFT {
@@ -86,6 +88,9 @@ export const nftKeys = {
     [...nftKeys.all, "nftStats", walletAddress] as const,
   userNFTs: (walletAddress?: string) =>
     [...nftKeys.all, "userNFTs", walletAddress] as const,
+  allTrackNFTs: () => [...nftKeys.all, "allTrackNFTs"] as const,
+  allArtistTokens: () => [...nftKeys.all, "allArtistTokens"] as const,
+  marketplace: () => [...nftKeys.all, "marketplace"] as const,
 };
 
 // Hook to get Track NFTs (ERC-721)
@@ -219,6 +224,168 @@ export const useArtistTokenPurchases = (walletAddress?: string) => {
         totalPrice: purchase.totalPrice,
         purchasedAt: purchase.purchasedAt,
       }));
+    },
+    enabled: !!repositoryData && !!activeAccount,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+};
+
+// Hook to get all Track NFTs (unfiltered)
+export const useAllTrackNFTs = () => {
+  const { repositoryData } = useRepositoryData();
+  const activeAccount = useActiveAccount();
+
+  return useQuery({
+    queryKey: nftKeys.allTrackNFTs(),
+    queryFn: async (): Promise<TrackNFT[]> => {
+      if (!repositoryData) {
+        throw new Error("Repository data not available");
+      }
+
+      const { trackNFTs } = repositoryData;
+
+      if (!trackNFTs) {
+        return [];
+      }
+
+      return trackNFTs.map((nft: any) => ({
+        id: nft.id,
+        trackId: nft.trackId,
+        owner: nft.owner,
+        ipfsHash: nft.ipfsHash,
+        royaltyPercentage: nft.royaltyPercentage,
+        mintedAt: nft.mintedAt,
+        isActive: nft.isActive,
+        tokenId: nft.tokenId,
+      }));
+    },
+    enabled: !!repositoryData && !!activeAccount,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+};
+
+// Hook to get all Artist Tokens (unfiltered)
+export const useAllArtistTokens = () => {
+  const { repositoryData } = useRepositoryData();
+  const activeAccount = useActiveAccount();
+
+  return useQuery({
+    queryKey: nftKeys.allArtistTokens(),
+    queryFn: async (): Promise<ArtistToken[]> => {
+      if (!repositoryData) {
+        throw new Error("Repository data not available");
+      }
+
+      const { artistTokens } = repositoryData;
+
+      if (!artistTokens) {
+        return [];
+      }
+
+      return artistTokens.map((token: ArtistToken) => ({
+        id: token.id,
+        trackId: token.trackId,
+        tokenId: token.tokenId,
+        amount: token.amount,
+        pricePerToken: token.pricePerToken,
+        mintedAt: token.mintedAt,
+        isActive: token.isActive,
+        owner: token.owner,
+      }));
+    },
+    enabled: !!repositoryData && !!activeAccount,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+};
+
+// Marketplace hook that combines all necessary data for the marketplace page
+export const useMarketplace = () => {
+  const { repositoryData } = useRepositoryData();
+  const activeAccount = useActiveAccount();
+  const purchaseTokensMutation = usePurchaseArtistTokens();
+
+  return useQuery({
+    queryKey: nftKeys.marketplace(),
+    queryFn: async () => {
+      if (!repositoryData) {
+        throw new Error("Repository data not available");
+      }
+
+      const { artistTokens, tracks, users } = repositoryData;
+
+      if (!artistTokens || !tracks || !users) {
+        return {
+          artistTokens: [],
+          tracks: [],
+          users: [],
+          enrichedTokens: [],
+        };
+      }
+
+      // Filter only active tokens with available amount
+      const activeTokens = artistTokens.filter(
+        (token: ArtistToken) => token.isActive && token.amount > 0
+      );
+
+      // Enrich tokens with track and artist details
+      const enrichedTokens = activeTokens.map((token: ArtistToken) => {
+        const track: Track | undefined = tracks.find(
+          (t: Track) => t.id === Number(token.trackId)
+        );
+        const artist: User | undefined = users.find(
+          (u: User) =>
+            u.walletAddress?.toLowerCase() === token.owner?.toLowerCase()
+        );
+
+        console.log("usermarketplace", track);
+
+        return {
+          ...token,
+          track: track
+            ? {
+                id: track.id,
+                title: track.title,
+                artist: users.find((u: User) => u.id === track.artistId),
+                artistId: track.artistId,
+                coverArt: track.imageUrl,
+                duration: track.duration,
+                audioUrl: track.audioUrl,
+                lyrics: track.lyrics,
+                isrcCode: track.isrcCode,
+                genreId: track.genreId,
+                isPublished: track.isPublished,
+                albumId: track.albumId,
+                trackNumber: track.trackNumber,
+                playLists: track.playLists,
+                createdAt: track.createdAt,
+                updatedAt: track.updatedAt,
+              }
+            : undefined,
+          artist: artist
+            ? {
+                displayName: artist.displayName,
+                username: artist.username,
+                walletAddress: artist.walletAddress,
+              }
+            : undefined,
+        };
+      });
+
+      return {
+        artistTokens: activeTokens,
+        tracks,
+        users,
+        enrichedTokens,
+      };
     },
     enabled: !!repositoryData && !!activeAccount,
     staleTime: 5 * 60 * 1000, // 5 minutes

@@ -15,7 +15,10 @@ interface NFTStatsCardsProps {
   formatPrice: (price: number) => string;
 }
 
-const NFTStatsCards: React.FC<NFTStatsCardsProps> = ({ nftStats, formatPrice }) => {
+const NFTStatsCards: React.FC<NFTStatsCardsProps> = ({
+  nftStats,
+  formatPrice,
+}) => {
   if (!nftStats) return null;
 
   return (
@@ -23,9 +26,7 @@ const NFTStatsCards: React.FC<NFTStatsCardsProps> = ({ nftStats, formatPrice }) 
       <div className="bg-zinc-900/50 rounded-2xl p-6 backdrop-blur-sm border border-zinc-800/50">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-zinc-400 mb-1">
-              Track NFTs
-            </p>
+            <p className="text-sm font-medium text-zinc-400 mb-1">Track NFTs</p>
             <p className="text-2xl font-bold text-white">
               {nftStats.totalTrackNFTs}
             </p>

@@ -33,7 +33,8 @@ const Release = () => {
   const [activeTab, setActiveTab] = useState<"tracks" | "nfts">("tracks");
 
   // Use the new hook to get tracks filtered by artist wallet with artist details
-  const { tracks, isLoading, isError, error, artistUser } = useTracksByArtistWallet(walletAddress);
+  const { tracks, isLoading, isError, error, artistUser } =
+    useTracksByArtistWallet(walletAddress);
 
   useEffect(() => {
     if (isError) {

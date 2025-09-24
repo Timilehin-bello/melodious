@@ -9,6 +9,8 @@ import {
   CreditCard,
   Wallet,
   Users,
+  ShoppingCart,
+  Coins,
 } from "lucide-react";
 
 import {
@@ -41,6 +43,16 @@ const items = [
     title: "Home",
     url: "/listener/dashboard",
     icon: Home,
+  },
+  {
+    title: "Marketplace",
+    url: "/listener/marketplace",
+    icon: ShoppingCart,
+  },
+  {
+    title: "My NFTs",
+    url: "/listener/nft-collection",
+    icon: Coins,
   },
   {
     title: "Playlist",

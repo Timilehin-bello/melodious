@@ -1,13 +1,19 @@
 export type Track = {
   id: number;
   title: string;
-  duration?: any;
-  genreId?: number;
   imageUrl: string;
   audioUrl: string;
-  isrcCode?: string;
-  isPublished?: string;
-  artist?: string;
+  lyrics: string | null;
+  isrcCode: number | null;
+  genreId: number;
+  isPublished: boolean;
+  albumId: number | null;
+  artistId: number;
+  duration: number;
+  trackNumber: number | null;
+  playLists: Playlist[];
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export type Albums = {
@@ -30,6 +36,8 @@ export type Albums = {
 // export type Playlist = {};
 
 import { BigNumber } from "ethers";
+import { User } from "./hooks/useUserByWallet";
+import { Playlist } from "./types/playlist";
 
 // Interface for the decoded balance report
 interface DecodedReports {
