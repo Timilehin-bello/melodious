@@ -1,0 +1,353 @@
+"use client";
+
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useState } from "react";
+import { X, Music, Coins, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import Image from "next/image";
+import { useMintTrackNFT, useMintArtistTokens } from "@/hooks/useNFT";
+import toast from "react-hot-toast";
+
+interface NFTPreviewModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  trackData: {
+    title: string;
+    artist?: string;
+    imageUrl: string;
+    audioUrl: string;
+    trackId?: string;
+    duration?: string;
+  };
+  nftType?: "ERC721" | "ERC1155";
+}
+
+export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  trackData,
+  nftType = "ERC721",
+}) => {
+  const [royaltyPercentage, setRoyaltyPercentage] = useState<number>(10);
+  const [tokenAmount, setTokenAmount] = useState<number>(100);
+  const [pricePerToken, setPricePerToken] = useState<number>(1);
+  const [mintingStep, setMintingStep] = useState<
+    "preview" | "minting" | "success"
+  >("preview");
+
+  const mintTrackNFT = useMintTrackNFT();
+  const mintArtistTokens = useMintArtistTokens();
+
+  // Extract IPFS hash from URL
+  const extractIpfsHash = (url: string): string => {
+    const match = url.match(/\/ipfs\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : url;
+  };
+
+  const handleMintNFTs = async () => {
+    try {
+      setMintingStep("minting");
+
+      if (!trackData.trackId) {
+        toast.error("Track ID is required for minting NFTs");
+        return;
+      }
+
+      if (nftType === "ERC721") {
+        // Mint Track NFT (ERC-721)
+        await mintTrackNFT.mutateAsync({
+          trackId: trackData.trackId,
+          ipfsHash: extractIpfsHash(trackData.imageUrl),
+          royaltyPercentage: royaltyPercentage,
+        });
+      } else {
+        // Mint Artist Tokens (ERC-1155)
+        await mintArtistTokens.mutateAsync({
+          trackId: trackData.trackId,
+          amount: tokenAmount,
+          pricePerToken: pricePerToken,
+        });
+      }
+
+      setMintingStep("success");
+      toast.success("NFTs minted successfully!");
+
+      // Wait a moment then close and trigger success callback
+      setTimeout(() => {
+        onSuccess();
+        onClose();
+        setMintingStep("preview"); // Reset for next time
+      }, 2000);
+    } catch (error) {
+      console.error("Error minting NFTs:", error);
+      setMintingStep("preview");
+      toast.error("Failed to mint NFTs. Please try again.");
+    }
+  };
+
+  const handleClose = () => {
+    if (mintingStep !== "minting") {
+      onClose();
+      setMintingStep("preview");
+    }
+  };
+
+  return (
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={handleClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" />
+        </Transition.Child>
+
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-2xl bg-[#181425] p-6 text-left align-middle shadow-xl transition-all border border-white/10">
+                <Dialog.Title
+                  as="div"
+                  className="flex justify-between items-center mb-6"
+                >
+                  <h3 className="text-2xl font-semibold text-white">
+                    {mintingStep === "preview" &&
+                      `${
+                        nftType === "ERC721" ? "Track NFT" : "Artist Tokens"
+                      } Preview & Minting`}
+                    {mintingStep === "minting" &&
+                      `Minting ${nftType === "ERC721" ? "NFT" : "Tokens"}...`}
+                    {mintingStep === "success" &&
+                      `${
+                        nftType === "ERC721" ? "NFT" : "Tokens"
+                      } Minted Successfully!`}
+                  </h3>
+                  {mintingStep !== "minting" && (
+                    <button
+                      onClick={handleClose}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                </Dialog.Title>
+
+                {mintingStep === "preview" && (
+                  <div className="space-y-6">
+                    {/* Track Preview */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-lg font-medium text-white mb-4">
+                        Track Preview
+                      </h4>
+                      <div className="flex gap-4">
+                        <div className="w-24 h-24 relative rounded-lg overflow-hidden flex-shrink-0">
+                          <Image
+                            src={trackData.imageUrl}
+                            alt={trackData.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="text-white font-medium text-lg">
+                            {trackData.title}
+                          </h5>
+                          {trackData.duration && (
+                            <p className="text-gray-400 text-sm">
+                              Duration: {trackData.duration}
+                            </p>
+                          )}
+                          <div className="mt-2">
+                            <audio controls className="w-full max-w-md">
+                              <source src={trackData.audioUrl} />
+                              Your browser does not support the audio element.
+                            </audio>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* NFT Configuration */}
+                    <div className="flex justify-center">
+                      {nftType === "ERC721" ? (
+                        /* Track NFT (ERC-721) */
+                        <div className="bg-white/5 rounded-lg p-6 border border-white/10  w-full">
+                          <div className="flex items-center gap-2 mb-4 justify-center">
+                            <Music className="w-5 h-5 text-[#950944]" />
+                            <h4 className="text-lg font-medium text-white">
+                              Track NFT (ERC-721)
+                            </h4>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="w-24 h-24 relative rounded-lg overflow-hidden mx-auto">
+                              <Image
+                                src={trackData.imageUrl}
+                                alt="Track NFT"
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-white text-sm">
+                                Royalty Percentage
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                value={royaltyPercentage}
+                                readOnly
+                                className="bg-white/5 border-white/10 text-white mt-1 cursor-not-allowed opacity-75"
+                              />
+                            </div>
+                            <div className="text-xs text-gray-400 text-center">
+                              <p>• Unique ownership certificate</p>
+                              <p>• Royalties on secondary sales</p>
+                              <p>• Transferable asset</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Artist Tokens (ERC-1155) */
+                        <div className="bg-white/5 rounded-lg p-6 border border-white/10 max-w-md w-full">
+                          <div className="flex items-center gap-2 mb-4 justify-center">
+                            <Coins className="w-5 h-5 text-[#950944]" />
+                            <h4 className="text-lg font-medium text-white">
+                              Artist Tokens (ERC-1155)
+                            </h4>
+                          </div>
+                          <div className="space-y-4">
+                            <div className="w-24 h-24 relative rounded-lg overflow-hidden mx-auto bg-gradient-to-br from-[#950944] to-purple-600 flex items-center justify-center">
+                              <Coins className="w-10 h-10 text-white" />
+                            </div>
+                            <div>
+                              <Label className="text-white text-sm">
+                                Token Amount
+                              </Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={tokenAmount}
+                                onChange={(e) =>
+                                  setTokenAmount(Number(e.target.value))
+                                }
+                                className="bg-white/5 border-white/10 text-white mt-1"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-white text-sm">
+                                Price per Token (CTSI)
+                              </Label>
+                              <Input
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                value={pricePerToken}
+                                onChange={(e) =>
+                                  setPricePerToken(Number(e.target.value))
+                                }
+                                className="bg-white/5 border-white/10 text-white mt-1"
+                              />
+                            </div>
+                            <div className="text-xs text-gray-400 text-center">
+                              <p>• Fractional ownership</p>
+                              <p>• Fan investment opportunity</p>
+                              <p>• Revenue sharing potential</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 mt-6">
+                      <Button
+                        type="button"
+                        onClick={handleClose}
+                        className="flex-1 bg-white/10 text-white hover:bg-white/20"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleMintNFTs}
+                        className="flex-1 bg-[#950944] text-white hover:bg-[#950944]/90"
+                        disabled={
+                          mintTrackNFT.isPending || mintArtistTokens.isPending
+                        }
+                      >
+                        {nftType === "ERC721" ? "Mint NFT" : "Mint Tokens"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {mintingStep === "minting" && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Loader2 className="w-12 h-12 text-[#950944] animate-spin mb-4" />
+                    <h4 className="text-xl font-medium text-white mb-2">
+                      Minting Your{" "}
+                      {nftType === "ERC721" ? "Track NFT" : "Artist Tokens"}...
+                    </h4>
+                    <p className="text-gray-400 text-center max-w-md">
+                      Please wait while we mint your{" "}
+                      {nftType === "ERC721" ? "Track NFT" : "Artist Tokens"}.
+                      This may take a few moments.
+                    </p>
+                  </div>
+                )}
+
+                {mintingStep === "success" && (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mb-4">
+                      <svg
+                        className="w-8 h-8 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                    <h4 className="text-xl font-medium text-white mb-2">
+                      {nftType === "ERC721" ? "Track NFT" : "Artist Tokens"}{" "}
+                      Minted Successfully!
+                    </h4>
+                    <p className="text-gray-400 text-center max-w-md">
+                      Your{" "}
+                      {nftType === "ERC721"
+                        ? "Track NFT has"
+                        : "Artist Tokens have"}{" "}
+                      been created. Redirecting you to your releases...
+                    </p>
+                  </div>
+                )}
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+};

@@ -14,7 +14,7 @@ import {
 import SearchInput from "@/components/SearchInput";
 import SongList from "@/components/SongList";
 import BlockLoader from "@/components/BlockLoader";
-import { useTracks } from "@/hooks/useTracks";
+import { useTracksByArtistWallet } from "@/hooks/useTracks";
 // import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import {
   useMusicPlayer,
@@ -22,41 +22,19 @@ import {
 } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { useActiveAccount } from "thirdweb/react";
-import { useUserByWallet } from "@/hooks/useUserByWallet";
+
+import NFTManagement from "@/components/NFTManagement";
 
 const Release = () => {
   const activeAccount = useActiveAccount();
-  const { tracks: allTracks, isLoading, isError, error } = useTracks();
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
     useMusicPlayer();
   const walletAddress = activeAccount?.address;
+  const [activeTab, setActiveTab] = useState<"tracks" | "nfts">("tracks");
 
-  // Get user/artist details by wallet address
-  const { user: artistUser, isLoading: userLoading } =
-    useUserByWallet(walletAddress);
-
-  // Filter tracks by artist ID and format with artist details
-  const tracks = useMemo(() => {
-    if (!allTracks || !artistUser?.artist) return [];
-
-    const artistTracks = allTracks.filter(
-      (track: any) => track.artistId === artistUser.artist.id
-    );
-
-    // Format tracks to include artist details
-    return artistTracks.map((track: any) => ({
-      ...track,
-      artist: artistUser.displayName || artistUser.name, // Use string for SongList component
-      artistDetails: {
-        id: artistUser.artist.id,
-        name: artistUser.name,
-        displayName: artistUser.displayName,
-        profileImage: artistUser.profileImage,
-        biography: artistUser.artist.biography,
-        socialMediaLinks: artistUser.artist.socialMediaLinks,
-      },
-    }));
-  }, [allTracks, artistUser]);
+  // Use the new hook to get tracks filtered by artist wallet with artist details
+  const { tracks, isLoading, isError, error, artistUser } =
+    useTracksByArtistWallet(walletAddress);
 
   useEffect(() => {
     if (isError) {
@@ -145,66 +123,96 @@ const Release = () => {
             </PopoverContent>
           </Popover> */}
         </div>
-        <div className="flex flex-wrap gap-4 items-center">
-          <SearchInput />
-          <Button className="bg-[#D1E1E11C] h-[45px]">Singles</Button>
-          <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
-          <Button>
-            <Link
-              href="/artist/genre"
-              className="bg-[#D1E1E11C] rounded-md p-2 hover:text-[#950944] text-white"
-            >
-              Genre
-            </Link>
-          </Button>
-        </div>
-        {tracks.length !== 0 ? (
-          <SongList
-            songList={tracks}
-            onPlayPause={handlePlayTrack}
-            isLoading={isLoading || userLoading}
-          />
-        ) : (
-          <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
-            <Music2 size={54} className="mb-4" />
-            <p className="font-bold">You have not released anything yet</p>
+        {/* Tab Navigation */}
+        {/* <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => setActiveTab("tracks")}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium ${
+              activeTab === "tracks"
+                ? "bg-[#950944] text-white"
+                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            }`}
+          >
+            My Tracks
+          </button>
+          <button
+            onClick={() => setActiveTab("nfts")}
+            className={`px-6 py-3 rounded-lg transition-colors font-medium ${
+              activeTab === "nfts"
+                ? "bg-[#950944] text-white"
+                : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
+            }`}
+          >
+            NFT Management
+          </button>
+        </div> */}
 
-            <Link href={`/artist/release/single`}>
-              <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
-                Create Release
-              </button>
-            </Link>
-            {/* <Popover>
-              <PopoverTrigger asChild>
-             
-              </PopoverTrigger>
-              <PopoverContent className="w-40">
-                <div className="grid gap-4">
-                  <Link
-                    href="/artist/release/single"
-                    className="hover:text-[#950944]"
-                  >
-                    <div className="grid gap-2">
-                      <div className="grid grid-cols-3 items-center gap-4">
-                        Single
-                      </div>
-                    </div>
-                  </Link>
-                  <Link
-                    href="/artist/release/album"
-                    className="hover:text-[#950944]"
-                  >
-                    <div className="grid gap-2">
-                      <div className="grid grid-cols-3 items-center gap-4">
-                        Album
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              </PopoverContent>
-            </Popover> */}
+        {activeTab === "tracks" && (
+          <div className="flex flex-wrap gap-4 items-center">
+            <SearchInput />
+            <Button className="bg-[#D1E1E11C] h-[45px]">Singles</Button>
+            <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
+            <Button>
+              <Link
+                href="/artist/genre"
+                className="bg-[#D1E1E11C] rounded-md p-2 hover:text-[#950944] text-white"
+              >
+                Genre
+              </Link>
+            </Button>
           </div>
         )}
+        {activeTab === "tracks" &&
+          (tracks.length !== 0 ? (
+            <SongList
+              songList={tracks}
+              onPlayPause={handlePlayTrack}
+              isLoading={isLoading}
+              showRemoveButton={false}
+            />
+          ) : (
+            <div className="mt-12 px-6 py-48 bg-[#FFFFFF14] text-center text-white flex flex-col items-center justify-center rounded-xl">
+              <Music2 size={54} className="mb-4" />
+              <p className="font-bold">You have not released anything yet</p>
+
+              <Link href={`/artist/release/single`}>
+                <button className="bg-[#950944] px-6 py-4 mt-4 rounded-lg">
+                  Create Release
+                </button>
+              </Link>
+              {/* <Popover>
+                <PopoverTrigger asChild>
+               
+                </PopoverTrigger>
+                <PopoverContent className="w-40">
+                  <div className="grid gap-4">
+                    <Link
+                      href="/artist/release/single"
+                      className="hover:text-[#950944]"
+                    >
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          Single
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      href="/artist/release/album"
+                      className="hover:text-[#950944]"
+                    >
+                      <div className="grid gap-2">
+                        <div className="grid grid-cols-3 items-center gap-4">
+                          Album
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </PopoverContent>
+              </Popover> */}
+            </div>
+          ))}
+
+        {activeTab === "nfts" && <NFTManagement tracks={tracks} />}
       </div>
     </div>
   );

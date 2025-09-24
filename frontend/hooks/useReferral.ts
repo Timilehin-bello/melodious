@@ -8,7 +8,6 @@ import {
   useRepositoryData,
   noticesKeys,
 } from "./useNoticesQuery";
-import { useMemo } from "react";
 
 // Referral types
 export interface ReferralStats {

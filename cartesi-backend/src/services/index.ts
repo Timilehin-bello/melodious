@@ -1,5 +1,6 @@
 import { RepositoryService } from "./repository.service";
 import { ConfigService } from "./config.service";
+import { NFTService } from "./nft.service";
 
 import {
   ListeningRewardService,
@@ -9,6 +10,7 @@ import {
 export {
   RepositoryService,
   ConfigService,
+  NFTService,
   ListeningRewardService,
   ReferralRewardService,
 };

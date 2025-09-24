@@ -7,6 +7,7 @@ import {
   LogOut,
   Wallet,
   Users,
+  Palette,
 } from "lucide-react";
 
 import {
@@ -50,6 +51,11 @@ const items = [
     title: "Release",
     url: "/artist/release",
     icon: ListCheck,
+  },
+  {
+    title: "NFT Management",
+    url: "/artist/nft-management",
+    icon: Palette,
   },
   {
     title: "Wallet",

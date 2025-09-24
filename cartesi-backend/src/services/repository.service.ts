@@ -12,6 +12,9 @@ class RepositoryService {
   static referrals: Model.Referral[] = [];
   static referralTransactions: Model.ReferralTransaction[] = [];
   static config: Model.Config | null = null;
+  static trackNFTs: Model.TrackNFT[] = [];
+  static artistTokens: Model.ArtistToken[] = [];
+  static artistTokenPurchases: Model.ArtistTokenPurchase[] = [];
 
   // Auto-notice configuration
   static enableAutoNotices = true;
@@ -29,6 +32,9 @@ class RepositoryService {
       playlists: this.playlists,
       referrals: this.referrals,
       referralTransactions: this.referralTransactions,
+      trackNFTs: this.trackNFTs,
+      artistTokens: this.artistTokens,
+      artistTokenPurchases: this.artistTokenPurchases,
       config: this.config,
       stats: {
         usersCount: this.users.length,
@@ -40,6 +46,9 @@ class RepositoryService {
         playlistsCount: this.playlists.length,
         referralsCount: this.referrals.length,
         referralTransactionsCount: this.referralTransactions.length,
+        trackNFTsCount: this.trackNFTs.length,
+        artistTokensCount: this.artistTokens.length,
+        artistTokenPurchasesCount: this.artistTokenPurchases.length,
         hasConfig: !!this.config,
       },
       timestamp: new Date().toISOString(),

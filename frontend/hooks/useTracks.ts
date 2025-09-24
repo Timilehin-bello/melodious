@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useRepositoryData } from "./useNoticesQuery";
+import { useUserByWallet } from "./useUserByWallet";
 
 export interface Track {
   id: number;
@@ -43,8 +44,13 @@ export function useTracks() {
       tracks.find((track: Track) => track.id === id),
     getTracksByArtist: (artistId: string) =>
       tracks.filter((track: Track) => track.artistId === artistId),
-    getTracksByWallet: (walletAddress: string) =>
-      tracks.filter((track: Track) => track.walletAddress === walletAddress),
+    getTracksByWallet: (walletAddress: string) => {
+      console.log("Track found:", tracks);
+      return tracks.filter(
+        (track: Track) =>
+          track.walletAddress?.toLowerCase() === walletAddress.toLowerCase()
+      );
+    },
     hasTracks: tracks.length > 0,
   };
 }
@@ -90,5 +96,53 @@ export function useTracksByArtist(artistId: string | undefined) {
     isError,
     error,
     hasTracks: artistTracks.length > 0,
+  };
+}
+
+/**
+ * Hook to get tracks by artist wallet address with artist details
+ * Similar to the logic used in NFT management page
+ * @param walletAddress Artist wallet address
+ * @returns Object containing filtered tracks with artist details, loading state, and error state
+ */
+export function useTracksByArtistWallet(walletAddress: string | undefined) {
+  const {
+    tracks: allTracks,
+    isLoading: tracksLoading,
+    isError,
+    error,
+  } = useTracks();
+  const { user: artistUser, isLoading: userLoading } =
+    useUserByWallet(walletAddress);
+
+  const tracks = useMemo(() => {
+    if (!allTracks || !artistUser?.artist) return [];
+
+    const artistTracks = allTracks.filter(
+      (track: Track) => track.artistId === artistUser.artist.id
+    );
+
+    // Format tracks to include artist details
+    return artistTracks.map((track: Track) => ({
+      ...track,
+      artist: artistUser.displayName || artistUser.name,
+      artistDetails: {
+        id: artistUser.artist.id,
+        name: artistUser.name,
+        displayName: artistUser.displayName,
+        profileImage: artistUser.profileImage,
+        biography: artistUser.artist.biography,
+        socialMediaLinks: artistUser.artist.socialMediaLinks,
+      },
+    }));
+  }, [allTracks, artistUser]);
+
+  return {
+    tracks,
+    isLoading: tracksLoading || userLoading,
+    isError,
+    error,
+    hasTracks: tracks.length > 0,
+    artistUser,
   };
 }

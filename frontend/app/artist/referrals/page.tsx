@@ -285,7 +285,7 @@ const ArtistReferrals = () => {
   }
 
   return (
-    <div className="min-h-screen  text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="mb-8 w-full">
