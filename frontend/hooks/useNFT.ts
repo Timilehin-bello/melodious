@@ -70,7 +70,7 @@ export interface MintArtistTokensRequest {
 }
 
 export interface PurchaseArtistTokensRequest {
-  tokenId: number;
+  trackId: number;
   amount: number;
   totalPrice: number;
 }
@@ -635,7 +635,7 @@ export const usePurchaseArtistTokens = () => {
 
       console.log(
         "Purchase Artist Tokens request:",
-        request.tokenId,
+        request.trackId,
         request.amount,
         request.totalPrice
       );
@@ -644,7 +644,7 @@ export const usePurchaseArtistTokens = () => {
         const response = await purchaseArtistTokens(
           rollups,
           dappAddress,
-          request.tokenId,
+          request.trackId,
           request.amount,
           request.totalPrice
         );

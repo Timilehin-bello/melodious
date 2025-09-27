@@ -173,11 +173,12 @@ const NFTMarketplace = () => {
 
     // Set loading state for this specific token
     setPurchasingTokens((prev) => new Set(prev).add(token.id));
+    console.log("purchasing token", token);
 
     try {
       const totalPrice = token.pricePerToken * amount;
       await purchaseTokensMutation.mutateAsync({
-        tokenId: token.tokenId || token.id,
+        trackId: Number(token.trackId),
         amount,
         totalPrice,
       });

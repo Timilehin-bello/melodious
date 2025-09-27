@@ -1346,7 +1346,7 @@ export const mintArtistTokens = async (
 export const purchaseArtistTokens = async (
   rollups: RollupsContracts | undefined,
   dappAddress: string,
-  tokenId: number,
+  trackId: number,
   amount: number,
   totalPrice: number
 ) => {
@@ -1354,12 +1354,18 @@ export const purchaseArtistTokens = async (
     if (!rollups) {
       throw new Error("Rollups contracts not available");
     }
-
     const timestamp = Math.floor(Date.now() / 1000);
+
+    console.log("purchase_artist_tokens", {
+      trackId,
+      amount,
+      totalPrice,
+      timestamp,
+    });
     const payload = {
       method: "purchase_artist_tokens",
       args: {
-        tokenId,
+        trackId,
         amount,
         totalPrice,
         timestamp,
