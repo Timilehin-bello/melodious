@@ -3,6 +3,7 @@ import authRoute from "./auth.route";
 import userRoute from "./user.route";
 import transactionRoute from "./transaction.route";
 import subscriptionRoute from "./subscription.route";
+import adRoute from "./ad.route";
 
 const router: Router = express.Router();
 
@@ -31,6 +32,10 @@ const defaultRoutes: IRoute[] = [
   {
     path: "/subscriptions",
     route: subscriptionRoute,
+  },
+  {
+    path: "/ads",
+    route: adRoute,
   },
 ];
 

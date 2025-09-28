@@ -10,7 +10,7 @@ import { EnhancedMusicPlayerProvider } from "@/contexts/melodious/MusicProviderW
 import { MelodiousMusicPlayer } from "@/components/Player/MelodiousPlayer";
 import { Toaster as Toast } from "react-hot-toast";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { AdSenseScript } from "@/components/ads";
+import { AdSenseScript, CombinedAdPlayer } from "@/components/ads";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -55,6 +55,7 @@ export default function RootLayout({
                   />
 
                   <MelodiousMusicPlayer />
+                   <CombinedAdPlayer />
                 </EnhancedMusicPlayerProvider>
               </QueryProvider>
             </MelodiousProvider>
