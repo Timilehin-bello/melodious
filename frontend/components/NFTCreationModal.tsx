@@ -443,7 +443,9 @@ export const NFTCreationModal: React.FC<NFTCreationModalProps> = ({
                                 min="0.01"
                                 step="0.01"
                                 value={pricePerToken}
-                                onChange={(e) => setPricePerToken(e.target.value)}
+                                onChange={(e) =>
+                                  setPricePerToken(e.target.value)
+                                }
                                 className="bg-white/5 border-white/10 text-white mt-1"
                               />
                             </div>

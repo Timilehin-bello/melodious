@@ -234,8 +234,8 @@ async function handle_advance(data: any) {
       router.set_rollup_address(rollup_address, "ether_withdraw");
       router.set_rollup_address(rollup_address, "erc20_withdraw");
       router.set_rollup_address(rollup_address, "erc721_withdraw");
-      router.set_rollup_address(rollup_address, "erc1155_withdraw");
-      router.set_rollup_address(rollup_address, "erc1155_batch_withdraw");
+      // router.set_rollup_address(rollup_address, "erc1155_withdraw");
+      // router.set_rollup_address(rollup_address, "erc1155_batch_withdraw");
 
       console.log("Setting DApp address");
       return new Notice(
