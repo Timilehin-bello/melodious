@@ -1365,7 +1365,7 @@ export const purchaseArtistTokens = async (
     const payload = {
       method: "purchase_artist_tokens",
       args: {
-        trackId,
+        trackId: trackId.toString(),
         amount,
         totalPrice,
         timestamp,

@@ -195,6 +195,22 @@ class NFTService {
       return new Error_out("CTSI token contract address not configured");
     }
 
+    // Find the artist token to check availability
+    const artistToken = RepositoryService.artistTokens.find(
+      (token) => token.trackId === purchaseData.trackId && token.isActive
+    );
+
+    if (!artistToken) {
+      return new Error_out("Artist token not found or not active");
+    }
+
+    // Validate sufficient supply
+    if (artistToken.availableSupply < purchaseData.amount) {
+      return new Error_out(
+        `Insufficient supply available. Available: ${artistToken.availableSupply}, Requested: ${purchaseData.amount}`
+      );
+    }
+
     try {
       // Then, create the purchase function call data (contract will handle CTSI transfer internally)
       const callData = encodeFunctionData({
@@ -211,6 +227,9 @@ class NFTService {
         config.artistTokenContractAddress,
         hexToBytes(callData)
       );
+
+      // Update available supply in the repository
+      artistToken.availableSupply -= purchaseData.amount;
 
       // Update repository with purchase data using the model
       const purchase = new ArtistTokenPurchase(

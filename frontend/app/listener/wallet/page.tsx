@@ -180,9 +180,9 @@ const Wallet = () => {
         </div>
 
         {/* Notices Query Test Section */}
-        <div className="max-w-5xl mx-auto mt-8">
+        {/* <div className="max-w-5xl mx-auto mt-8">
           <NoticesQueryTest />
-        </div>
+        </div> */}
       </div>
 
       {/* Modals */}

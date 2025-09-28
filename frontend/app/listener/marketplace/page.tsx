@@ -28,7 +28,9 @@ interface ArtistTokenWithDetails {
   id: number;
   owner: string;
   trackId: string;
-  amount: number;
+  amount: number; // This represents totalSupply for minted tokens
+  totalSupply: number; // Total tokens minted
+  availableSupply: number; // Tokens available for purchase
   pricePerToken: number;
   mintedAt: number;
   isActive: boolean;
@@ -166,7 +168,7 @@ const NFTMarketplace = () => {
 
     const amountStr = purchaseAmounts[token.id] || "1";
     const amount = parseInt(amountStr) || 1;
-    if (amount > token.amount || amount < 1) {
+    if (amount > token.availableSupply || amount < 1) {
       toast.error("Invalid amount or not enough tokens available");
       return;
     }
@@ -398,7 +400,7 @@ const NFTMarketplace = () => {
                       variant="outline"
                       className="text-[#950944] border-[#950944]"
                     >
-                      {token.amount} tokens
+                      {token.availableSupply} tokens
                     </Badge>
                   </div>
                   <div className="flex justify-between items-center">
@@ -421,7 +423,7 @@ const NFTMarketplace = () => {
                     <Input
                       type="number"
                       min="1"
-                      max={token.amount}
+                      max={token.availableSupply}
                       value={purchaseAmountStr}
                       onChange={(e) =>
                         handleAmountChange(token.id, e.target.value)
@@ -446,7 +448,7 @@ const NFTMarketplace = () => {
                     disabled={
                       isPurchasing ||
                       !walletAddress ||
-                      purchaseAmount > token.amount ||
+                      purchaseAmount > token.availableSupply ||
                       purchaseAmount < 1 ||
                       !purchaseAmountStr
                     }

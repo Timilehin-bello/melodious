@@ -1,12 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
-import {
-  useNoticesQuery,
-  useRepositoryData,
-  noticesKeys,
-} from "./useNoticesQuery";
-import { useMemo } from "react";
+import { useRepositoryData, noticesKeys } from "./useNoticesQuery";
 import { useRollups } from "../cartesi/hooks/useRollups";
 import {
   mintTrackNFTPortal,
@@ -28,11 +23,22 @@ export interface TrackNFT {
   tokenId?: number;
 }
 
+export interface IPurchaseArtistTokens {
+  id: number;
+  buyer: string;
+  trackId: string;
+  amount: number;
+  totalPrice: number;
+  purchasedAt: number;
+}
+
 export interface ArtistToken {
   id: number;
   owner: string;
   trackId: string;
-  amount: number;
+  amount: number; // This represents totalSupply for minted tokens
+  totalSupply: number; // Total tokens minted
+  availableSupply: number; // Tokens available for purchase
   pricePerToken: number;
   mintedAt: number;
   isActive: boolean;
@@ -208,18 +214,18 @@ export const useArtistTokenPurchases = (walletAddress?: string) => {
       }
 
       // Filter by buyer wallet address if provided
-      let filteredPurchases = artistTokenPurchases;
+      let filteredPurchases: IPurchaseArtistTokens[] = artistTokenPurchases;
       if (walletAddress) {
         filteredPurchases = artistTokenPurchases.filter(
-          (purchase: any) =>
-            purchase.buyerAddress?.toLowerCase() === walletAddress.toLowerCase()
+          (purchase: IPurchaseArtistTokens) =>
+            purchase.buyer?.toLowerCase() === walletAddress.toLowerCase()
         );
       }
 
-      return filteredPurchases.map((purchase: any) => ({
+      return filteredPurchases.map((purchase: IPurchaseArtistTokens) => ({
         id: purchase.id,
-        tokenId: purchase.tokenId,
-        buyerAddress: purchase.buyerAddress,
+        trackId: purchase.trackId,
+        buyer: purchase.buyer,
         amount: purchase.amount,
         totalPrice: purchase.totalPrice,
         purchasedAt: purchase.purchasedAt,
@@ -333,7 +339,7 @@ export const useMarketplace = () => {
 
       // Filter only active tokens with available amount
       const activeTokens = artistTokens.filter(
-        (token: ArtistToken) => token.isActive && token.amount > 0
+        (token: ArtistToken) => token.isActive && token.availableSupply > 0
       );
 
       // Enrich tokens with track and artist details

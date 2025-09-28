@@ -24,6 +24,9 @@ import { useArtistTokenPurchases, useMyNFTData } from "@/hooks/useNFT";
 import { useRepositoryData } from "@/hooks/useNoticesQuery";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { format } from "date-fns";
+import { Track } from "@/types";
+import toast from "react-hot-toast";
+import { User as IUser } from "@/hooks/useUserByWallet";
 
 interface TokenHolding {
   id: number;
@@ -40,6 +43,7 @@ interface TokenHolding {
     artist: string;
     coverArt: string;
     duration: number;
+    audioUrl: string;
   };
   artist?: {
     displayName: string;
@@ -68,36 +72,67 @@ const NFTCollection = () => {
   const { currentTrack, isPlaying, playTrack, togglePlay } = useMusicPlayer();
 
   // Get tracks and users data for enriching token information
-  const tracks = repositoryData?.tracks || [];
-  const users = repositoryData?.users || [];
+  const tracks = useMemo(
+    () => repositoryData?.tracks || [],
+    [repositoryData?.tracks]
+  );
+  const users = useMemo(
+    () => repositoryData?.users || [],
+    [repositoryData?.users]
+  );
 
-  // Enrich token purchases with track and artist details
+  // Enrich token purchases with track and artist details and consolidate by trackId
   const enrichedHoldings: TokenHolding[] = useMemo(() => {
     if (!artistTokenPurchases || !tracks || !users) return [];
+    console.log("artistTokenPurchases:", artistTokenPurchases);
 
-    return artistTokenPurchases.map((purchase): TokenHolding => {
-      const track = tracks.find((t: any) => t.id === purchase.trackId);
-      const artist = users.find(
-        (u: any) =>
-          u.walletAddress?.toLowerCase() === track?.artistWallet?.toLowerCase()
+    // Group purchases by trackId
+    const groupedPurchases = artistTokenPurchases.reduce((acc, purchase) => {
+      const key = purchase.trackId;
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(purchase);
+      return acc;
+    }, {} as Record<string, typeof artistTokenPurchases>);
+
+    // Create consolidated holdings
+    const collection = Object.entries(groupedPurchases).map(([trackId, purchases]): TokenHolding => {
+      const track = tracks.find(
+        (t: Track) => t.id.toString() === trackId
+      );
+      console.log("artistTokenPurchases Track:", track);
+      
+      // Use the first purchase for basic info, but consolidate amounts and prices
+      const firstPurchase = purchases[0];
+      const totalAmount = purchases.reduce((sum, p) => sum + p.amount, 0);
+      const totalPrice = purchases.reduce((sum, p) => sum + p.totalPrice, 0);
+      const earliestPurchase = purchases.reduce((earliest, p) => 
+        p.purchasedAt < earliest.purchasedAt ? p : earliest
+      );
+      
+      const artist: IUser | undefined = users.find(
+        (u: IUser) =>
+          u.walletAddress?.toLowerCase() === firstPurchase.buyer?.toLowerCase()
       );
 
-      return {
-        id: purchase.id,
-        tokenId: purchase.id, // Use purchase id as tokenId
-        buyer: purchase.buyer,
-        trackId: purchase.trackId,
-        amount: purchase.amount,
-        totalPrice: purchase.totalPrice,
-        purchasedAt: purchase.purchasedAt,
-        transactionHash: purchase.transactionHash,
+      const tokenHoldings = {
+        id: firstPurchase.id,
+        tokenId: firstPurchase.id,
+        buyer: firstPurchase.buyer,
+        trackId: trackId,
+        amount: totalAmount, // Consolidated total amount
+        totalPrice: totalPrice, // Consolidated total price
+        purchasedAt: earliestPurchase.purchasedAt, // Use earliest purchase date
+        transactionHash: firstPurchase.transactionHash,
         track: track
           ? {
               id: track.id,
               title: track.title,
               artist: track.artist,
-              coverArt: track.coverArt,
+              coverArt: track.imageUrl, // Use imageUrl from backend as coverArt
               duration: track.duration,
+              audioUrl: track.audioUrl, // Add missing audioUrl field
             }
           : undefined,
         artist: artist
@@ -108,7 +143,11 @@ const NFTCollection = () => {
             }
           : undefined,
       };
+      return tokenHoldings;
     });
+
+    console.log("consolidated collection", collection);
+    return collection;
   }, [artistTokenPurchases, tracks, users]);
 
   // Filter and sort holdings
@@ -173,10 +212,30 @@ const NFTCollection = () => {
 
   // Handle play/pause
   const handlePlayTrack = (track: any) => {
-    if (currentTrack?.id === track.id) {
+    if (!track || !track.audioUrl) {
+      toast.error("Track audio is not available");
+      return;
+    }
+
+    // Transform track to match the expected Track interface
+    const transformedTrack = {
+      id: track.id,
+      title: track.title,
+      artist:
+        track.artist?.displayName || track.artist?.name || "Unknown Artist",
+      album: "Unknown Album",
+      createdAt: new Date().toISOString(),
+      duration: track.duration || 0,
+      imageUrl: track.coverArt || "/images/artist.svg",
+      audioUrl: track.audioUrl,
+      artistId: track.artistId || 0,
+      artistDetails: null,
+    };
+
+    if (currentTrack?.id === transformedTrack.id) {
       togglePlay();
     } else {
-      playTrack(track);
+      playTrack(transformedTrack);
     }
   };
 
@@ -242,7 +301,7 @@ const NFTCollection = () => {
               <span className="text-sm text-gray-400">Total Value</span>
             </div>
             <p className="text-2xl font-bold text-white">
-              {collectionStats.totalValue.toFixed(4)} ETH
+              {collectionStats.totalValue} CTSI
             </p>
           </div>
           <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-700">
@@ -396,7 +455,7 @@ const NFTCollection = () => {
                     <div className="flex items-center gap-1">
                       <Coins className="w-4 h-4 text-yellow-500" />
                       <span className="font-semibold text-white">
-                        {holding.totalPrice.toFixed(4)} ETH
+                        {holding.totalPrice} CTSI
                       </span>
                     </div>
                   </div>
@@ -420,7 +479,7 @@ const NFTCollection = () => {
                     <div className="flex items-center gap-1">
                       <Coins className="w-4 h-4 text-yellow-500" />
                       <span className="font-semibold text-white">
-                        {(holding.totalPrice / holding.amount).toFixed(4)} ETH
+                        {(holding.totalPrice / holding.amount).toFixed(2)} CTSI
                       </span>
                     </div>
                   </div>
