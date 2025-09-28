@@ -252,7 +252,7 @@ const NFTMarketplace = () => {
   }
 
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
+    <div className="p-6 space-y-6 min-h-screen text-white">
       {/* Header */}
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">

@@ -97,54 +97,55 @@ const NFTCollection = () => {
     }, {} as Record<string, typeof artistTokenPurchases>);
 
     // Create consolidated holdings
-    const collection = Object.entries(groupedPurchases).map(([trackId, purchases]): TokenHolding => {
-      const track = tracks.find(
-        (t: Track) => t.id.toString() === trackId
-      );
-      console.log("artistTokenPurchases Track:", track);
-      
-      // Use the first purchase for basic info, but consolidate amounts and prices
-      const firstPurchase = purchases[0];
-      const totalAmount = purchases.reduce((sum, p) => sum + p.amount, 0);
-      const totalPrice = purchases.reduce((sum, p) => sum + p.totalPrice, 0);
-      const earliestPurchase = purchases.reduce((earliest, p) => 
-        p.purchasedAt < earliest.purchasedAt ? p : earliest
-      );
-      
-      const artist: IUser | undefined = users.find(
-        (u: IUser) =>
-          u.walletAddress?.toLowerCase() === firstPurchase.buyer?.toLowerCase()
-      );
+    const collection = Object.entries(groupedPurchases).map(
+      ([trackId, purchases]): TokenHolding => {
+        const track = tracks.find((t: Track) => t.id.toString() === trackId);
+        console.log("artistTokenPurchases Track:", track);
 
-      const tokenHoldings = {
-        id: firstPurchase.id,
-        tokenId: firstPurchase.id,
-        buyer: firstPurchase.buyer,
-        trackId: trackId,
-        amount: totalAmount, // Consolidated total amount
-        totalPrice: totalPrice, // Consolidated total price
-        purchasedAt: earliestPurchase.purchasedAt, // Use earliest purchase date
-        transactionHash: firstPurchase.transactionHash,
-        track: track
-          ? {
-              id: track.id,
-              title: track.title,
-              artist: track.artist,
-              coverArt: track.imageUrl, // Use imageUrl from backend as coverArt
-              duration: track.duration,
-              audioUrl: track.audioUrl, // Add missing audioUrl field
-            }
-          : undefined,
-        artist: artist
-          ? {
-              displayName: artist.displayName,
-              username: artist.username,
-              walletAddress: artist.walletAddress,
-            }
-          : undefined,
-      };
-      return tokenHoldings;
-    });
+        // Use the first purchase for basic info, but consolidate amounts and prices
+        const firstPurchase = purchases[0];
+        const totalAmount = purchases.reduce((sum, p) => sum + p.amount, 0);
+        const totalPrice = purchases.reduce((sum, p) => sum + p.totalPrice, 0);
+        const earliestPurchase = purchases.reduce((earliest, p) =>
+          p.purchasedAt < earliest.purchasedAt ? p : earliest
+        );
+
+        const artist: IUser | undefined = users.find(
+          (u: IUser) =>
+            u.walletAddress?.toLowerCase() ===
+            firstPurchase.buyer?.toLowerCase()
+        );
+
+        const tokenHoldings = {
+          id: firstPurchase.id,
+          tokenId: firstPurchase.id,
+          buyer: firstPurchase.buyer,
+          trackId: trackId,
+          amount: totalAmount, // Consolidated total amount
+          totalPrice: totalPrice, // Consolidated total price
+          purchasedAt: earliestPurchase.purchasedAt, // Use earliest purchase date
+          transactionHash: firstPurchase.transactionHash,
+          track: track
+            ? {
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                coverArt: track.imageUrl, // Use imageUrl from backend as coverArt
+                duration: track.duration,
+                audioUrl: track.audioUrl, // Add missing audioUrl field
+              }
+            : undefined,
+          artist: artist
+            ? {
+                displayName: artist.displayName,
+                username: artist.username,
+                walletAddress: artist.walletAddress,
+              }
+            : undefined,
+        };
+        return tokenHoldings;
+      }
+    );
 
     console.log("consolidated collection", collection);
     return collection;
