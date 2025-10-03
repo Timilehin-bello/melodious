@@ -1296,7 +1296,7 @@ export const mintArtistTokens = async (
   trackId: string,
   amount: number,
   pricePerToken: number,
-  walletAddress?: string // Optional wallet address, defaults to signer if not provided
+  walletAddress?: string
 ) => {
   try {
     if (!rollups) {
@@ -1317,7 +1317,7 @@ export const mintArtistTokens = async (
     const timestamp = Math.floor(Date.now() / 1000);
     // Backend expects: walletAddress, trackId, amount, pricePerToken
     const payload = {
-      method: "mint_artist_tokens", // Use backend NFT route
+      method: "mint_artist_tokens",
       args: {
         walletAddress,
         trackId,

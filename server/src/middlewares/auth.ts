@@ -16,6 +16,9 @@ const verifyCallback =
 
     if (requiredRights.length) {
       const userRights: any = roleRights.get(user.role);
+      if (!userRights) {
+        return reject(new ApiError(httpStatus.FORBIDDEN, "Invalid user role"));
+      }
       const hasRequiredRights = requiredRights.every((requiredRight: any) =>
         userRights.includes(requiredRight)
       );

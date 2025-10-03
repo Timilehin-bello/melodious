@@ -408,25 +408,25 @@ model SubscriptionPlan {
 }
 
 model Ad {
-  id         Int       @id @default(autoincrement())
-  title      String
-  imageUrl   String
-  audioUrl   String
-  duration   Int       // Duration in seconds
-  isActive   Boolean   @default(true)
-  plays      AdPlay[]
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id        Int      @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  audioUrl  String
+  duration  Int // Duration in seconds
+  isActive  Boolean  @default(true)
+  plays     AdPlay[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model AdPlay {
-  id         Int       @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   adId       Int
   listenerId Int
-  completed  Boolean   @default(false)
-  playedAt   DateTime  @default(now())
-  ad         Ad        @relation(fields: [adId], references: [id])
-  listener   Listener  @relation(fields: [listenerId], references: [id])
+  completed  Boolean  @default(false)
+  playedAt   DateTime @default(now())
+  ad         Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
+  listener   Listener @relation(fields: [listenerId], references: [id], onDelete: Cascade)
 
   @@index([listenerId, playedAt])
   @@index([adId, playedAt])

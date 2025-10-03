@@ -5,7 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Edit, Plus, Upload, Music, Image as ImageIcon, X } from "lucide-react";
+import {
+  Trash2,
+  Edit,
+  Plus,
+  Upload,
+  Music,
+  Image as ImageIcon,
+  X,
+} from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useDropzone } from "react-dropzone";
 import { useMelodiousContext } from "@/contexts/melodious";
@@ -28,19 +36,22 @@ const BannerImageDropzone: React.FC<{
   preview: string;
   onRemove: () => void;
 }> = ({ onFileUpload, uploading, preview, onRemove }) => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      onFileUpload(acceptedFiles[0]);
-    }
-  }, [onFileUpload]);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        onFileUpload(acceptedFiles[0]);
+      }
+    },
+    [onFileUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.gif', '.webp']
+      "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"],
     },
     maxSize: 10 * 1024 * 1024, // 10MB
-    multiple: false
+    multiple: false,
   });
 
   return (
@@ -49,15 +60,21 @@ const BannerImageDropzone: React.FC<{
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-            isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-          } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+            isDragActive
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400"
+          } ${uploading ? "pointer-events-none opacity-50" : ""}`}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center space-y-2">
             <ImageIcon className="w-12 h-12 text-gray-400" />
             <div>
               <p className="text-sm font-medium">
-                {uploading ? 'Uploading...' : isDragActive ? 'Drop image here' : 'Upload banner image'}
+                {uploading
+                  ? "Uploading..."
+                  : isDragActive
+                  ? "Drop image here"
+                  : "Upload banner image"}
               </p>
               <p className="text-xs text-gray-500">
                 Drag & drop or click to browse (max 10MB)
@@ -99,19 +116,22 @@ const AudioFileDropzone: React.FC<{
   fileName: string;
   onRemove: () => void;
 }> = ({ onFileUpload, uploading, fileName, onRemove }) => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      onFileUpload(acceptedFiles[0]);
-    }
-  }, [onFileUpload]);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      if (acceptedFiles.length > 0) {
+        onFileUpload(acceptedFiles[0]);
+      }
+    },
+    [onFileUpload]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'audio/*': ['.mp3', '.wav', '.ogg', '.m4a', '.aac']
+      "audio/*": [".mp3", ".wav", ".ogg", ".m4a", ".aac"],
     },
     maxSize: 50 * 1024 * 1024, // 50MB
-    multiple: false
+    multiple: false,
   });
 
   return (
@@ -120,15 +140,21 @@ const AudioFileDropzone: React.FC<{
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-            isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
-          } ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+            isDragActive
+              ? "border-blue-500 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400"
+          } ${uploading ? "pointer-events-none opacity-50" : ""}`}
         >
           <input {...getInputProps()} />
           <div className="flex flex-col items-center space-y-2">
             <Music className="w-12 h-12 text-gray-400" />
             <div>
               <p className="text-sm font-medium">
-                {uploading ? 'Uploading...' : isDragActive ? 'Drop audio here' : 'Upload audio file'}
+                {uploading
+                  ? "Uploading..."
+                  : isDragActive
+                  ? "Drop audio here"
+                  : "Upload audio file"}
               </p>
               <p className="text-xs text-gray-500">
                 Drag & drop or click to browse (max 50MB)
@@ -199,7 +225,7 @@ export default function AdminAdsPage() {
         return;
       }
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/ads`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads`;
       console.log("Fetching ads from:", apiUrl);
       console.log("Using token:", token ? "Token present" : "No token");
 
@@ -220,11 +246,13 @@ export default function AdminAdsPage() {
       } else {
         const errorText = await response.text();
         console.error("API error response:", errorText);
-        toast.error(`Failed to fetch ads: ${response.status} ${response.statusText}`);
+        toast.error(
+          `Failed to fetch ads: ${response.status} ${response.statusText}`
+        );
       }
     } catch (error) {
       console.error("Error fetching ads:", error);
-      toast.error(`Error fetching ads: ${ error}`);
+      toast.error(`Error fetching ads: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -240,7 +268,7 @@ export default function AdminAdsPage() {
       }
 
       console.log("Creating ad with data:", formData);
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/ads`;
+      const apiUrl = `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads`;
       console.log("POST to:", apiUrl);
 
       const response = await fetch(apiUrl, {
@@ -268,7 +296,9 @@ export default function AdminAdsPage() {
           const error = JSON.parse(errorText);
           toast.error(error.message || "Failed to create ad");
         } catch {
-          toast.error(`Failed to create ad: ${response.status} ${response.statusText}`);
+          toast.error(
+            `Failed to create ad: ${response.status} ${response.statusText}`
+          );
         }
       }
     } catch (error) {
@@ -286,14 +316,17 @@ export default function AdminAdsPage() {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/${adId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/${adId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
       if (response.ok) {
         toast.success("Ad updated successfully");
@@ -321,12 +354,15 @@ export default function AdminAdsPage() {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/${adId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/${adId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         toast.success("Ad deleted successfully");
@@ -367,10 +403,13 @@ export default function AdminAdsPage() {
       setAudioFile(file);
 
       // Extract audio duration
-      const audio = document.createElement('audio');
+      const audio = document.createElement("audio");
       audio.src = URL.createObjectURL(file);
-      audio.addEventListener('loadedmetadata', () => {
-        setFormData(prev => ({ ...prev, duration: Math.floor(audio.duration) }));
+      audio.addEventListener("loadedmetadata", () => {
+        setFormData((prev) => ({
+          ...prev,
+          duration: Math.floor(audio.duration),
+        }));
         URL.revokeObjectURL(audio.src);
       });
 
@@ -407,7 +446,7 @@ export default function AdminAdsPage() {
       isActive: ad.isActive,
     });
     setImagePreview(ad.imageUrl);
-    const filename = ad.audioUrl.split('/').pop() || '';
+    const filename = ad.audioUrl.split("/").pop() || "";
     setAudioFileName(filename);
   };
 
@@ -419,7 +458,10 @@ export default function AdminAdsPage() {
     <div className="container md:w-[850px] mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Ad Management</h1>
-        <Button className="bg-white text-black hover:bg-gray-200" onClick={() => setShowCreateForm(true)}>
+        <Button
+          className="bg-white text-black hover:bg-gray-200"
+          onClick={() => setShowCreateForm(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Create Ad
         </Button>
@@ -431,11 +473,23 @@ export default function AdminAdsPage() {
           <CardContent className="p-4">
             <h3 className="font-semibold mb-2">Getting Started with Ads</h3>
             <ul className="text-sm space-y-1 text-gray-700">
-              <li>• Ads will play automatically based on the frequency set in your environment configuration</li>
-              <li>• Use the drag & drop upload areas to upload files directly to IPFS</li>
+              <li>
+                • Ads will play automatically based on the frequency set in your
+                environment configuration
+              </li>
+              <li>
+                • Use the drag & drop upload areas to upload files directly to
+                IPFS
+              </li>
               <li>• Recommended audio format: MP3 (30-60 seconds, max 50MB)</li>
-              <li>• Recommended image format: JPG/PNG (16:9 aspect ratio, max 10MB)</li>
-              <li>• Audio duration will be automatically detected from uploaded files</li>
+              <li>
+                • Recommended image format: JPG/PNG (16:9 aspect ratio, max
+                10MB)
+              </li>
+              <li>
+                • Audio duration will be automatically detected from uploaded
+                files
+              </li>
               <li>• Non-premium users will see ads at regular intervals</li>
             </ul>
           </CardContent>
@@ -454,7 +508,9 @@ export default function AdminAdsPage() {
               <Input
                 id="title"
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
                 placeholder="Ad title"
               />
             </div>
@@ -507,7 +563,7 @@ export default function AdminAdsPage() {
                   value={formData.audioUrl}
                   onChange={(e) => {
                     setFormData({ ...formData, audioUrl: e.target.value });
-                    const filename = e.target.value.split('/').pop() || '';
+                    const filename = e.target.value.split("/").pop() || "";
                     setAudioFileName(filename);
                   }}
                 />
@@ -519,7 +575,12 @@ export default function AdminAdsPage() {
                 id="duration"
                 type="number"
                 value={formData.duration}
-                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    duration: parseInt(e.target.value),
+                  })
+                }
                 min={1}
               />
             </div>
@@ -528,14 +589,18 @@ export default function AdminAdsPage() {
                 id="isActive"
                 type="checkbox"
                 checked={formData.isActive}
-                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, isActive: e.target.checked })
+                }
                 className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
               />
               <Label htmlFor="isActive">Active</Label>
             </div>
             <div className="flex space-x-2">
               <Button
-                onClick={() => editingAd ? updateAd(editingAd.id) : createAd()}
+                onClick={() =>
+                  editingAd ? updateAd(editingAd.id) : createAd()
+                }
               >
                 {editingAd ? "Update" : "Create"}
               </Button>
@@ -560,7 +625,9 @@ export default function AdminAdsPage() {
       ) : (
         <div className="grid gap-4">
           {ads.length === 0 ? (
-            <p className="text-center text-gray-500">No ads found. Create your first ad!</p>
+            <p className="text-center text-gray-500">
+              No ads found. Create your first ad!
+            </p>
           ) : (
             ads.map((ad) => (
               <Card key={ad.id}>
@@ -572,14 +639,22 @@ export default function AdminAdsPage() {
                         alt={ad.title}
                         className="w-20 h-20 object-cover rounded"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = "/placeholder.svg?height=80&width=80";
+                          (e.target as HTMLImageElement).src =
+                            "/placeholder.svg?height=80&width=80";
                         }}
                       />
                       <div>
                         <h3 className="font-semibold text-lg">{ad.title}</h3>
-                        <p className="text-sm text-gray-600">Duration: {ad.duration}s</p>
                         <p className="text-sm text-gray-600">
-                          Status: <span className={ad.isActive ? "text-green-600" : "text-red-600"}>
+                          Duration: {ad.duration}s
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Status:{" "}
+                          <span
+                            className={
+                              ad.isActive ? "text-green-600" : "text-red-600"
+                            }
+                          >
                             {ad.isActive ? "Active" : "Inactive"}
                           </span>
                         </p>

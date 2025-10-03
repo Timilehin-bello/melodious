@@ -39,14 +39,19 @@ export const CombinedAdPlayer: React.FC = () => {
     const fetchAdsConfig = async () => {
       try {
         const data = localStorage.getItem("xx-mu");
-        const token = data ? JSON.parse(data)?.tokens?.token?.access?.token : null;
+        const token = data
+          ? JSON.parse(data)?.tokens?.token?.access?.token
+          : null;
 
         if (token) {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/config`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/config`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const result = await response.json();
@@ -67,12 +72,14 @@ export const CombinedAdPlayer: React.FC = () => {
   const fetchAndCacheAds = async () => {
     try {
       const data = localStorage.getItem("xx-mu");
-      const token = data ? JSON.parse(data)?.tokens?.token?.access?.token : null;
+      const token = data
+        ? JSON.parse(data)?.tokens?.token?.access?.token
+        : null;
 
       if (token && adsCache.length === 0) {
         // Fetch multiple ads at once for rotation
         const promises = Array.from({ length: 5 }, () =>
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/next`, {
+          fetch(`${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/next`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -83,11 +90,11 @@ export const CombinedAdPlayer: React.FC = () => {
         const newAds: any[] = [];
 
         for (const response of responses) {
-          if (response.status === 'fulfilled' && response.value.ok) {
+          if (response.status === "fulfilled" && response.value.ok) {
             const result = await response.value.json();
             if (result.data?.ad) {
               // Check for duplicates before adding
-              const exists = newAds.some(ad => ad.id === result.data.ad.id);
+              const exists = newAds.some((ad) => ad.id === result.data.ad.id);
               if (!exists) {
                 newAds.push(result.data.ad);
               }
@@ -113,40 +120,45 @@ export const CombinedAdPlayer: React.FC = () => {
   }, [isPremiumUser]);
 
   // Prevent keyboard shortcuts during ad playback
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (isAdPlaying) {
-      // Prevent common media keys and shortcuts
-      const preventedKeys = [
-        'Space', // Play/pause
-        'ArrowLeft', // Rewind
-        'ArrowRight', // Fast forward
-        'ArrowUp', // Volume up
-        'ArrowDown', // Volume down
-        'KeyM', // Mute
-        'KeyJ', // Rewind 10s
-        'KeyK', // Play/pause
-        'KeyL', // Fast forward 10s
-        'KeyF', // Fullscreen
-        'Escape', // Exit fullscreen/modal
-        'MediaPlayPause',
-        'MediaNextTrack',
-        'MediaPreviousTrack',
-        'MediaStop',
-      ];
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (isAdPlaying) {
+        // Prevent common media keys and shortcuts
+        const preventedKeys = [
+          "Space", // Play/pause
+          "ArrowLeft", // Rewind
+          "ArrowRight", // Fast forward
+          "ArrowUp", // Volume up
+          "ArrowDown", // Volume down
+          "KeyM", // Mute
+          "KeyJ", // Rewind 10s
+          "KeyK", // Play/pause
+          "KeyL", // Fast forward 10s
+          "KeyF", // Fullscreen
+          "Escape", // Exit fullscreen/modal
+          "MediaPlayPause",
+          "MediaNextTrack",
+          "MediaPreviousTrack",
+          "MediaStop",
+        ];
 
-      if (preventedKeys.includes(event.code) ||
-          (event.ctrlKey && ['KeyW', 'KeyT', 'KeyR'].includes(event.code))) {
-        event.preventDefault();
-        event.stopPropagation();
+        if (
+          preventedKeys.includes(event.code) ||
+          (event.ctrlKey && ["KeyW", "KeyT", "KeyR"].includes(event.code))
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
       }
-    }
-  }, [isAdPlaying]);
+    },
+    [isAdPlaying]
+  );
 
   // Add keyboard event listeners and prevent window manipulation
   useEffect(() => {
     if (isAdPlaying) {
-      document.addEventListener('keydown', handleKeyDown, true);
-      document.addEventListener('keyup', handleKeyDown, true);
+      document.addEventListener("keydown", handleKeyDown, true);
+      document.addEventListener("keyup", handleKeyDown, true);
 
       // Prevent tab switching and other window events
       const handleVisibilityChange = () => {
@@ -159,19 +171,23 @@ export const CombinedAdPlayer: React.FC = () => {
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         if (isAdPlaying) {
           e.preventDefault();
-          e.returnValue = 'An advertisement is playing. Are you sure you want to leave?';
-          return 'An advertisement is playing. Are you sure you want to leave?';
+          e.returnValue =
+            "An advertisement is playing. Are you sure you want to leave?";
+          return "An advertisement is playing. Are you sure you want to leave?";
         }
       };
 
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('beforeunload', handleBeforeUnload);
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+      window.addEventListener("beforeunload", handleBeforeUnload);
 
       return () => {
-        document.removeEventListener('keydown', handleKeyDown, true);
-        document.removeEventListener('keyup', handleKeyDown, true);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.removeEventListener("keydown", handleKeyDown, true);
+        document.removeEventListener("keyup", handleKeyDown, true);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+        window.removeEventListener("beforeunload", handleBeforeUnload);
       };
     }
   }, [isAdPlaying, handleKeyDown]);
@@ -202,21 +218,26 @@ export const CombinedAdPlayer: React.FC = () => {
       // If no cached ads, fetch one
       if (!adToPlay) {
         const data = localStorage.getItem("xx-mu");
-        const token = data ? JSON.parse(data)?.tokens?.token?.access?.token : null;
+        const token = data
+          ? JSON.parse(data)?.tokens?.token?.access?.token
+          : null;
 
         if (token) {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/next`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/next`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           if (response.ok) {
             const result = await response.json();
             if (result.data?.ad) {
               adToPlay = result.data.ad;
               // Add to cache for future use
-              setAdsCache(prev => [...prev, result.data.ad]);
+              setAdsCache((prev) => [...prev, result.data.ad]);
             }
           }
         }
@@ -253,17 +274,29 @@ export const CombinedAdPlayer: React.FC = () => {
      * - Rotates through cached ads for variety
      * - Example with songsBeforeAd=3: ads show at songs 3, 6, 9, 12, 15...
      */
-    console.log(`Ad Check: Songs=${songsSinceAd}, Interval=${songsBeforeAd}, LastAd=${lastAdSongCount}, Premium=${isPremiumUser}, AdPlaying=${isAdPlaying}`);
+    console.log(
+      `Ad Check: Songs=${songsSinceAd}, Interval=${songsBeforeAd}, LastAd=${lastAdSongCount}, Premium=${isPremiumUser}, AdPlaying=${isAdPlaying}`
+    );
 
-    if (!isPremiumUser &&
-        songsSinceAd > 0 &&
-        songsSinceAd % songsBeforeAd === 0 &&
-        songsSinceAd !== lastAdSongCount &&
-        !isAdPlaying) {
-      console.log(`🎯 Triggering ad at song ${songsSinceAd} (every ${songsBeforeAd} songs)`);
+    if (
+      !isPremiumUser &&
+      songsSinceAd > 0 &&
+      songsSinceAd % songsBeforeAd === 0 &&
+      songsSinceAd !== lastAdSongCount &&
+      !isAdPlaying
+    ) {
+      console.log(
+        `🎯 Triggering ad at song ${songsSinceAd} (every ${songsBeforeAd} songs)`
+      );
       playAdWithRotation();
     }
-  }, [songsSinceAd, isPremiumUser, isAdPlaying, songsBeforeAd, lastAdSongCount]);
+  }, [
+    songsSinceAd,
+    isPremiumUser,
+    isAdPlaying,
+    songsBeforeAd,
+    lastAdSongCount,
+  ]);
 
   // Handle ad completion
   const handleAdEnd = () => {
@@ -280,17 +313,22 @@ export const CombinedAdPlayer: React.FC = () => {
     if (currentAd && !audioError) {
       try {
         const data = localStorage.getItem("xx-mu");
-        const token = data ? JSON.parse(data)?.tokens?.token?.access?.token : null;
+        const token = data
+          ? JSON.parse(data)?.tokens?.token?.access?.token
+          : null;
 
         if (token) {
-          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/ads/complete`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ adId: currentAd.id }),
-          });
+          await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/ads/complete`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ adId: currentAd.id }),
+            }
+          );
         }
       } catch (error) {
         console.error("Error tracking ad completion:", error);
@@ -309,7 +347,9 @@ export const CombinedAdPlayer: React.FC = () => {
     setRetryCount(newRetryCount);
 
     if (newRetryCount < MAX_RETRY_ATTEMPTS && adsCache.length > 1) {
-      console.log(`🔄 Retrying with different ad (attempt ${newRetryCount}/${MAX_RETRY_ATTEMPTS})`);
+      console.log(
+        `🔄 Retrying with different ad (attempt ${newRetryCount}/${MAX_RETRY_ATTEMPTS})`
+      );
 
       // Try next ad in rotation
       setTimeout(() => {
@@ -323,7 +363,9 @@ export const CombinedAdPlayer: React.FC = () => {
         }
       }, 1000);
     } else {
-      console.error(`Max retry attempts reached or no more ads, ending ad session`);
+      console.error(
+        `Max retry attempts reached or no more ads, ending ad session`
+      );
       // Show visual ad for minimum duration before resuming
       setTimeout(() => {
         handleAdEnd();
@@ -351,9 +393,10 @@ export const CombinedAdPlayer: React.FC = () => {
   if (!isAdPlaying || !currentAd) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto"
-         onContextMenu={(e) => e.preventDefault()} // Prevent right-click menu
-         style={{ userSelect: 'none' }} // Prevent text selection
+    <div
+      className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-y-auto"
+      onContextMenu={(e) => e.preventDefault()} // Prevent right-click menu
+      style={{ userSelect: "none" }} // Prevent text selection
     >
       <div className="relative w-full max-w-sm sm:max-w-md md:max-w-2xl lg:max-w-4xl my-auto">
         {/* Ad Container */}
@@ -361,7 +404,9 @@ export const CombinedAdPlayer: React.FC = () => {
           {/* Header */}
           <div className="p-3 sm:p-4 border-b border-gray-800">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <span className="text-xs text-gray-400 uppercase tracking-wider">Advertisement</span>
+              <span className="text-xs text-gray-400 uppercase tracking-wider">
+                Advertisement
+              </span>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs sm:text-sm text-gray-300">
                   Ends in {formatTime(remainingTime)}
@@ -380,16 +425,18 @@ export const CombinedAdPlayer: React.FC = () => {
           {/* Main Content */}
           <div className="p-4 sm:p-6 md:p-8 overflow-y-auto flex-1">
             {/* Ad Image */}
-            <div className="relative aspect-video mb-3 sm:mb-4 md:mb-6 rounded-lg overflow-hidden bg-gray-900 min-h-[120px] sm:min-h-[160px] md:min-h-[200px]"
-                 onContextMenu={(e) => e.preventDefault()}
-                 style={{ pointerEvents: 'none' }}>
+            <div
+              className="relative aspect-video mb-3 sm:mb-4 md:mb-6 rounded-lg overflow-hidden bg-gray-900 min-h-[120px] sm:min-h-[160px] md:min-h-[200px]"
+              onContextMenu={(e) => e.preventDefault()}
+              style={{ pointerEvents: "none" }}
+            >
               <Image
                 src={currentAd.imageUrl}
                 alt={currentAd.title}
                 fill
                 className="object-contain"
                 priority
-                style={{ pointerEvents: 'none' }}
+                style={{ pointerEvents: "none" }}
                 sizes="(max-width: 640px) 300px, (max-width: 768px) 400px, (max-width: 1024px) 600px, 800px"
               />
               {/* Overlay to prevent interaction */}
@@ -433,21 +480,30 @@ export const CombinedAdPlayer: React.FC = () => {
                     ⚠️ Audio loading issue detected
                   </p>
                   <p className="text-xs text-gray-400">
-                    {retryCount < MAX_RETRY_ATTEMPTS ?
-                      `Trying alternate ad (${retryCount}/${MAX_RETRY_ATTEMPTS})...` :
-                      `Ad will complete in ${AD_SKIP_TIMER} seconds`}
+                    {retryCount < MAX_RETRY_ATTEMPTS
+                      ? `Trying alternate ad (${retryCount}/${MAX_RETRY_ATTEMPTS})...`
+                      : `Ad will complete in ${AD_SKIP_TIMER} seconds`}
                   </p>
                 </div>
               ) : (
                 <>
                   <p className="text-xs sm:text-sm text-gray-400 text-center leading-relaxed">
                     🎵 Your music is paused while this advertisement plays.
-                    <span className="hidden sm:inline"> Music will resume automatically when the ad completes.</span>
-                    <span className="sm:hidden block mt-1">Music resumes after ad.</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      Music will resume automatically when the ad completes.
+                    </span>
+                    <span className="sm:hidden block mt-1">
+                      Music resumes after ad.
+                    </span>
                   </p>
                   <p className="text-xs text-gray-500 text-center mt-1">
-                    <span className="hidden sm:inline">This supports the artists and keeps the platform free.</span>
-                    <span className="sm:hidden">Supporting artists & free platform.</span>
+                    <span className="hidden sm:inline">
+                      This supports the artists and keeps the platform free.
+                    </span>
+                    <span className="sm:hidden">
+                      Supporting artists & free platform.
+                    </span>
                   </p>
                 </>
               )}
@@ -482,12 +538,12 @@ export const CombinedAdPlayer: React.FC = () => {
             config={{
               file: {
                 attributes: {
-                  controlsList: 'nodownload nofullscreen noremoteplayback',
+                  controlsList: "nodownload nofullscreen noremoteplayback",
                   disablePictureInPicture: true,
-                  onContextMenu: (e: any) => e.preventDefault()
+                  onContextMenu: (e: any) => e.preventDefault(),
                 },
-                forceAudio: true
-              }
+                forceAudio: true,
+              },
             }}
           />
         </div>

@@ -110,10 +110,12 @@ const NFTCollection = () => {
           p.purchasedAt < earliest.purchasedAt ? p : earliest
         );
 
+        // Find the artist user by matching user.artist.id with track.artistId
         const artist: IUser | undefined = users.find(
           (u: IUser) =>
-            u.walletAddress?.toLowerCase() ===
-            firstPurchase.buyer?.toLowerCase()
+            u.artist &&
+            track?.artistId &&
+            u.artist.id === parseInt(track.artistId.toString())
         );
 
         const tokenHoldings = {
@@ -129,7 +131,7 @@ const NFTCollection = () => {
             ? {
                 id: track.id,
                 title: track.title,
-                artist: track.artist,
+                artist: artist?.displayName || artist?.username || "Unknown Artist",
                 coverArt: track.imageUrl, // Use imageUrl from backend as coverArt
                 duration: track.duration,
                 audioUrl: track.audioUrl, // Add missing audioUrl field
@@ -222,8 +224,7 @@ const NFTCollection = () => {
     const transformedTrack = {
       id: track.id,
       title: track.title,
-      artist:
-        track.artist?.displayName || track.artist?.name || "Unknown Artist",
+      artist: track.artist || "Unknown Artist",
       album: "Unknown Album",
       createdAt: new Date().toISOString(),
       duration: track.duration || 0,
