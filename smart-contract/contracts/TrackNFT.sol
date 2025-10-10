@@ -4,6 +4,14 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+// Cartesi Input Box interface
+interface IInputBox {
+    function addInput(
+        address dapp,
+        bytes calldata input
+    ) external returns (bytes32);
+}
+
 /**
  * @title TrackNFT
  * @dev ERC721 contract for unique ownership of individual tracks
@@ -20,6 +28,10 @@ contract TrackNFT is ERC721, Ownable {
     }
 
     uint256 private _tokenIdCounter;
+
+    // Cartesi integration
+    IInputBox public inputBox;
+    address public dappAddress;
 
     // Mapping from token ID to track metadata
     mapping(uint256 => TrackMetadata) public trackMetadata;
@@ -42,8 +54,13 @@ contract TrackNFT is ERC721, Ownable {
     event TrackReactivated(uint256 indexed tokenId, string indexed trackId);
 
     constructor(
-        address initialOwner
-    ) ERC721("Melodious Track NFT", "MELOTRACKNFT") Ownable(initialOwner) {}
+        address initialOwner,
+        address _inputBox,
+        address _dappAddress
+    ) ERC721("Melodious Track NFT", "MELOTRACKNFT") Ownable(initialOwner) {
+        inputBox = IInputBox(_inputBox);
+        dappAddress = _dappAddress;
+    }
 
     /**
      * @dev Mint a new track NFT
@@ -52,6 +69,7 @@ contract TrackNFT is ERC721, Ownable {
      * @param artistWallet Artist's wallet address
      * @param ipfsHash IPFS hash of the track metadata
      * @param royaltyPercentage Royalty percentage for the track (0-100)
+     * @param payload Pre-constructed JSON payload as bytes for Cartesi backend
      * @return tokenId The newly minted token ID
      */
     function mintTrackNFT(
@@ -59,8 +77,9 @@ contract TrackNFT is ERC721, Ownable {
         string memory trackId,
         address artistWallet,
         string memory ipfsHash,
-        uint256 royaltyPercentage
-    ) external onlyOwner returns (uint256) {
+        uint256 royaltyPercentage,
+        bytes memory payload
+    ) external returns (uint256) {
         require(bytes(trackId).length > 0, "Track ID cannot be empty");
         require(artistWallet != address(0), "Invalid artist wallet");
         require(bytes(ipfsHash).length > 0, "IPFS hash cannot be empty");
@@ -94,6 +113,9 @@ contract TrackNFT is ERC721, Ownable {
             ipfsHash,
             royaltyPercentage
         );
+
+        // Send payload to Cartesi backend
+        inputBox.addInput(dappAddress, payload);
 
         return tokenId;
     }

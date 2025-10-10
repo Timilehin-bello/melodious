@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import process from "process";
-
-const prisma = new PrismaClient();
+import { prisma } from "../services";
 
 async function promoteToAdmin(
   walletAddress: string = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".toLowerCase()
@@ -9,15 +7,6 @@ async function promoteToAdmin(
   console.log(`Promoting user with wallet ${walletAddress} to admin...`);
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { walletAddress: walletAddress.toLowerCase() },
-    });
-
-    // if (!user) {
-    //   console.error(`User with wallet address ${walletAddress} not found`);
-    //   return;
-    // }
-
     const updatedUser = await prisma.user.upsert({
       where: { walletAddress: walletAddress.toLowerCase() },
       update: { role: "ADMIN" },

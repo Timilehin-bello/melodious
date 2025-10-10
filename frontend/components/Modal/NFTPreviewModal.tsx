@@ -33,7 +33,7 @@ export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
   nftType = "ERC721",
 }) => {
   const [royaltyPercentage, setRoyaltyPercentage] = useState<number>(10);
-  const [tokenAmount, setTokenAmount] = useState<number>(100);
+  const [tokenAmount, setTokenAmount] = useState<number>(100000);
   const [pricePerToken, setPricePerToken] = useState<number>(1);
   const [mintingStep, setMintingStep] = useState<
     "preview" | "minting" | "success"
@@ -73,15 +73,20 @@ export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
         });
       }
 
-      setMintingStep("success");
-      toast.success("NFTs minted successfully!");
-
-      // Wait a moment then close and trigger success callback
+      // Wait for data to be populated before showing success
+      // The mutation's onSuccess callback has a 3-second delay for backend processing
+      // We'll wait a bit longer to ensure data is fully populated
       setTimeout(() => {
-        onSuccess();
-        onClose();
-        setMintingStep("preview"); // Reset for next time
-      }, 2000);
+        setMintingStep("success");
+        toast.success("NFTs minted successfully!");
+
+        // Wait a moment then close and trigger success callback
+        setTimeout(() => {
+          onSuccess();
+          onClose();
+          setMintingStep("preview"); // Reset for next time
+        }, 2000);
+      }, 4000); // Wait 4 seconds to ensure data is populated
     } catch (error) {
       console.error("Error minting NFTs:", error);
       setMintingStep("preview");
@@ -257,7 +262,7 @@ export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
                               </Label>
                               <Input
                                 type="number"
-                                min="0.01"
+                                min="100"
                                 step="0.01"
                                 value={pricePerToken}
                                 onChange={(e) =>
@@ -302,13 +307,14 @@ export const NFTPreviewModal: React.FC<NFTPreviewModalProps> = ({
                   <div className="flex flex-col items-center justify-center py-12">
                     <Loader2 className="w-12 h-12 text-[#950944] animate-spin mb-4" />
                     <h4 className="text-xl font-medium text-white mb-2">
-                      Minting Your{" "}
+                      Processing Your{" "}
                       {nftType === "ERC721" ? "Track NFT" : "Artist Tokens"}...
                     </h4>
                     <p className="text-gray-400 text-center max-w-md">
-                      Please wait while we mint your{" "}
+                      Please wait while we mint and populate your{" "}
                       {nftType === "ERC721" ? "Track NFT" : "Artist Tokens"}.
-                      This may take a few moments.
+                      This process includes blockchain confirmation and data
+                      synchronization.
                     </p>
                   </div>
                 )}

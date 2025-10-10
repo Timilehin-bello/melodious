@@ -1060,7 +1060,7 @@ export const mintTrackNFTPortal = async (
 
     // Create mint payload for ERC721 portal
     const mintPayload = JSON.stringify({
-      method: "mint_track_nft", // Use backend NFT route
+      method: "mint_track_nft",
       args: {
         walletAddress: signerAddress,
         trackId,
@@ -1342,7 +1342,7 @@ export const mintArtistTokens = async (
 };
 
 // Purchase Artist Tokens
-// Legacy function - use purchaseArtistTokensPortal for new implementations
+
 export const purchaseArtistTokens = async (
   rollups: RollupsContracts | undefined,
   dappAddress: string,

@@ -10,16 +10,12 @@ import {
   ShoppingCart,
   Music,
   Search,
-  Filter,
   Coins,
   Play,
   Pause,
   User,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
 import { useMarketplace, usePurchaseArtistTokens } from "@/hooks/useNFT";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import toast from "react-hot-toast";
@@ -179,11 +175,40 @@ const NFTMarketplace = () => {
 
     try {
       const totalPrice = token.pricePerToken * amount;
+
+      // Show loading toast
+      const loadingToast = toast.loading(
+        `Purchasing ${amount} tokens from ${
+          token.artist?.displayName || "Unknown Artist"
+        }...`
+      );
+
       await purchaseTokensMutation.mutateAsync({
         trackId: Number(token.trackId),
         amount,
         totalPrice,
       });
+
+      setTimeout(() => {
+        // Update to success toast
+        toast.success(
+          `Successfully purchased ${amount} tokens for ${
+            token.artist?.displayName || "Unknown Artist"
+          }!`,
+          { id: loadingToast }
+        );
+        purchaseTokensMutation.refetch();
+        
+        // Remove loading state for this specific token after completion
+        setPurchasingTokens((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(token.id);
+          return newSet;
+        });
+      }, 10000);
+
+      // Invalidate and refetch marketplace data to update the UI
+      purchaseTokensMutation.refetch();
 
       // Reset purchase amount
       setPurchaseAmounts((prev) => ({
@@ -191,9 +216,11 @@ const NFTMarketplace = () => {
         [token.id]: "1",
       }));
     } catch (error) {
+      // Dismiss loading toast on error
+      toast.dismiss();
       console.error("Purchase failed:", error);
-    } finally {
-      // Remove loading state for this specific token
+      
+      // Remove loading state for this specific token on error
       setPurchasingTokens((prev) => {
         const newSet = new Set(prev);
         newSet.delete(token.id);

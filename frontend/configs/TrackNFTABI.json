@@ -5,6 +5,16 @@
         "internalType": "address",
         "name": "initialOwner",
         "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_inputBox",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_dappAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "nonpayable",
@@ -342,6 +352,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "dappAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -444,6 +467,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "inputBox",
+    "outputs": [
+      {
+        "internalType": "contract IInputBox",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -512,6 +548,11 @@
         "internalType": "uint256",
         "name": "royaltyPercentage",
         "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "payload",
+        "type": "bytes"
       }
     ],
     "name": "mintTrackNFT",

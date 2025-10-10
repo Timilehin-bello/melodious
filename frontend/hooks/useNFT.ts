@@ -2,14 +2,34 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
 import { useRepositoryData, noticesKeys } from "./useNoticesQuery";
-import { useRollups } from "../cartesi/hooks/useRollups";
 import {
-  mintTrackNFTPortal,
-  mintArtistTokens,
-  purchaseArtistTokens,
-} from "../cartesi/Portals";
+  getContract,
+  prepareContractCall,
+  sendTransaction,
+  readContract,
+} from "thirdweb";
+import { TrackNFTABI, ArtistTokenABI } from "@/configs";
+import CTSITokenABI from "@/configs/CTSITokenABI.json";
 import { Track } from "@/types";
 import { User } from "./useUserByWallet";
+import { ethers } from "ethers";
+import { client } from "@/lib/client";
+import { networkChain } from "@/components/ConnectWallet";
+
+// Helper function to get contract addresses from repository data
+const getContractAddresses = (repositoryData: any) => {
+  return {
+    trackNFT: repositoryData?.config?.trackNftContractAddress,
+    artistToken: repositoryData?.config?.artistTokenContractAddress,
+    ctsiToken: repositoryData?.config?.cartesiTokenContractAddress,
+    inputBox:
+      process.env.NEXT_PUBLIC_INPUTBOX_ADDRESS ||
+      "0x59b22D57D4f067708AB0c00552767405926dc768",
+    dappAddress:
+      process.env.NEXT_PUBLIC_DAPP_ADDRESS ||
+      "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
+  };
+};
 
 // NFT types
 export interface TrackNFT {
@@ -476,76 +496,109 @@ export const useNFTStats = (walletAddress?: string) => {
 
 // Mutation hook to mint Track NFT (ERC-721)
 export const useMintTrackNFT = () => {
-  const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS || "";
-  const rollups = useRollups(dappAddress);
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
   const { repositoryData } = useRepositoryData();
 
   return useMutation({
     mutationFn: async (request: MintTrackNFTRequest) => {
-      if (!rollups || !activeAccount || !repositoryData) {
-        throw new Error("Rollups, wallet, or repository data not available");
+      if (!activeAccount || !repositoryData) {
+        throw new Error("Wallet or repository data not available");
       }
 
-      // Get contract address from repository config
-      const trackNftContractAddress =
-        repositoryData.config?.trackNftContractAddress;
-      if (!trackNftContractAddress) {
+      // Get contract addresses from repository config
+      const addresses = getContractAddresses(repositoryData);
+      if (!addresses.trackNFT) {
         throw new Error("Track NFT contract address not found in config");
       }
 
-      // Get signer from rollups
-      const signer = rollups.signer;
-      if (!signer) {
-        throw new Error("Signer not available");
-      }
-
       try {
-        const response = await mintTrackNFTPortal(
-          rollups,
-          signer,
-          trackNftContractAddress,
-          request.trackId,
-          request.ipfsHash,
-          request.royaltyPercentage,
-          dappAddress
+        // Create contract instance
+        const contract = getContract({
+          client,
+          chain: networkChain,
+          address: addresses.trackNFT,
+          abi: TrackNFTABI as any,
+        });
+
+        console.log("Minting Track NFT for trackId:", contract);
+
+        // Construct JSON payload for Cartesi backend
+        const payload = JSON.stringify({
+          method: "mint_track_nft",
+          args: {
+            walletAddress: activeAccount.address,
+            trackId: request.trackId,
+            ipfsHash: request.ipfsHash,
+            royaltyPercentage: request.royaltyPercentage,
+            timestamp: Math.floor(Date.now() / 1000),
+            signer: activeAccount.address,
+            createdAt: Math.floor(Date.now() / 1000),
+          },
+        });
+
+        // Convert payload to bytes (hex format)
+        const payloadBytes = ethers.utils.hexlify(
+          ethers.utils.toUtf8Bytes(payload)
         );
-        return response;
+
+        // Prepare the contract call
+        const transaction = prepareContractCall({
+          contract,
+          method: "mintTrackNFT",
+          params: [
+            activeAccount.address, // to
+            request.trackId, // trackId
+            activeAccount.address, // artistWallet
+            request.ipfsHash, // ipfsHash
+            request.royaltyPercentage, // royaltyPercentage
+            payloadBytes, // payload
+          ],
+        });
+
+        // Send the transaction
+        const result = await sendTransaction({
+          transaction,
+          account: activeAccount,
+        });
+
+        return result;
       } catch (error) {
         console.error("Error minting Track NFT:", error);
         throw error;
       }
     },
     onSuccess: (data, variables) => {
-      toast.success(
-        `Successfully minted Track NFT for track ${variables.trackId}!`
-      );
+      // toast.success(
+      //   `Successfully minted Track NFT for track ${variables.trackId}!`
+      // );
 
-      // Immediate invalidation
-      queryClient.invalidateQueries({
-        queryKey: noticesKeys.lists(),
-      });
-
-      // Add a small delay to allow backend processing, then force refetch
+      // Add a delay for backend processing, then force refetch
       setTimeout(() => {
-        // Force refetch notices query to refresh repository data immediately
-        queryClient.resetQueries({
+        queryClient.invalidateQueries({
           queryKey: noticesKeys.lists(),
         });
-        queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
-          type: "active",
-        });
-
-        // Invalidate and refetch related queries
         queryClient.invalidateQueries({
           queryKey: nftKeys.trackNFTs(activeAccount?.address),
         });
         queryClient.invalidateQueries({
           queryKey: nftKeys.nftStats(activeAccount?.address),
         });
-      }, 3000); // 3 second delay to allow backend processing
+        queryClient.invalidateQueries({
+          queryKey: nftKeys.allTrackNFTs(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: nftKeys.marketplace(),
+        });
+        queryClient.refetchQueries({
+          queryKey: noticesKeys.lists(),
+          type: "active",
+        });
+        queryClient.refetchQueries({
+          queryKey: nftKeys.trackNFTs(activeAccount?.address),
+          type: "active",
+        });
+      }, 3000); // 2 second delay
     },
     onError: (error: any) => {
       const errorMessage =
@@ -560,60 +613,106 @@ export const useMintTrackNFT = () => {
 
 // Mutation hook to mint Artist Tokens (ERC-1155)
 export const useMintArtistTokens = () => {
-  const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS || "";
-  const rollups = useRollups(dappAddress);
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
+  const { repositoryData } = useRepositoryData();
 
   return useMutation({
     mutationFn: async (request: MintArtistTokensRequest) => {
-      if (!rollups || !activeAccount) {
-        throw new Error("Rollups not available or wallet not connected");
+      if (!activeAccount || !repositoryData) {
+        throw new Error("Wallet or repository data not available");
+      }
+
+      // Get contract addresses from repository config
+      const addresses = getContractAddresses(repositoryData);
+      if (!addresses.artistToken) {
+        throw new Error("Artist Token contract address not found in config");
       }
 
       try {
-        const response = await mintArtistTokens(
-          rollups,
-          dappAddress,
-          request.trackId,
-          request.amount,
-          request.pricePerToken
+        // Create contract instance
+        const contract = getContract({
+          client,
+          chain: networkChain,
+          address: addresses.artistToken,
+          abi: ArtistTokenABI as any,
+        });
+
+        // Construct JSON payload for Cartesi backend
+        const payload = JSON.stringify({
+          method: "mint_artist_tokens",
+          args: {
+            artistWallet: activeAccount.address,
+            trackId: request.trackId,
+            amount: request.amount,
+            pricePerToken: request.pricePerToken,
+            timestamp: Math.floor(Date.now() / 1000),
+            signer: activeAccount.address,
+          },
+        });
+
+        // Convert payload to bytes (hex format)
+        const payloadBytes = ethers.utils.hexlify(
+          ethers.utils.toUtf8Bytes(payload)
         );
-        return response;
+
+        // Prepare the contract call
+        const transaction = prepareContractCall({
+          contract,
+          method: "mintArtistTokens",
+          params: [
+            request.trackId, // trackId
+            activeAccount.address, // artistWallet
+            BigInt(request.amount), // supply
+            ethers.utils.parseEther(request.pricePerToken.toString()), // pricePerToken in wei
+            payloadBytes, // payload
+          ],
+        } as any);
+
+        // Send the transaction
+        const result = await sendTransaction({
+          transaction,
+          account: activeAccount,
+        });
+
+        return result;
       } catch (error) {
         console.error("Error minting Artist Tokens:", error);
         throw error;
       }
     },
     onSuccess: (data, variables) => {
-      toast.success(
-        `Successfully minted ${variables.amount} Artist Tokens for track ${variables.trackId}!`
-      );
+      // toast.success(
+      //   `Successfully minted ${variables.amount} Artist Tokens for track ${variables.trackId}!`
+      // );
 
-      // Immediate invalidation
-      queryClient.invalidateQueries({
-        queryKey: noticesKeys.lists(),
-      });
-
-      // Add a small delay to allow backend processing, then force refetch
+      // Add a delay for backend processing, then force refetch
       setTimeout(() => {
-        // Force refetch notices query to refresh repository data immediately
-        queryClient.resetQueries({
+        queryClient.invalidateQueries({
           queryKey: noticesKeys.lists(),
         });
-        queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
-          type: "active",
-        });
-
-        // Invalidate and refetch related queries
         queryClient.invalidateQueries({
           queryKey: nftKeys.artistTokens(activeAccount?.address),
         });
         queryClient.invalidateQueries({
           queryKey: nftKeys.nftStats(activeAccount?.address),
         });
-      }, 3000); // 3 second delay to allow backend processing
+        queryClient.invalidateQueries({
+          queryKey: nftKeys.allArtistTokens(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: nftKeys.marketplace(),
+        });
+
+        queryClient.refetchQueries({
+          queryKey: noticesKeys.lists(),
+          type: "active",
+        });
+        queryClient.refetchQueries({
+          queryKey: nftKeys.artistTokens(activeAccount?.address),
+          type: "active",
+        });
+      }, 3000); // 2 second delay
     },
     onError: (error: any) => {
       const errorMessage =
@@ -628,15 +727,20 @@ export const useMintArtistTokens = () => {
 
 // Mutation hook to purchase Artist Tokens
 export const usePurchaseArtistTokens = () => {
-  const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS || "";
-  const rollups = useRollups(dappAddress);
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
+  const { repositoryData } = useRepositoryData();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: async (request: PurchaseArtistTokensRequest) => {
-      if (!rollups || !activeAccount) {
-        throw new Error("Rollups not available or wallet not connected");
+      if (!activeAccount || !repositoryData) {
+        throw new Error("Wallet or repository data not available");
+      }
+
+      // Get contract addresses from repository config
+      const addresses = getContractAddresses(repositoryData);
+      if (!addresses.artistToken) {
+        throw new Error("Artist Token contract address not found in config");
       }
 
       console.log(
@@ -647,23 +751,179 @@ export const usePurchaseArtistTokens = () => {
       );
 
       try {
-        const response = await purchaseArtistTokens(
-          rollups,
-          dappAddress,
-          request.trackId,
-          request.amount,
-          request.totalPrice
+        // Get CTSI token contract address from repository config
+        if (!addresses.ctsiToken) {
+          throw new Error("CTSI Token contract address not found in config");
+        }
+
+        // Get CTSI token contract instance
+        const ctsiContract = getContract({
+          client,
+          chain: networkChain,
+          address: addresses.ctsiToken,
+          abi: CTSITokenABI as any,
+        });
+
+        // First, we need to get the tokenId and check the contract's pricePerToken
+        // to calculate the exact totalCost that the contract will use
+
+        // Get Artist Token contract instance
+        const artistTokenContract = getContract({
+          client,
+          chain: networkChain,
+          address: addresses.artistToken,
+          abi: ArtistTokenABI as any,
+        });
+
+        // Check if tokens exist for this trackId
+        console.log(`Checking if tokens exist for trackId: ${request.trackId}`);
+        const tokensExist = await readContract({
+          contract: artistTokenContract,
+          method: "areTokensCreated",
+          params: [request.trackId.toString()],
+        });
+
+        if (!tokensExist) {
+          throw new Error(
+            `Artist Tokens have not been minted for track ${request.trackId} yet. Please mint them first.`
+          );
+        }
+
+        // Get tokenId for this trackId
+        console.log(`Getting tokenId for trackId: ${request.trackId}`);
+        const tokenId = await readContract({
+          contract: artistTokenContract,
+          method: "getTokenIdByTrackId",
+          params: [request.trackId.toString()],
+        });
+        console.log(`Retrieved tokenId: ${tokenId}`);
+
+        // Get token info to get the exact pricePerToken stored in the contract
+        const tokenInfo = await readContract({
+          contract: artistTokenContract,
+          method: "getTokenInfo",
+          params: [tokenId],
+        });
+
+        // Calculate the exact totalCost that the contract will calculate
+        const contractPricePerToken = tokenInfo.pricePerToken;
+        const totalCostWei = contractPricePerToken * BigInt(request.amount);
+
+        console.log(`Contract pricePerToken (wei): ${contractPricePerToken}`);
+        console.log(`Amount: ${request.amount}`);
+        console.log(`Total cost (wei): ${totalCostWei}`);
+        console.log(
+          `Total cost (ether): ${ethers.utils.formatEther(
+            totalCostWei.toString()
+          )}`
         );
-        return response;
+
+        // Step 1: Check user's CTSI balance
+        console.log("Checking CTSI balance...");
+        const userBalance = await readContract({
+          contract: ctsiContract,
+          method: "balanceOf",
+          params: [activeAccount.address],
+        });
+
+        // Convert balance from wei to ether for display
+        const balanceInEther = ethers.utils.formatEther(userBalance.toString());
+        console.log(`User CTSI balance: ${balanceInEther} CTSI`);
+        console.log(
+          `Required amount: ${ethers.utils.formatEther(
+            totalCostWei.toString()
+          )} CTSI`
+        );
+
+        // Debug: Log actual values for comparison
+        console.log(`User balance (wei): ${userBalance.toString()}`);
+        console.log(`Required cost (wei): ${totalCostWei.toString()}`);
+        console.log(`Balance >= Cost: ${userBalance >= totalCostWei}`);
+
+        // Check if user has enough balance
+        if (userBalance < totalCostWei) {
+          throw new Error(
+            `Insufficient CTSI balance. Required: ${ethers.utils.formatEther(
+              totalCostWei.toString()
+            )} CTSI, Available: ${balanceInEther} CTSI`
+          );
+        }
+
+        // Step 2: Approve CTSI token spending
+        console.log("Approving CTSI token spending...");
+        const approveTransaction = prepareContractCall({
+          contract: ctsiContract,
+          method: "approve",
+          params: [addresses.artistToken, totalCostWei],
+        } as any);
+
+        await sendTransaction({
+          transaction: approveTransaction,
+          account: activeAccount,
+        });
+
+        // Step 3: Purchase artist tokens
+        // Construct JSON payload for Cartesi backend
+        const payload = JSON.stringify({
+          method: "purchase_artist_tokens",
+          args: {
+            buyerAddress: activeAccount.address,
+            trackId: request.trackId.toString(),
+            amount: request.amount,
+            totalPrice: request.totalPrice,
+            timestamp: Math.floor(Date.now() / 1000),
+            signer: activeAccount.address,
+            createdAt: Math.floor(Date.now() / 1000),
+          },
+        });
+
+        // Convert payload to bytes (hex format)
+        const payloadBytes = ethers.utils.hexlify(
+          ethers.utils.toUtf8Bytes(payload)
+        );
+
+        // Log all parameters being sent to the contract
+        console.log("Contract call parameters:");
+        console.log("- tokenId:", tokenId.toString());
+        console.log("- amount:", request.amount);
+        console.log("- amount (BigInt):", BigInt(request.amount).toString());
+        console.log("- buyerAddress:", activeAccount.address);
+        console.log("- payloadBytes length:", payloadBytes.length);
+        console.log("- payloadBytes:", payloadBytes);
+
+        // Debug: Check if tokenId is valid
+        console.log("- tokenId type:", typeof tokenId);
+        console.log("- tokenId value check:", tokenId > BigInt(0));
+
+        // Prepare the purchase contract call
+        const purchaseTransaction = prepareContractCall({
+          contract: artistTokenContract,
+          method: "purchaseTokens",
+          params: [
+            tokenId, // tokenId (obtained from trackId) - keep as BigInt
+            BigInt(request.amount), // amount
+            activeAccount.address, // buyerAddress
+            payloadBytes, // payload
+          ],
+        } as any);
+
+        // Send the purchase transaction
+        console.log("Purchasing artist tokens...");
+        const result = await sendTransaction({
+          transaction: purchaseTransaction,
+          account: activeAccount,
+        });
+
+        return result;
       } catch (error) {
         console.error("Error purchasing Artist Tokens:", error);
         throw error;
       }
     },
     onSuccess: (data, variables) => {
-      toast.success(
-        `Successfully purchased ${variables.amount} Artist Tokens!`
-      );
+      // toast.success(
+      //   `Successfully purchased ${variables.amount} Artist Tokens!`
+      // );
 
       // Immediate invalidation
       queryClient.invalidateQueries({
@@ -688,6 +948,9 @@ export const usePurchaseArtistTokens = () => {
         queryClient.invalidateQueries({
           queryKey: nftKeys.nftStats(activeAccount?.address),
         });
+        queryClient.invalidateQueries({
+          queryKey: nftKeys.marketplace(),
+        });
       }, 3000); // 3 second delay to allow backend processing
     },
     onError: (error: any) => {
@@ -699,12 +962,32 @@ export const usePurchaseArtistTokens = () => {
       console.error("Purchase Artist Tokens error:", error);
     },
   });
+
+  return {
+    ...mutation,
+    refetch: () => {
+      // Invalidate all relevant queries
+      // queryClient.invalidateQueries({
+      //   queryKey: nftKeys.artistTokenPurchases(activeAccount?.address),
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: nftKeys.nftStats(activeAccount?.address),
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: noticesKeys.lists(),
+      // });
+      queryClient.invalidateQueries({
+        queryKey: nftKeys.marketplace(),
+      });
+    },
+  };
 };
 
 // Hook to get current user's NFT data (convenience hook)
 export const useMyNFTData = () => {
   const activeAccount = useActiveAccount();
   const walletAddress = activeAccount?.address;
+  const queryClient = useQueryClient();
 
   const trackNFTsQuery = useTrackNFTs(walletAddress);
   const artistTokensQuery = useArtistTokens(walletAddress);
@@ -732,10 +1015,24 @@ export const useMyNFTData = () => {
       artistTokenPurchasesQuery.error ||
       nftStatsQuery.error,
     refetch: () => {
-      trackNFTsQuery.refetch();
-      artistTokensQuery.refetch();
-      artistTokenPurchasesQuery.refetch();
-      nftStatsQuery.refetch();
+      // Invalidate all NFT-related queries for this wallet
+      queryClient.invalidateQueries({
+        queryKey: nftKeys.trackNFTs(walletAddress),
+      });
+      queryClient.invalidateQueries({
+        queryKey: nftKeys.artistTokens(walletAddress),
+      });
+      queryClient.invalidateQueries({
+        queryKey: nftKeys.artistTokenPurchases(walletAddress),
+      });
+      queryClient.invalidateQueries({
+        queryKey: nftKeys.nftStats(walletAddress),
+      });
+
+      // Also invalidate notices to refresh repository data
+      queryClient.invalidateQueries({
+        queryKey: noticesKeys.lists(),
+      });
     },
   };
 };

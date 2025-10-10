@@ -2,16 +2,25 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+// Cartesi Input Box interface
+interface IInputBox {
+    function addInput(
+        address dapp,
+        bytes calldata input
+    ) external returns (bytes32);
+}
 
 /**
  * @title ArtistToken
  * @dev ERC1155 contract for fungible artist tokens tied to tracks
  * Fans can purchase these tokens to support artists and earn rewards
  */
-contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
+contract ArtistToken is ERC1155, ERC1155Holder, Ownable, ReentrancyGuard {
     struct TokenInfo {
         string trackId;
         address artistWallet;
@@ -23,6 +32,10 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
     }
 
     uint256 private _tokenIdCounter;
+
+    // Cartesi integration
+    IInputBox public inputBox;
+    address public dappAddress;
 
     // Mapping from token ID to token information
     mapping(uint256 => TokenInfo) public tokenInfo;
@@ -72,12 +85,18 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
     constructor(
         address _platformWallet,
         address initialOwner,
-        address _ctsiTokenAddress
+        address _ctsiTokenAddress,
+        address _inputBox,
+        address _dappAddress
     ) ERC1155("") Ownable(initialOwner) {
         require(_platformWallet != address(0), "Invalid platform wallet");
         require(_ctsiTokenAddress != address(0), "Invalid CTSI token address");
+        require(_inputBox != address(0), "Invalid input box address");
+        require(_dappAddress != address(0), "Invalid dapp address");
         platformWallet = _platformWallet;
         ctsiToken = IERC20(_ctsiTokenAddress);
+        inputBox = IInputBox(_inputBox);
+        dappAddress = _dappAddress;
     }
 
     /**
@@ -92,8 +111,9 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
         string memory trackId,
         address artistWallet,
         uint256 supply,
-        uint256 pricePerToken
-    ) external onlyOwner returns (uint256) {
+        uint256 pricePerToken,
+        bytes memory payload
+    ) external returns (uint256) {
         require(bytes(trackId).length > 0, "Track ID cannot be empty");
         require(artistWallet != address(0), "Invalid artist wallet");
         require(supply > 0, "Supply must be greater than 0");
@@ -130,6 +150,9 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
             pricePerToken
         );
 
+        // Send payload to Cartesi backend
+        inputBox.addInput(dappAddress, payload);
+
         return tokenId;
     }
 
@@ -141,7 +164,8 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
     function purchaseTokens(
         uint256 tokenId,
         uint256 amount,
-        address buyerAddress
+        address buyerAddress,
+        bytes memory payload
     ) external nonReentrant {
         TokenInfo storage token = tokenInfo[tokenId];
         require(token.isActive, "Token not active");
@@ -166,7 +190,14 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
         // Calculate fees and payments
         uint256 platformFee = (totalCost * platformFeePercentage) / 10000;
         uint256 royaltyAmount = (totalCost * token.royaltyPercentage) / 10000;
-        uint256 artistAmount = totalCost - platformFee - royaltyAmount;
+
+        // Ensure fees don't exceed total cost
+        require(
+            platformFee + royaltyAmount <= totalCost,
+            "Fees exceed total cost"
+        );
+
+        uint256 artistAmount = totalCost - platformFee;
 
         // Transfer CTSI tokens from buyer to contract
         require(
@@ -174,17 +205,17 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
             "CTSI transfer failed"
         );
 
-        // Transfer tokens to buyer
-        _safeTransferFrom(address(this), buyerAddress, tokenId, amount, "");
-
-        // Update circulating supply
+        // Update circulating supply BEFORE transfer to avoid _update issues
         circulatingSupply[tokenId] += amount;
 
-        // Track token holder
+        // Track token holder BEFORE transfer
         if (tokenHolders[tokenId][buyerAddress] == 0) {
             tokenHoldersList[tokenId].push(buyerAddress);
         }
         tokenHolders[tokenId][buyerAddress] += amount;
+
+        // Transfer tokens to buyer (this will call _update)
+        this.safeTransferFrom(address(this), buyerAddress, tokenId, amount, "");
 
         // Distribute CTSI payments
         if (platformFee > 0) {
@@ -201,6 +232,9 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
             );
         }
 
+        // Keep royalty amount in contract for future distribution
+        // You'll need to implement a separate function to distribute royalties to token holders
+
         emit TokensPurchased(
             buyerAddress,
             tokenId,
@@ -208,6 +242,9 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
             totalCost,
             token.artistWallet
         );
+
+        // Send payload to Cartesi backend
+        inputBox.addInput(dappAddress, payload);
     }
 
     /**
@@ -370,17 +407,21 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
     ) internal override {
         super._update(from, to, ids, amounts);
 
-        // Update token holder tracking for transfers (not mints/burns)
-        if (from != address(0) && to != address(0)) {
+        // Update token holder tracking only for user-to-user transfers
+        // Skip tracking for mints (from == address(0)) and burns (to == address(0))
+        // Skip tracking for contract (this will be handled in purchaseTokens)
+        if (from != address(0) && to != address(0) && from != address(this)) {
             for (uint256 i = 0; i < ids.length; i++) {
                 uint256 tokenId = ids[i];
                 uint256 amount = amounts[i];
 
-                // Update sender balance
-                tokenHolders[tokenId][from] -= amount;
+                // Update sender balance (with underflow protection)
+                if (tokenHolders[tokenId][from] >= amount) {
+                    tokenHolders[tokenId][from] -= amount;
+                }
 
                 // Update receiver balance
-                if (tokenHolders[tokenId][to] == 0) {
+                if (tokenHolders[tokenId][to] == 0 && to != address(this)) {
                     tokenHoldersList[tokenId].push(to);
                 }
                 tokenHolders[tokenId][to] += amount;
@@ -414,5 +455,14 @@ contract ArtistToken is ERC1155, Ownable, ReentrancyGuard {
         address oldAddress = address(ctsiToken);
         ctsiToken = IERC20(newCtsiTokenAddress);
         emit CtsiTokenAddressUpdated(oldAddress, newCtsiTokenAddress);
+    }
+
+    /**
+     * @dev Override supportsInterface to handle multiple inheritance
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC1155, ERC1155Holder) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
