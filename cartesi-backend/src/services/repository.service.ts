@@ -11,6 +11,7 @@ class RepositoryService {
   static playlists: Model.Playlist[] = [];
   static referrals: Model.Referral[] = [];
   static referralTransactions: Model.ReferralTransaction[] = [];
+  static subscriptions: Model.Subscription[] = [];
   static config: Model.Config | null = null;
   static trackNFTs: Model.TrackNFT[] = [];
   static artistTokens: Model.ArtistToken[] = [];
@@ -32,6 +33,7 @@ class RepositoryService {
       playlists: this.playlists,
       referrals: this.referrals,
       referralTransactions: this.referralTransactions,
+      subscriptions: this.subscriptions,
       trackNFTs: this.trackNFTs,
       artistTokens: this.artistTokens,
       artistTokenPurchases: this.artistTokenPurchases,

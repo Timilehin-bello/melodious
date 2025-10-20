@@ -84,7 +84,7 @@ class NFTService {
         mintData.trackId,
         mintData.ipfsHash,
         mintData.royaltyPercentage,
-        Date.now()
+        mintData.createdAt || Date.now()
       );
 
       RepositoryService.trackNFTs.push(trackNFT);
@@ -154,7 +154,7 @@ class NFTService {
         mintData.trackId,
         mintData.amount,
         mintData.pricePerToken,
-        Date.now()
+        mintData.createdAt || Date.now()
       );
 
       RepositoryService.artistTokens.push(artistToken);
@@ -246,7 +246,7 @@ class NFTService {
         purchaseData.trackId,
         purchaseData.amount,
         purchaseData.totalPrice,
-        Date.now()
+        purchaseData.createdAt || Date.now()
       );
 
       RepositoryService.artistTokenPurchases.push(purchase);

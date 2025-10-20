@@ -204,6 +204,7 @@ export const useRepositoryData = () => {
     // Get the most recent repository snapshot
     const latestNotice = repositoryNotices[0];
     const parsed = JSON.parse(latestNotice.payload);
+    console.log("parsed.content.repository", parsed.content.repository);
     return parsed.content.repository;
   }, [notices]);
 
@@ -217,6 +218,7 @@ export const useRepositoryData = () => {
     artists: repositoryData?.artists || [],
     listeners: repositoryData?.listeners || [],
     genres: repositoryData?.genres || [],
+    subscriptions: repositoryData?.subscriptions || [],
     config: repositoryData?.config,
     stats: repositoryData?.stats,
   };
