@@ -23,8 +23,50 @@ import {
   useCartesiSubscriptionStatus,
   useSubscriptionPrice,
 } from "@/hooks/useCartesiSubscription";
-import { useSubscriptionPlans } from "@/hooks/useSubscription";
-import { SubscriptionPlan } from "@/types/subscription";
+import { ethers } from "ethers";
+
+// Define the plan interface
+interface Plan {
+  id: number;
+  name: string;
+  price: number;
+  duration: number;
+  features: string[];
+}
+
+// Hardcoded subscription plans with benefits
+const subscriptionPlans: Plan[] = [
+  {
+    id: 1,
+    name: "Basic",
+    price: 0,
+    duration: 30,
+    features: [
+      "Access to limited music library",
+      "Ad-supported listening",
+      "Standard audio quality",
+      "Basic playlist creation",
+      "Community features access",
+    ],
+  },
+  {
+    id: 2,
+    name: "Premium",
+    price: 0, // This will be replaced by useSubscriptionPrice
+    duration: 30,
+    features: [
+      "Ad-free listening",
+      "Access to full music library",
+      "High-fidelity audio (320kbps)",
+      "Offline downloads",
+      "Unlimited playlist creation",
+      "Enhanced artist support",
+      "Priority customer support",
+      "Exclusive content access",
+      "Early access to new releases",
+    ],
+  },
+];
 
 // Local UI helper function to get plan display properties
 const getPlanDisplayProps = (planId: number) => {
@@ -50,8 +92,6 @@ const SubscriptionPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   // TanStack Query hooks
-  const { data: subscriptionPlans, isLoading: plansLoading } =
-    useSubscriptionPlans();
   const { data: subscriptionPrice, isLoading: priceLoading } =
     useSubscriptionPrice();
   const subscriptionStatus = useCartesiSubscriptionStatus(
@@ -72,7 +112,7 @@ const SubscriptionPage = () => {
     setSelectedPlan(null);
   }, [activeAccount, subscriptionStatus.data]);
 
-  const handleSubscription = async (plan: SubscriptionPlan) => {
+  const handleSubscription = async (plan: Plan) => {
     if (!activeAccount) {
       toast.error("Please connect your wallet first");
       return;
@@ -138,8 +178,12 @@ const SubscriptionPage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto"
         >
-          {subscriptionPlans?.map((plan, index) => {
+          {subscriptionPlans.map((plan, index) => {
             const displayProps = getPlanDisplayProps(plan.id);
+            // Use subscription price from hook for Premium plan
+            const planPrice =
+              plan.id === 2 ? subscriptionPrice || 100 : plan.price;
+
             return (
               <motion.div
                 key={plan.id}
@@ -182,7 +226,7 @@ const SubscriptionPage = () => {
                     </CardTitle>
                     <div className="text-center">
                       <span className="text-4xl font-bold text-white">
-                        {plan.price === 0 ? "Free" : `${plan.price} CTSI`}
+                        {planPrice === 0 ? "Free" : `${planPrice} CTSI`}
                       </span>
                       <span className="text-zinc-400 ml-2">
                         {plan.duration} days
@@ -216,13 +260,18 @@ const SubscriptionPage = () => {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => handleSubscription(plan)}
+                        onClick={() =>
+                          handleSubscription({
+                            ...plan,
+                            price: Number(planPrice),
+                          })
+                        }
                         disabled={isProcessing || hasActiveSubscription}
                         className={cn(
                           "w-full transition-all duration-200",
                           hasActiveSubscription
                             ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
-                            : plan.price === 0
+                            : planPrice === 0
                             ? "bg-zinc-700 hover:bg-zinc-600 text-white"
                             : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
                         )}
@@ -234,7 +283,7 @@ const SubscriptionPage = () => {
                           </>
                         ) : hasActiveSubscription ? (
                           "Already Subscribed"
-                        ) : plan.price === 0 ? (
+                        ) : planPrice === 0 ? (
                           "Get Started"
                         ) : (
                           "Subscribe Now"

@@ -299,7 +299,7 @@ export const useSubscriptionPrice = () => {
         method: "subscriptionPrice",
       });
 
-      return price;
+      return ethers.utils.formatEther(price);
     },
     enabled: !!repositoryData,
     staleTime: 5 * 60 * 1000, // 5 minutes

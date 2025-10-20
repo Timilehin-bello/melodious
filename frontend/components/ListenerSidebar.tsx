@@ -36,7 +36,8 @@ import { twMerge } from "tailwind-merge";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
 import { title } from "process";
 import { SidebarAd } from "@/components/ads";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
+import { useActiveAccount } from "thirdweb/react";
 // Menu items.
 const items = [
   {
@@ -95,7 +96,9 @@ export function ListenerSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
   const { currentTrack } = useMusic();
-  const { isPremiumUser } = useSubscriptionStatus();
+  const activeAccount = useActiveAccount();
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
+  const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   // Add this function to determine if a menu item is active
   const isActiveRoute = (itemUrl: string) => {
