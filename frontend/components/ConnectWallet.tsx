@@ -33,11 +33,70 @@ const ConnectWallet = () => {
   // const [userDetails, setUserDetails] = useState<any>({});
 
   const [successfulLogin, setSuccessfulLogin] = useState(false);
+  const [previousWalletAddress, setPreviousWalletAddress] = useState<string | null>(null);
 
   const pathname = usePathname();
+  const activeAccount = useActiveAccount();
 
   const { userData, setUserData, isLoggedIn, checkLoginStatus } =
     useMelodiousContext();
+
+  // Extract logout logic into reusable function
+  const performLogout = useCallback(async () => {
+    let data = localStorage.getItem("xx-mu") as any | null;
+    data = JSON.parse(data) ?? null;
+    
+    if (data && data["tokens"]) {
+      try {
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/logout`,
+          {
+            accessToken: data["tokens"]["token"].access.token,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } catch (error) {
+        console.log("Error during logout:", error);
+      }
+    }
+    
+    localStorage.clear();
+    setUserData(null);
+    setPreviousWalletAddress(null);
+    window.location.replace("/");
+  }, [setUserData]);
+
+  // Monitor wallet address changes
+  useEffect(() => {
+    const currentAddress = activeAccount?.address;
+    
+    // If there's no current address, reset previous address
+    if (!currentAddress) {
+      setPreviousWalletAddress(null);
+      return;
+    }
+
+    // If this is the first time we're seeing an address, just store it
+    if (previousWalletAddress === null) {
+      setPreviousWalletAddress(currentAddress);
+      return;
+    }
+
+    // If the address has changed and user is logged in, log them out
+    if (previousWalletAddress !== currentAddress && isLoggedIn) {
+      console.log("Wallet address changed, logging out user");
+      toast.error("Wallet address changed. Please reconnect with the new wallet.");
+      performLogout();
+    } else if (previousWalletAddress !== currentAddress) {
+      // Update the previous address even if not logged in
+      setPreviousWalletAddress(currentAddress);
+    }
+  }, [activeAccount?.address, previousWalletAddress, isLoggedIn, performLogout]);
 
   // Step 1: Ensure `checkLoginStatus` runs first and updates state
   useEffect(() => {
@@ -208,29 +267,7 @@ const ConnectWallet = () => {
            * 	In this case, this means sending a request to the server to clear the JWT cookie.
            */
           doLogout: async () => {
-            let data = localStorage.getItem("xx-mu") as any | null;
-            data = JSON.parse(data) ?? null;
-            axios
-              .post(
-                `${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}/auth/logout`,
-                {
-                  accessToken: data["tokens"]["token"].access.token,
-                },
-                {
-                  withCredentials: true, // This ensures cookies are sent with the request
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                }
-              )
-              .then(() => {
-                localStorage.clear();
-                window.location.replace("/");
-              })
-              .catch((error) => {
-                localStorage.clear();
-                console.log("Error during logout:", error);
-              });
+            await performLogout();
           },
         }}
       />
