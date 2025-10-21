@@ -331,8 +331,7 @@ const RegisterListener = () => {
                         </FormControl>
                         <FormMessage className="text-red-400" />
                         <p className="text-xs text-gray-400 mt-1">
-                          Have a referral code? Enter it to earn bonus Melo
-                          points!
+                          Have a referral code? Enter it here
                         </p>
                       </FormItem>
                     )}
