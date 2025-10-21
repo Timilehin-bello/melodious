@@ -19,7 +19,8 @@ class ReferralController {
   public processReferral(
     referralCode: string,
     newUserWalletAddress: string,
-    newUserName: string
+    newUserName: string,
+    timestamp?: any
   ) {
     try {
       // Find the referrer by referral code
@@ -53,9 +54,9 @@ class ReferralController {
         newUserName,
         referralCode,
         this.config.referralPoints,
-        new Date(),
+        timestamp ? new Date(timestamp * 1000) : new Date(),
         "COMPLETED",
-        new Date()
+        timestamp ? new Date(timestamp * 1000) : new Date()
       );
 
       // Add referral to repository
@@ -71,7 +72,8 @@ class ReferralController {
         this.config.referralPoints,
         referral.id,
         newUserName,
-        newUserWalletAddress
+        newUserWalletAddress,
+        timestamp ? new Date(timestamp * 1000) : new Date()
       );
       RepositoryService.referralTransactions.push(transaction);
 
@@ -117,7 +119,7 @@ class ReferralController {
   public convertMeloToCtsi(
     walletAddress: string,
     meloPoints: number,
-    timestamp: number
+    timestamp: any
   ) {
     try {
       // Find user
@@ -159,7 +161,8 @@ class ReferralController {
         user.walletAddress,
         meloPoints,
         ctsiAmount,
-        this.config.conversionRate
+        this.config.conversionRate,
+        timestamp
       );
       RepositoryService.referralTransactions.push(transaction);
 

@@ -82,6 +82,12 @@ import {
   GetNFTStatsRoute,
 } from "./nft.route";
 
+import {
+  SubscribeRoute,
+  GetSubscriptionRoute,
+  GetAllSubscriptionsRoute,
+} from "./subscription.route";
+
 export {
   // User
   CreateUserRoute,
@@ -151,7 +157,7 @@ export {
   ValidateReferralCodeRoute,
   ConversionInfoRoute,
 
-  // NFT routes
+  // NFT
   MintTrackNFTRoute,
   MintArtistTokensRoute,
   PurchaseArtistTokensRoute,
@@ -159,4 +165,9 @@ export {
   GetArtistTokensRoute,
   GetArtistTokenPurchasesRoute,
   GetNFTStatsRoute,
+
+  // Subscription
+  SubscribeRoute,
+  GetSubscriptionRoute,
+  GetAllSubscriptionsRoute,
 };

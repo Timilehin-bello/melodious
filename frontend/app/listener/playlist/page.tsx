@@ -15,7 +15,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import AddPlaylistModal from "@/components/AddPlaylistModal";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
 import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useRepositoryData } from "@/hooks/useNoticesQuery";
@@ -49,7 +49,10 @@ const Playlist = () => {
   const activeAccount = useActiveAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { isPremiumUser } = useSubscriptionStatus();
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
+  const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   // Music player hooks
   const {
@@ -110,13 +113,16 @@ const Playlist = () => {
           // Find the artist user by matching user.artist.id with track.artistId
           const artistUser = users?.find(
             (user: any) =>
-              user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+              user.artist &&
+              track.artistId &&
+              user.artist.id === parseInt(track.artistId)
           );
-          
+
           return {
             id: track.id,
             title: track.title,
-            artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+            artist:
+              artistUser?.displayName || artistUser?.name || "Unknown Artist",
             album: track.albumId || "Unknown Album",
             createdAt: track.createdAt,
             duration: track.duration || 0,
@@ -156,13 +162,18 @@ const Playlist = () => {
                 // Find the artist user by matching user.artist.id with track.artistId
                 const artistUser = users?.find(
                   (user: any) =>
-                    user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+                    user.artist &&
+                    track.artistId &&
+                    user.artist.id === parseInt(track.artistId)
                 );
-                
+
                 return {
                   id: track.id,
                   title: track.title,
-                  artist: artistUser?.displayName || artistUser?.name || "Unknown Artist",
+                  artist:
+                    artistUser?.displayName ||
+                    artistUser?.name ||
+                    "Unknown Artist",
                   album: track.albumId || "Unknown Album",
                   createdAt: track.createdAt,
                   duration: track.duration || 0,

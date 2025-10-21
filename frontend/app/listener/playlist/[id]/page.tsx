@@ -10,7 +10,8 @@ import React, { useState } from "react";
 import { useRemoveTrackFromPlaylist } from "@/hooks/usePlaylist";
 import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
+import { useActiveAccount } from "thirdweb/react";
 import SongList from "@/components/SongList";
 import { useRepositoryData } from "@/hooks/useNoticesQuery";
 import { useMemo } from "react";
@@ -45,7 +46,9 @@ const Playlist = () => {
   const [isAddTrackModalOpen, setIsAddTrackModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [removingTrackId, setRemovingTrackId] = useState<string | null>(null);
-  const { isPremiumUser } = useSubscriptionStatus();
+  const activeAccount = useActiveAccount();
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
+  const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   // Music player hooks
   const { currentTrack, isPlaying, playTrack, playPlaylist, togglePlay } =
@@ -75,7 +78,9 @@ const Playlist = () => {
       // Find the artist user by matching user.artist.id with track.artistId
       const artistUser = users.find(
         (user: any) =>
-          user.artist && track.artistId && user.artist.id === parseInt(track.artistId)
+          user.artist &&
+          track.artistId &&
+          user.artist.id === parseInt(track.artistId)
       );
 
       return {

@@ -4,7 +4,8 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import ReactPlayer from "react-player";
 import { useEnhancedMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
+import { useActiveAccount } from "thirdweb/react";
 import { Volume2, VolumeX } from "lucide-react";
 
 export const CombinedAdPlayer: React.FC = () => {
@@ -18,7 +19,11 @@ export const CombinedAdPlayer: React.FC = () => {
     resumeAfterAd,
   } = useEnhancedMusicPlayer();
 
-  const { isPremiumUser } = useSubscriptionStatus();
+  const activeAccount = useActiveAccount();
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
+  const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentAd, setCurrentAd] = useState<any>(null);

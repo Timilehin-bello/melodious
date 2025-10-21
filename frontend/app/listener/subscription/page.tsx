@@ -1,50 +1,73 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useMelodiousContext } from "@/contexts/melodious";
 import { useActiveAccount } from "thirdweb/react";
-import { depositErc20ToPortal, depositErc20ToVault } from "@/cartesi/Portals";
 import toast from "react-hot-toast";
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-import { client } from "@/lib/client";
-import { networkChain } from "@/components/ConnectWallet";
-import { ethers } from "ethers";
 import {
   CreditCard,
   Check,
   Star,
   Music,
-  Download,
-  Headphones,
   Crown,
   Zap,
   Shield,
   Loader2,
-  AlertCircle,
-  CheckCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { SubscriptionVouchers } from "@/components/Subscription/SubscriptionVouchers";
-import { useVouchers } from "@/cartesi/hooks/useVouchers";
-import { executeVoucher } from "@/cartesi/Portals";
 import {
-  useDepositFirstSubscription,
-  useManualVoucherExecution,
-  DepositWorkflowState,
-  DepositWorkflowStatus,
-  DepositFirstSubscriptionRequest,
-} from "@/hooks/useDepositFirstSubscription";
-import {
-  useSubscriptionPlans,
-  useSubscriptionStatus,
-} from "@/hooks/useSubscription";
-import { SubscriptionPlan } from "@/types/subscription";
+  useCartesiSubscribe,
+  useCartesiSubscriptionStatus,
+  useSubscriptionPrice,
+} from "@/hooks/useCartesiSubscription";
+import { ethers } from "ethers";
 
-// Remove local interface - using the one from types/subscription.ts
+// Define the plan interface
+interface Plan {
+  id: number;
+  name: string;
+  price: number;
+  duration: number;
+  features: string[];
+}
+
+// Hardcoded subscription plans with benefits
+const subscriptionPlans: Plan[] = [
+  {
+    id: 1,
+    name: "Basic",
+    price: 0,
+    duration: 30,
+    features: [
+      "Access to limited music library",
+      "Ad-supported listening",
+      "Standard audio quality",
+      "Basic playlist creation",
+      "Community features access",
+    ],
+  },
+  {
+    id: 2,
+    name: "Premium",
+    price: 0, // This will be replaced by useSubscriptionPrice
+    duration: 30,
+    features: [
+      "Ad-free listening",
+      "Access to full music library",
+      "High-fidelity audio (320kbps)",
+      "Offline downloads",
+      "Unlimited playlist creation",
+      "Enhanced artist support",
+      "Priority customer support",
+      "Exclusive content access",
+      "Early access to new releases",
+    ],
+  },
+];
+
 // Local UI helper function to get plan display properties
 const getPlanDisplayProps = (planId: number) => {
   const props = {
@@ -65,87 +88,31 @@ const getPlanDisplayProps = (planId: number) => {
 };
 
 const SubscriptionPage = () => {
-  const { rollups, dappAddress } = useMelodiousContext();
   const activeAccount = useActiveAccount();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [signerInstance, setSignerInstance] = useState<ethers.Signer>();
-  const [workflowState, setWorkflowState] =
-    useState<DepositWorkflowState | null>(null);
 
   // TanStack Query hooks
-  const { data: subscriptionPlans, isLoading: plansLoading } =
-    useSubscriptionPlans();
-  const {
-    activeSubscription,
-    hasActiveSubscription,
-    isLoading: statusLoading,
-  } = useSubscriptionStatus();
-  const depositFirstSubscription = useDepositFirstSubscription();
-  const manualVoucherExecution = useManualVoucherExecution();
-
-  // Cartesi hooks
-  const {
-    loading: vouchersLoading,
-    error: vouchersError,
-    data: vouchersData,
-    vouchers,
-    refetch: refetchVouchers,
-    client: apolloClient,
-  } = useVouchers();
+  const { data: subscriptionPrice, isLoading: priceLoading } =
+    useSubscriptionPrice();
+  const subscriptionStatus = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
+  const cartesiSubscribe = useCartesiSubscribe();
 
   // Computed states
-  const isProcessing =
-    depositFirstSubscription.isPending || manualVoucherExecution.isPending;
-  const currentSubscription = hasActiveSubscription
-    ? activeSubscription?.plan?.name?.toLowerCase()
-    : "free";
+  const isProcessing = cartesiSubscribe.isPending;
+  const isLoadingSubscriptionStatus = subscriptionStatus.isLoading;
+  const hasActiveSubscription =
+    subscriptionStatus.data?.hasActiveSubscription || false;
+  const currentSubscription = subscriptionStatus.data?.subscriptionLevel;
 
-  // Get signer instance from thirdweb account
-  useEffect(() => {
-    const getSigner = async () => {
-      if (activeAccount) {
-        const ethersSigner = ethers5Adapter.signer.toEthers({
-          client,
-          chain: networkChain!,
-          account: activeAccount,
-        });
-        setSignerInstance(await ethersSigner);
-      }
-    };
-    getSigner();
-  }, [activeAccount]);
-
-  // Reset workflow state when account changes
-  useEffect(() => {
-    setWorkflowState(null);
+  // Reset selected plan when account changes
+  React.useEffect(() => {
+    console.log("useCartesiSubscriptionStatus", subscriptionStatus.data);
     setSelectedPlan(null);
-  }, [activeAccount]);
+  }, [activeAccount, subscriptionStatus.data]);
 
-  const handleVoucherExecution = async (voucher: any) => {
-    if (!rollups || !apolloClient) {
-      toast.error("Unable to execute voucher. Please try again.");
-      return;
-    }
-
-    try {
-      await manualVoucherExecution.mutateAsync({
-        voucher,
-        rollups,
-        apolloClient,
-        subscriptionId: workflowState?.subscriptionId,
-        amount: workflowState?.subscriptionId
-          ? subscriptionPlans?.find((p) => p.id.toString() === selectedPlan)
-              ?.price
-          : undefined,
-        currency: "CTSI",
-        depositTxHash: workflowState?.depositTxHash,
-      });
-    } catch (error) {
-      console.log("Manual voucher execution failed:", error);
-    }
-  };
-
-  const handleSubscription = async (plan: SubscriptionPlan) => {
+  const handleSubscription = async (plan: Plan) => {
     if (!activeAccount) {
       toast.error("Please connect your wallet first");
       return;
@@ -156,75 +123,22 @@ const SubscriptionPage = () => {
       return;
     }
 
-    if (!rollups || !signerInstance) {
-      toast.error("Wallet or rollups not ready. Please try again.");
+    if (hasActiveSubscription) {
+      toast.error("You already have an active subscription");
       return;
     }
 
     setSelectedPlan(plan.id.toString());
-    setWorkflowState(null);
-
-    // CTSI token address (Cartesi Token)
-    const tokenAddress = process.env.NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS!;
-
-    if (!tokenAddress) {
-      toast.error("Token address not configured. Please contact support.");
-      return;
-    }
-
-    const request: DepositFirstSubscriptionRequest = {
-      planType: plan.name.toUpperCase(),
-      planId: plan.id,
-      amount: plan.price,
-      currency: "CTSI",
-      tokenAddress,
-      dappAddress,
-      autoRenew: true,
-    };
 
     try {
-      await depositFirstSubscription.mutateAsync({
-        request,
-        rollups,
-        signer: signerInstance,
-        onStatusChange: (state: DepositWorkflowState) => {
-          setWorkflowState(state);
-
-          // Show progress toasts
-          if (state.status === DepositWorkflowStatus.DEPOSITING) {
-            toast.loading(state.currentStep, { id: "workflow" });
-          } else if (state.status === DepositWorkflowStatus.DEPOSIT_COMPLETED) {
-            toast.dismiss("workflow"); // Stop the loading toast
-            toast.success(state.currentStep, { duration: 5000 }); // Show success message for longer
-          } else if (
-            state.status === DepositWorkflowStatus.CREATING_SUBSCRIPTION
-          ) {
-            toast.loading(state.currentStep, { id: "workflow" });
-          } else if (
-            state.status === DepositWorkflowStatus.SUBSCRIPTION_CREATED
-          ) {
-            toast.success(state.currentStep, { id: "workflow" });
-          } else if (state.status === DepositWorkflowStatus.EXECUTING_VOUCHER) {
-            // No toast - rely on loading bar to show progress
-          } else if (
-            state.status === DepositWorkflowStatus.PROCESSING_PAYMENT
-          ) {
-            toast.loading(state.currentStep, { id: "workflow" });
-          } else if (state.status === DepositWorkflowStatus.FAILED) {
-            // Error toast is handled by the mutation's onError callback
-            // to avoid duplicate toasts
-
-            //  toast.error(`${state.currentStep}: ${state.error}`, {
-            //   id: "workflow",
-            // });
-            toast.dismiss("workflow");
-          }
-        },
+      await cartesiSubscribe.mutateAsync({
+        subscriptionLevel: plan.name.toUpperCase(),
+        amount: plan.price,
       });
+
+      setSelectedPlan(null);
     } catch (error) {
-      // Error handling is done in the mutation's onError callback
-      console.log("Subscription workflow failed:", error);
-    } finally {
+      console.error("Subscription failed:", error);
       setSelectedPlan(null);
     }
   };
@@ -263,8 +177,12 @@ const SubscriptionPage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-4xl mx-auto"
         >
-          {subscriptionPlans?.map((plan, index) => {
+          {subscriptionPlans.map((plan, index) => {
             const displayProps = getPlanDisplayProps(plan.id);
+            // Use subscription price from hook for Premium plan
+            const planPrice =
+              plan.id === 2 ? subscriptionPrice || 100 : plan.price;
+
             return (
               <motion.div
                 key={plan.id}
@@ -287,7 +205,7 @@ const SubscriptionPage = () => {
                   className={cn(
                     "h-full bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm transition-all duration-300",
                     "hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/20",
-                    currentSubscription === plan.id.toString() &&
+                    currentSubscription === plan.name.toLowerCase() &&
                       "border-green-500/50 shadow-green-500/20",
                     displayProps.popular &&
                       "border-purple-500/50 shadow-purple-500/20"
@@ -307,10 +225,10 @@ const SubscriptionPage = () => {
                     </CardTitle>
                     <div className="text-center">
                       <span className="text-4xl font-bold text-white">
-                        {plan.price === 0 ? "Free" : `${plan.price} CTSI`}
+                        {planPrice === 0 ? "Free" : `${planPrice} CTSI`}
                       </span>
                       <span className="text-zinc-400 ml-2">
-                        {plan.duration}
+                        {plan.duration} days
                       </span>
                     </div>
                   </CardHeader>
@@ -331,7 +249,7 @@ const SubscriptionPage = () => {
                     </ul>
 
                     {hasActiveSubscription &&
-                    activeSubscription?.plan?.id === plan.id ? (
+                    currentSubscription === plan.name.toLowerCase() ? (
                       <Button
                         disabled
                         className="w-full bg-green-600 hover:bg-green-600 text-white"
@@ -341,13 +259,18 @@ const SubscriptionPage = () => {
                       </Button>
                     ) : (
                       <Button
-                        onClick={() => handleSubscription(plan)}
+                        onClick={() =>
+                          handleSubscription({
+                            ...plan,
+                            price: Number(planPrice),
+                          })
+                        }
                         disabled={isProcessing || hasActiveSubscription}
                         className={cn(
                           "w-full transition-all duration-200",
                           hasActiveSubscription
                             ? "bg-zinc-600 text-zinc-400 cursor-not-allowed"
-                            : plan.price === 0
+                            : planPrice === 0
                             ? "bg-zinc-700 hover:bg-zinc-600 text-white"
                             : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white"
                         )}
@@ -359,7 +282,7 @@ const SubscriptionPage = () => {
                           </>
                         ) : hasActiveSubscription ? (
                           "Already Subscribed"
-                        ) : plan.price === 0 ? (
+                        ) : planPrice === 0 ? (
                           "Get Started"
                         ) : (
                           "Subscribe Now"
@@ -429,116 +352,61 @@ const SubscriptionPage = () => {
           </Card>
         </motion.div>
 
-        {/* Workflow Status Display */}
-        {workflowState &&
-          workflowState.status !== DepositWorkflowStatus.IDLE && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-12 max-w-2xl mx-auto"
-            >
-              <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
-                    {workflowState.status === DepositWorkflowStatus.FAILED ? (
-                      <AlertCircle className="w-5 h-5 text-red-500" />
-                    ) : workflowState.status ===
-                      DepositWorkflowStatus.COMPLETED ? (
-                      <CheckCircle className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <Loader2 className="w-5 h-5 animate-spin text-purple-500" />
-                    )}
-                    Subscription Workflow
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-300">
-                      {workflowState.currentStep}
-                    </span>
-                    <span className="text-sm text-zinc-400">
-                      {workflowState.progress}%
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-zinc-800 rounded-full h-2">
-                    <div
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${workflowState.progress}%` }}
-                    />
-                  </div>
-
-                  {workflowState.status === DepositWorkflowStatus.FAILED &&
-                    workflowState.error && (
-                      <div className="mt-4 p-3 bg-red-900/20 border border-red-800/50 rounded-lg">
-                        <p className="text-red-400 text-sm">
-                          {workflowState.error}
-                        </p>
-                      </div>
-                    )}
-
-                  {workflowState.status === DepositWorkflowStatus.COMPLETED &&
-                    hasActiveSubscription && (
-                      <div className="mt-4 p-3 bg-green-900/20 border border-green-800/50 rounded-lg">
-                        <p className="text-green-400 text-sm">
-                          🎉 Subscription activated successfully! You can now
-                          enjoy your premium features.
-                        </p>
-                      </div>
-                    )}
-
-                  {workflowState.voucherId &&
-                    workflowState.status !==
-                      DepositWorkflowStatus.COMPLETED && (
-                      <div className="mt-4">
-                        <Button
-                          onClick={() =>
-                            handleVoucherExecution({
-                              id: workflowState.voucherId!,
-                            })
-                          }
-                          disabled={manualVoucherExecution.isPending}
-                          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-                        >
-                          {manualVoucherExecution.isPending ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Executing Voucher...
-                            </>
-                          ) : (
-                            "Execute Voucher Manually"
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-
-        {/* Subscription Vouchers */}
-        {activeAccount && (
+        {/* Subscription Status Display */}
+        {isLoadingSubscriptionStatus ? (
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
+            className="mt-12 max-w-7xl mx-auto"
           >
             <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-white">
-                  Your Subscription Vouchers
-                </CardTitle>
-                <p className="text-zinc-400">
-                  Execute your subscription vouchers to activate your plan
-                  benefits.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <SubscriptionVouchers dappAddress={dappAddress} />
+              <CardContent className="flex items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-500 mr-2" />
+                <span className="text-zinc-300">
+                  Loading subscription status...
+                </span>
               </CardContent>
             </Card>
           </motion.div>
-        )}
+        ) : hasActiveSubscription && subscriptionStatus.data ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-12 max-w-7xl mx-auto"
+          >
+            <Card className="bg-zinc-900/50 border-zinc-800/50 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+                  <Check className="w-5 h-5 text-green-500" />
+                  Active Subscription
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-300">Plan:</span>
+                  <span className="text-white font-semibold">
+                    {subscriptionStatus.data.subscriptionLevel}
+                  </span>
+                </div>
+                {subscriptionStatus.data.expiresAt && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-300">Expires:</span>
+                    <span className="text-white">
+                      {new Date(
+                        subscriptionStatus.data.expiresAt
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                <div className="mt-4 p-3 bg-green-900/20 border max-w-7xl border-green-800/50 rounded-lg">
+                  <p className="text-green-400 text-sm">
+                    🎉 Your subscription is active! Enjoy your premium features.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : null}
       </div>
     </div>
   );

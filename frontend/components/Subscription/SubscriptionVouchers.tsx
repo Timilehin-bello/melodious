@@ -23,9 +23,9 @@ import {
   voucherExecutionKeys,
 } from "@/hooks/useVoucherExecutionStatus";
 import {
-  useSubscriptionStatus,
-  subscriptionKeys,
-} from "@/hooks/useSubscription";
+  useCartesiSubscriptionStatus,
+  cartesiSubscriptionKeys,
+} from "@/hooks/useCartesiSubscription";
 
 interface ISubscriptionVouchersProps {
   dappAddress: string;
@@ -36,7 +36,8 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 }) => {
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();
-  const { activeSubscription, isLoading } = useSubscriptionStatus();
+  const { data: subscriptionStatus, isLoading } = useCartesiSubscriptionStatus(account?.address);
+  const activeSubscription = subscriptionStatus?.currentSubscription;
 
   // Debug logging
   console.log("SubscriptionVouchers - activeSubscription:", activeSubscription);
@@ -182,7 +183,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 
       // Invalidate subscription queries to update UI button states
       queryClient.invalidateQueries({
-        queryKey: subscriptionKeys.lists(),
+        queryKey: cartesiSubscriptionKeys.all,
       });
     } catch (error) {
       console.log("Error executing voucher:", error);

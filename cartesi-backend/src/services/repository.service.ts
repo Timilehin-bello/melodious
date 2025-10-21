@@ -11,6 +11,7 @@ class RepositoryService {
   static playlists: Model.Playlist[] = [];
   static referrals: Model.Referral[] = [];
   static referralTransactions: Model.ReferralTransaction[] = [];
+  static subscriptions: Model.Subscription[] = [];
   static config: Model.Config | null = null;
   static trackNFTs: Model.TrackNFT[] = [];
   static artistTokens: Model.ArtistToken[] = [];
@@ -20,8 +21,8 @@ class RepositoryService {
   static enableAutoNotices = true;
   static noticeQueue: Notice[] = [];
 
-  // Generate complete repository snapshot
-  static generateRepositorySnapshot(): any {
+  // Generate repository snapshot
+  static generateRepositorySnapshot(timestamp?: number): any {
     return {
       users: this.users,
       albums: this.albums,
@@ -32,11 +33,12 @@ class RepositoryService {
       playlists: this.playlists,
       referrals: this.referrals,
       referralTransactions: this.referralTransactions,
+      subscriptions: this.subscriptions,
+      config: this.config,
       trackNFTs: this.trackNFTs,
       artistTokens: this.artistTokens,
       artistTokenPurchases: this.artistTokenPurchases,
-      config: this.config,
-      stats: {
+      counts: {
         usersCount: this.users.length,
         albumsCount: this.albums.length,
         genresCount: this.genres.length,
@@ -51,13 +53,13 @@ class RepositoryService {
         artistTokenPurchasesCount: this.artistTokenPurchases.length,
         hasConfig: !!this.config,
       },
-      timestamp: new Date().toISOString(),
+      timestamp: timestamp ? new Date(timestamp * 1000).toISOString() : new Date().toISOString(),
     };
   }
 
   // Create repository notice with full data
-  static createRepositoryNotice(changeType: string, changedData?: any): Notice {
-    const snapshot = this.generateRepositorySnapshot();
+  static createRepositoryNotice(changeType: string, changedData?: any, timestamp?: number): Notice {
+    const snapshot = this.generateRepositorySnapshot(timestamp);
     const notice_payload = JSON.stringify({
       type: "repository_update",
       content: {
@@ -77,7 +79,7 @@ class RepositoryService {
   }
 
   // Helper method for specific data type notices
-  static createDataNotice(dataType: string, action: string, data: any): Notice {
+  static createDataNotice(dataType: string, action: string, data: any, timestamp?: number): Notice {
     const currentData =
       (this[dataType as keyof typeof RepositoryService] as any[]) || [];
     const notice_payload = JSON.stringify({
@@ -87,7 +89,7 @@ class RepositoryService {
         data,
         [dataType]: currentData,
         count: currentData.length,
-        timestamp: new Date().toISOString(),
+        timestamp: timestamp ? new Date(timestamp * 1000).toISOString() : new Date().toISOString(),
       },
     });
 
