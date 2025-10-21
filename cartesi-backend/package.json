@@ -12,13 +12,13 @@
     "viem": "^2.13.8"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "esbuild": "^0.19",
+    "@types/node": "^22.15.20",
+    "esbuild": "^0.25.4",
     "npm-run-all": "^4",
-    "openapi-typescript": "^6",
-    "ts-node": "^10",
-    "typescript": "^5",
-    "vitest": "^0.34"
+    "openapi-typescript": "^7.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
   },
   "scripts": {
     "build": "run-s codegen compile",
