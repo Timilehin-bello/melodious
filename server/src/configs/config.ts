@@ -43,7 +43,9 @@ const envVarsSchema = Joi.object()
     REDIS_PASSWORD: Joi.string(),
     REDIS_PORT: Joi.number().default(6379),
     REDIS_USERNAME: Joi.string().default(""),
+    ADS_FREQUENCY_SONGS: Joi.number().default(1).description("Number of songs to play before showing an ad"),
   })
+  
   .unknown();
 
 const { value: envVars, error } = envVarsSchema
@@ -91,4 +93,8 @@ export const config = {
     userPassword: envVars.REDIS_USER_PASSWORD,
     password: envVars.REDIS_PASSWORD,
   },
+  ads: {
+    frequencySongs: envVars.ADS_FREQUENCY_SONGS,
+  },
 };
+

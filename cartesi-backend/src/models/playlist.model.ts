@@ -36,15 +36,15 @@ class Playlist {
   }
 
   // Method to add tracks to playlist
-  addTrack(track: Track): void {
+  addTrack(track: Track, timestamp?: number): void {
     this.tracks.push(track);
-    this.updatedAt = new Date();
+    this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   // Method to remove track from playlist
-  removeTrack(trackId: number): void {
+  removeTrack(trackId: number, timestamp?: number): void {
     this.tracks = this.tracks.filter((track) => track.id !== trackId);
-    this.updatedAt = new Date();
+    this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   // Method to validate IPFS URL format

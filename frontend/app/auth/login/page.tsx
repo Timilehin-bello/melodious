@@ -1,6 +1,7 @@
 "use client";
 import ConnectButtonAuth from "@/components/ConnectButtonAuth";
 import ConnectWallet from "@/components/ConnectWallet";
+import Image from "next/image";
 import React, { useEffect } from "react";
 
 const Login = () => {
@@ -18,7 +19,7 @@ const Login = () => {
 
             <div className="relative">
               <div className="z-10 h-full flex flex-col relative items-center justify-start max-w-sm p-12 rounded-xl bg-black/75 border-slate-800 border-2">
-                <img
+                <Image
                   src="/images/melodious_logo.svg"
                   alt="Thirdweb"
                   className="w-56 h-auto mb-12"

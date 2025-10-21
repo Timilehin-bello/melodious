@@ -71,7 +71,7 @@ export const ArtistTokenCard: React.FC<ArtistTokenCardProps> = ({
         <div className="flex items-center justify-between">
           <span className="text-[#9B8BB5] text-sm">NFT{token.tokenId}</span>
           <span className="text-yellow-400 text-sm font-medium">
-            {token.pricePerToken} ETH
+            {token.pricePerToken} CTSI
           </span>
         </div>
         <div className="flex items-center justify-between">

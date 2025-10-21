@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import Script from "next/script";
-import { useSubscriptionStatus } from "@/hooks/useSubscription";
+import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
+import { useActiveAccount } from "thirdweb/react";
 
 interface GoogleAdSenseProps {
   adSlot: string;
@@ -26,7 +27,12 @@ const GoogleAdSense: React.FC<GoogleAdSenseProps> = ({
   className = "",
   responsive = true,
 }) => {
-  const { isPremiumUser, isLoading } = useSubscriptionStatus();
+  const activeAccount = useActiveAccount();
+  const { data: subscriptionStatus, isLoading } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
+  
+  const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   useEffect(() => {
     // Only push ads for non-premium users and when not loading

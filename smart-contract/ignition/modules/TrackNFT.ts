@@ -8,9 +8,21 @@ const TrackNFTModule = buildModule("TrackNFTModule", (m) => {
     "initialOwner",
     "0x0000000000000000000000000000000000000000"
   );
+  const inputBoxAddress = m.getParameter(
+    "inputBoxAddress",
+    "0x0000000000000000000000000000000000000000"
+  );
+  const dappAddress = m.getParameter(
+    "dappAddress",
+    "0x0000000000000000000000000000000000000000"
+  );
 
-  // Deploy the TrackNFT contract
-  const trackNFT = m.contract("TrackNFT", [initialOwner]);
+  // Deploy the TrackNFT contract with Cartesi integration
+  const trackNFT = m.contract("TrackNFT", [
+    initialOwner,
+    inputBoxAddress,
+    dappAddress,
+  ]);
 
   return { trackNFT };
 });

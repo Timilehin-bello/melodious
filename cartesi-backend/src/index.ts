@@ -173,6 +173,18 @@ router.addRoute(
 );
 router.addRoute("get_nft_stats", new Routes.GetNFTStatsRoute(nft));
 
+// Subscription Route
+const subscription = new Controllers.SubscriptionController();
+router.addRoute("subscribe", new Routes.SubscribeRoute(subscription));
+router.addRoute(
+  "get_subscription",
+  new Routes.GetSubscriptionRoute(subscription)
+);
+router.addRoute(
+  "get_all_subscriptions",
+  new Routes.GetAllSubscriptionsRoute(subscription)
+);
+
 const send_request = async (output: Output | Set<Output>) => {
   if (output instanceof Output) {
     let endpoint;

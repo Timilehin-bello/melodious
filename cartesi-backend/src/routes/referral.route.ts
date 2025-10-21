@@ -61,7 +61,8 @@ class ProcessReferralRoute extends AdvanceRoute {
       const referral = this.referral.processReferral(
         request_payload.referralCode,
         signer,
-        request_payload.userName
+        request_payload.userName,
+        this.msg_timestamp
       );
 
       return referral;

@@ -10,6 +10,9 @@ interface IMintTrackNFT {
   trackId: string;
   ipfsHash: string;
   royaltyPercentage: number;
+  timestamp?: number;
+  signer?: string;
+  createdAt?: number;
 }
 
 interface IMintArtistTokens {
@@ -17,6 +20,9 @@ interface IMintArtistTokens {
   trackId: string;
   amount: number;
   pricePerToken: number;
+  timestamp?: number;
+  signer?: string;
+  createdAt?: number;
 }
 
 interface IPurchaseArtistTokens {
@@ -24,6 +30,9 @@ interface IPurchaseArtistTokens {
   trackId: string;
   amount: number;
   totalPrice: number;
+  timestamp?: number;
+  signer?: string;
+  createdAt?: number;
 }
 
 class NFTService {
@@ -51,23 +60,23 @@ class NFTService {
     }
 
     try {
-      // Create the mint function call data using the TrackNFT ABI
-      const callData = encodeFunctionData({
-        abi: TrackNFTABI,
-        functionName: "mintTrackNFT",
-        args: [
-          mintData.walletAddress,
-          mintData.trackId,
-          mintData.walletAddress, // artistWallet
-          mintData.ipfsHash,
-          mintData.royaltyPercentage,
-        ],
-      });
+      // Comment out voucher creation since we're interacting with contracts directly
+      // const callData = encodeFunctionData({
+      //   abi: TrackNFTABI,
+      //   functionName: "mintTrackNFT",
+      //   args: [
+      //     mintData.walletAddress,
+      //     mintData.trackId,
+      //     mintData.walletAddress, // artistWallet
+      //     mintData.ipfsHash,
+      //     mintData.royaltyPercentage,
+      //   ],
+      // });
 
-      const voucher = new Voucher(
-        config.trackNftContractAddress,
-        hexToBytes(callData)
-      );
+      // const voucher = new Voucher(
+      //   config.trackNftContractAddress,
+      //   hexToBytes(callData)
+      // );
 
       // Store NFT data in repository using the model
       const trackNFT = new TrackNFT(
@@ -75,7 +84,7 @@ class NFTService {
         mintData.trackId,
         mintData.ipfsHash,
         mintData.royaltyPercentage,
-        Date.now()
+        mintData.createdAt || Date.now()
       );
 
       RepositoryService.trackNFTs.push(trackNFT);
@@ -93,7 +102,7 @@ class NFTService {
         trackNFT
       );
 
-      return voucher;
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to mint TrackNFT: ${error}`);
     }
@@ -122,22 +131,22 @@ class NFTService {
     }
 
     try {
-      // Create the mint function call data using the ArtistToken ABI
-      const callData = encodeFunctionData({
-        abi: ArtistTokenABI,
-        functionName: "mintArtistTokens",
-        args: [
-          mintData.trackId,
-          mintData.walletAddress, // artistWallet
-          BigInt(mintData.amount),
-          parseEther(mintData.pricePerToken.toString()),
-        ],
-      });
+      // Comment out voucher creation since we're interacting with contracts directly
+      // const callData = encodeFunctionData({
+      //   abi: ArtistTokenABI,
+      //   functionName: "mintArtistTokens",
+      //   args: [
+      //     mintData.trackId,
+      //     mintData.walletAddress, // artistWallet
+      //     BigInt(mintData.amount),
+      //     parseEther(mintData.pricePerToken.toString()),
+      //   ],
+      // });
 
-      const voucher = new Voucher(
-        config.artistTokenContractAddress,
-        hexToBytes(callData)
-      );
+      // const voucher = new Voucher(
+      //   config.artistTokenContractAddress,
+      //   hexToBytes(callData)
+      // );
 
       // Store artist token data in repository using the model
       const artistToken = new ArtistToken(
@@ -145,7 +154,7 @@ class NFTService {
         mintData.trackId,
         mintData.amount,
         mintData.pricePerToken,
-        Date.now()
+        mintData.createdAt || Date.now()
       );
 
       RepositoryService.artistTokens.push(artistToken);
@@ -163,7 +172,7 @@ class NFTService {
         artistToken
       );
 
-      return voucher;
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to mint ArtistTokens: ${error}`);
     }
@@ -212,21 +221,21 @@ class NFTService {
     }
 
     try {
-      // Then, create the purchase function call data (contract will handle CTSI transfer internally)
-      const callData = encodeFunctionData({
-        abi: ArtistTokenABI,
-        functionName: "purchaseTokens",
-        args: [
-          BigInt(purchaseData.trackId), // tokenId based on trackId
-          BigInt(purchaseData.amount),
-          purchaseData.buyerAddress, // buyer address to receive tokens
-        ],
-      });
+      // Comment out voucher creation since we're interacting with contracts directly
+      // const callData = encodeFunctionData({
+      //   abi: ArtistTokenABI,
+      //   functionName: "purchaseTokens",
+      //   args: [
+      //     BigInt(purchaseData.trackId), // tokenId based on trackId
+      //     BigInt(purchaseData.amount),
+      //     purchaseData.buyerAddress, // buyer address to receive tokens
+      //   ],
+      // });
 
-      const voucher = new Voucher(
-        config.artistTokenContractAddress,
-        hexToBytes(callData)
-      );
+      // const voucher = new Voucher(
+      //   config.artistTokenContractAddress,
+      //   hexToBytes(callData)
+      // );
 
       // Update available supply in the repository
       artistToken.availableSupply -= purchaseData.amount;
@@ -237,7 +246,7 @@ class NFTService {
         purchaseData.trackId,
         purchaseData.amount,
         purchaseData.totalPrice,
-        Date.now()
+        purchaseData.createdAt || Date.now()
       );
 
       RepositoryService.artistTokenPurchases.push(purchase);
@@ -255,7 +264,7 @@ class NFTService {
         purchase
       );
 
-      return voucher;
+      return repositoryNotice;
     } catch (error) {
       return new Error_out(`Failed to purchase ArtistTokens: ${error}`);
     }

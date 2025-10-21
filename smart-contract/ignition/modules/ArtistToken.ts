@@ -17,12 +17,22 @@ const ArtistTokenModule = buildModule("ArtistTokenModule", (m) => {
     "ctsiTokenAddress",
     "0x0000000000000000000000000000000000000000"
   );
+  const inputBoxAddress = m.getParameter(
+    "inputBoxAddress",
+    "0x0000000000000000000000000000000000000000"
+  );
+  const dappAddress = m.getParameter(
+    "dappAddress",
+    "0x0000000000000000000000000000000000000000"
+  );
 
-  // Deploy the ArtistToken contract with platform wallet, initial owner, and CTSI token address
+  // Deploy the ArtistToken contract with platform wallet, initial owner, CTSI token address, and Cartesi integration
   const artistToken = m.contract("ArtistToken", [
     platformWallet,
     initialOwner,
     ctsiTokenAddress,
+    inputBoxAddress,
+    dappAddress,
   ]);
 
   return { artistToken };

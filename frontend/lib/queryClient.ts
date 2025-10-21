@@ -91,7 +91,7 @@ apiClient.interceptors.response.use(
           localStorage.removeItem("xx-mu");
           // You might want to redirect to login page here
           toast.error("Session expired. Please log in again.");
-          window.location.href = "/login";
+          window.location.href = "/";
         }
         break;
       case 403:

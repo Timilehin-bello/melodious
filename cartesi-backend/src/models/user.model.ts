@@ -91,18 +91,18 @@ class User {
   /**
    * Add Melo points to user's balance
    */
-  public addMeloPoints(points: number): void {
+  public addMeloPoints(points: number, timestamp?: number): void {
     if (points <= 0) {
       throw new Error_out("Points to add must be positive");
     }
     this.meloPoints += points;
-    this.updatedAt = new Date();
+    this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   /**
    * Deduct Melo points from user's balance
    */
-  public deductMeloPoints(points: number): void {
+  public deductMeloPoints(points: number, timestamp?: number): void {
     if (points <= 0) {
       throw new Error_out("Points to deduct must be positive");
     }
@@ -110,15 +110,15 @@ class User {
       throw new Error_out("Insufficient Melo points balance");
     }
     this.meloPoints -= points;
-    this.updatedAt = new Date();
+    this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   /**
    * Increment total referrals count
    */
-  public incrementReferrals(): void {
+  public incrementReferrals(timestamp?: number): void {
     this.totalReferrals += 1;
-    this.updatedAt = new Date();
+    this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   /**

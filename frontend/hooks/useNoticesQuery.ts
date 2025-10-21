@@ -144,9 +144,9 @@ export const useNoticesQuery = () => {
   return useQuery({
     queryKey: noticesKeys.lists(),
     queryFn: fetchNotices,
-    staleTime: 5000, // Consider data fresh for 5 seconds (reduced from 30s)
-    refetchOnWindowFocus: false,
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 10000, // Consider data fresh for 10 seconds (more efficient)
+    refetchOnWindowFocus: true, // Enable refetch on window focus
+    refetchInterval: 30000, // Refetch every 30 seconds (less frequent)
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -204,6 +204,7 @@ export const useRepositoryData = () => {
     // Get the most recent repository snapshot
     const latestNotice = repositoryNotices[0];
     const parsed = JSON.parse(latestNotice.payload);
+    console.log("parsed.content.repository", parsed.content.repository);
     return parsed.content.repository;
   }, [notices]);
 
@@ -217,6 +218,7 @@ export const useRepositoryData = () => {
     artists: repositoryData?.artists || [],
     listeners: repositoryData?.listeners || [],
     genres: repositoryData?.genres || [],
+    subscriptions: repositoryData?.subscriptions || [],
     config: repositoryData?.config,
     stats: repositoryData?.stats,
   };

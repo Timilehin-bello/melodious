@@ -1,7 +1,7 @@
 const allRoles: Record<any, string[]> = {
   USER: [],
-  SUPER_ADMIN: ["getUsers", "manageUsers", "getProducts", "manageProducts"],
-  ADMIN: ["getProducts", "manageProducts"],
+  SUPER_ADMIN: ["getUsers", "manageUsers", "getProducts", "manageProducts", "manageAds"],
+  ADMIN: ["getProducts", "manageProducts", "manageAds"],
 };
 
 const roles = Object.keys(allRoles);

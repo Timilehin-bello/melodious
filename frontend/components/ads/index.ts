@@ -7,3 +7,4 @@ export {
   MobileBannerAd,
   ResponsiveAd,
 } from './AdUnits';
+export { CombinedAdPlayer } from './CombinedAdPlayer';
