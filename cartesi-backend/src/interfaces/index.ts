@@ -15,4 +15,5 @@ export interface IListeningReward {
 export interface IWithdrawal {
   walletAddress: string;
   amount: number;
+  timestamp?: any;
 }

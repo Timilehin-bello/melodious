@@ -9,6 +9,7 @@ interface ISubscribe {
   walletAddress: string;
   subscriptionLevel: string;
   amount: number;
+  timestamp?: any;
 }
 
 class SubscriptionService {
@@ -16,25 +17,30 @@ class SubscriptionService {
    * Process a subscription payment and create subscription record
    */
   subscribe(subscriptionData: ISubscribe) {
-    if (
-      !subscriptionData.walletAddress ||
-      !subscriptionData.subscriptionLevel
-    ) {
-      return new Error_out("Missing required fields for subscription");
-    }
-
-    if (!subscriptionData.amount || subscriptionData.amount <= 0) {
-      return new Error_out("Invalid subscription amount");
-    }
-
-    console.log("Processing subscription", {
+    console.log("SubscriptionService: Processing subscription", {
       walletAddress: subscriptionData.walletAddress,
       subscriptionLevel: subscriptionData.subscriptionLevel,
       amount: subscriptionData.amount,
     });
 
+    if (!subscriptionData.walletAddress) {
+      return new Error_out("Wallet address is required");
+    }
+
+    if (!subscriptionData.subscriptionLevel) {
+      return new Error_out("Subscription level is required");
+    }
+
+    if (!subscriptionData.amount || subscriptionData.amount <= 0) {
+      return new Error_out("Valid subscription amount is required");
+    }
+
     try {
-      // Find or create user first
+      const currentTimestamp = subscriptionData.timestamp
+        ? new Date(subscriptionData.timestamp * 1000)
+        : new Date();
+
+      // Find or create user
       let user = RepositoryService.users.find(
         (u) =>
           u.walletAddress.toLowerCase() ===
@@ -49,8 +55,8 @@ class SubscriptionService {
           subscriptionData.walletAddress, // walletAddress
           subscriptionData.walletAddress, // username
           "LISTENER", // role
-          new Date(), // createdAt
-          new Date(), // updatedAt
+          currentTimestamp, // createdAt
+          currentTimestamp, // updatedAt
           null, // artist
           null // listener
         );
@@ -63,7 +69,7 @@ class SubscriptionService {
 
       if (!listener) {
         // Create a basic listener if not found
-        listener = new Listener(user!.id, new Date(), new Date());
+        listener = new Listener(user!.id, currentTimestamp, currentTimestamp);
         RepositoryService.listeners.push(listener);
       }
       user.listener = listener;
@@ -73,13 +79,13 @@ class SubscriptionService {
       const subscription = new Subscription(
         listener,
         listener.id,
-        new Date(),
-        this.calculateEndDate(subscriptionData.subscriptionLevel),
+        currentTimestamp,
+        this.calculateEndDate(subscriptionData.subscriptionLevel, currentTimestamp),
         PaymentMethod.CTSI,
         subscriptionData.subscriptionLevel.toUpperCase() as SubscriptionLevel,
         true,
-        new Date(),
-        new Date()
+        currentTimestamp,
+        currentTimestamp
       );
 
       // Save to repository
@@ -115,16 +121,16 @@ class SubscriptionService {
   /**
    * Calculate subscription end date based on subscription level
    */
-  private calculateEndDate(subscriptionLevel: string): Date {
-    const startDate = new Date();
-    const endDate = new Date(startDate);
+  private calculateEndDate(subscriptionLevel: string, startDate?: Date): Date {
+    const actualStartDate = startDate || new Date();
+    const endDate = new Date(actualStartDate);
 
     // Premium subscription lasts for 30 days
     if (subscriptionLevel.toUpperCase() === "PREMIUM") {
-      endDate.setDate(startDate.getDate() + 30);
+      endDate.setDate(actualStartDate.getDate() + 30);
     } else {
       // Free subscription doesn't have an end date, but we'll set it to 1 year from now
-      endDate.setFullYear(startDate.getFullYear() + 1);
+      endDate.setFullYear(actualStartDate.getFullYear() + 1);
     }
 
     return endDate;
@@ -168,14 +174,20 @@ class SubscriptionService {
   /**
    * Update subscription status
    */
-  updateSubscriptionStatus(subscriptionId: number, isActive: boolean) {
+  updateSubscriptionStatus(
+    subscriptionId: number,
+    isActive: boolean,
+    timestamp?: number
+  ) {
     const subscription = RepositoryService.subscriptions.find(
       (s) => s.id === subscriptionId
     );
 
     if (subscription) {
       subscription.isActive = isActive;
-      subscription.updatedAt = new Date();
+      subscription.updatedAt = timestamp
+        ? new Date(timestamp * 1000)
+        : new Date();
 
       // Create repository notice for subscription status update
       const repositoryNotice = RepositoryService.createRepositoryNotice(

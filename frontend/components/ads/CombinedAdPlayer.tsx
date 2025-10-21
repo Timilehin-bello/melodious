@@ -20,7 +20,9 @@ export const CombinedAdPlayer: React.FC = () => {
   } = useEnhancedMusicPlayer();
 
   const activeAccount = useActiveAccount();
-  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
   const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

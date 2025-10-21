@@ -49,7 +49,9 @@ const Playlist = () => {
   const activeAccount = useActiveAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
   const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   // Music player hooks

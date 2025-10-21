@@ -59,7 +59,7 @@ class Referral {
   /**
    * Mark referral as completed
    */
-  public complete(): void {
+  public complete(timestamp?: number): void {
     if (this.status === "COMPLETED") {
       throw new Error_out("Referral is already completed");
     }
@@ -69,7 +69,7 @@ class Referral {
     }
 
     this.status = "COMPLETED";
-    this.completedAt = new Date();
+    this.completedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
   /**

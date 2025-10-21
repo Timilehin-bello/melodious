@@ -136,7 +136,6 @@ const SubscriptionPage = () => {
         amount: plan.price,
       });
 
-      toast.success("Subscription successful!");
       setSelectedPlan(null);
     } catch (error) {
       console.error("Subscription failed:", error);

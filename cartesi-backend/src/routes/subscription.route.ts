@@ -33,6 +33,7 @@ class SubscribeRoute extends AdvanceRoute {
         walletAddress: signer,
         subscriptionLevel: request_payload.subscriptionLevel,
         amount: request_payload.amount,
+        timestamp: this.msg_timestamp,
       });
 
       return result;

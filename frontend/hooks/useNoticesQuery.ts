@@ -144,9 +144,9 @@ export const useNoticesQuery = () => {
   return useQuery({
     queryKey: noticesKeys.lists(),
     queryFn: fetchNotices,
-    staleTime: 5000, // Consider data fresh for 5 seconds (reduced from 30s)
-    refetchOnWindowFocus: false,
-    refetchInterval: 60000, // Refetch every minute
+    staleTime: 10000, // Consider data fresh for 10 seconds (more efficient)
+    refetchOnWindowFocus: true, // Enable refetch on window focus
+    refetchInterval: 30000, // Refetch every 30 seconds (less frequent)
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

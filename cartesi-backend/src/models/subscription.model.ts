@@ -33,8 +33,8 @@ class Subscription {
     this.endDate = endDate;
     this.paymentMethod = paymentMethod || PaymentMethod.CTSI;
     this.isActive = isActive || true;
-    this.createdAt = createdAt || new Date();
-    this.updatedAt = updatedAt || new Date();
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
   }
 }
 

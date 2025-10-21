@@ -123,7 +123,9 @@ class VaultController {
         walletAddress: withdrawBody.walletAddress,
         amount: withdrawBody.amount,
         userType: user.artist ? "artist" : "listener",
-        timestamp: new Date().toISOString(),
+        timestamp: withdrawBody.timestamp 
+          ? new Date(withdrawBody.timestamp * 1000).toISOString()
+          : new Date().toISOString(),
         voucher: {
           destination: voucher.destination,
           payload: voucher.payload,

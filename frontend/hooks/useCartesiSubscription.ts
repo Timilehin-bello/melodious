@@ -249,28 +249,107 @@ export const useCartesiSubscribe = () => {
         throw error;
       }
     },
-    onSuccess: (data) => {
-      toast.success("Subscription created successfully!");
-      // Invalidate and refetch subscription queries
-      queryClient.invalidateQueries({
+    onMutate: async (request: SubscribeRequest) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
         queryKey: cartesiSubscriptionKeys.userSubscriptions(
           activeAccount?.address
         ),
       });
-      queryClient.invalidateQueries({
-        queryKey: cartesiSubscriptionKeys.allSubscriptions(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: noticesKeys.all,
-      });
+
+      // Snapshot the previous value for rollback on error
+      const previousSubscriptions = queryClient.getQueryData(
+        cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address)
+      );
+
+      // Don't apply optimistic updates here - wait for success
+      // Just return the context for potential rollback
+      return { previousSubscriptions };
     },
-    onError: (error) => {
+    onError: (error, request, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousSubscriptions) {
+        queryClient.setQueryData(
+          cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address),
+          context.previousSubscriptions
+        );
+      }
+
+      // Also reset the optimistic status update
+      queryClient.invalidateQueries({
+        queryKey: [
+          ...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address),
+          "status",
+        ],
+      });
+
       console.error("Subscription creation failed:", error);
       toast.error(
         error instanceof Error
           ? error.message
           : "Failed to create subscription. Please try again."
       );
+    },
+    onSuccess: (data, request) => {
+      toast.success("Subscription created successfully!");
+      
+      // Apply optimistic updates only on success
+      const currentSubscriptions = queryClient.getQueryData(
+        cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address)
+      ) as CartesiSubscription[] || [];
+
+      // Create optimistic subscription data
+      const optimisticSubscription: CartesiSubscription = {
+        id: Date.now(), // Temporary ID
+        listener: {} as Listener, // Placeholder
+        listenerId: 0,
+        startDate: new Date().toISOString(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        paymentMethod: "CTSI",
+        subscriptionLevel: request.subscriptionLevel.toUpperCase(),
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update the user subscriptions data
+      const updatedSubscriptions = [...currentSubscriptions, optimisticSubscription];
+      
+      queryClient.setQueryData(
+        cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address),
+        updatedSubscriptions
+      );
+
+      // Also update the status query directly
+      queryClient.setQueryData(
+        [...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address), "status"],
+        {
+          hasActiveSubscription: true,
+          currentSubscription: optimisticSubscription,
+          subscriptionLevel: request.subscriptionLevel.toUpperCase(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        }
+      );
+      
+      // Schedule a delayed refetch to get real data from backend
+      setTimeout(() => {
+        // Only invalidate the specific user subscription queries
+        queryClient.invalidateQueries({
+          queryKey: cartesiSubscriptionKeys.userSubscriptions(
+            activeAccount?.address
+          ),
+        });
+        
+        // Also invalidate the status query
+        queryClient.invalidateQueries({
+          queryKey: [...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address), "status"],
+        });
+        
+        // Only refetch notices once, not twice
+        queryClient.invalidateQueries({
+          queryKey: noticesKeys.all,
+        });
+      }, 10000); // Wait 3 seconds for backend processing
     },
   });
 };
@@ -359,8 +438,8 @@ export const useCartesiSubscriptionStatus = (walletAddress?: string) => {
       };
     },
     enabled: !!userSubscriptions && !subscriptionsLoading,
-    staleTime: 30 * 1000, // 30 seconds
-    refetchInterval: 60 * 1000, // Refetch every minute
+    staleTime: 5000, // Consider data fresh for 5 seconds (more efficient)
+    refetchInterval: 30000, // Refetch every 30 seconds (less frequent)
     refetchOnWindowFocus: true,
     refetchOnMount: true,
   });

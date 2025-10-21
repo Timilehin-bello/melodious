@@ -66,20 +66,21 @@ class ReferralTransaction {
   }
 
   /**
-   * Create an earned points transaction
+   * Create an earned transaction
    */
   static createEarnedTransaction(
     userWalletAddress: string,
     meloPoints: number,
     referralId: number,
     referredUserName: string,
-    referredWalletAddress: string
+    referredWalletAddress: string,
+    timestamp?: any
   ): ReferralTransaction {
     return new ReferralTransaction(
       userWalletAddress,
       "EARNED",
       meloPoints,
-      new Date(),
+      timestamp ? new Date(timestamp * 1000) : new Date(),
       `Earned ${meloPoints} Melo points for referring ${referredUserName} (${referredWalletAddress})`,
       undefined,
       undefined,
@@ -94,13 +95,14 @@ class ReferralTransaction {
     userWalletAddress: string,
     meloPoints: number,
     ctsiAmount: number,
-    conversionRate: number
+    conversionRate: number,
+    timestamp?: number
   ): ReferralTransaction {
     return new ReferralTransaction(
       userWalletAddress,
       "CONVERTED",
       meloPoints,
-      new Date(),
+      timestamp ? new Date(timestamp * 1000) : new Date(),
       `Converted ${meloPoints} Melo points to ${ctsiAmount} CTSI tokens`,
       ctsiAmount,
       conversionRate
