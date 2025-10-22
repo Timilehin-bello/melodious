@@ -27,7 +27,7 @@ class ConvertMeloToCtsiRoute extends AdvanceRoute {
       const conversion = this.referral.convertMeloToCtsi(
         signer,
         request_payload.meloPoints,
-        request.metadata.timestamp
+        request.metadata.block_timestamp
       );
 
       return conversion;

@@ -340,9 +340,18 @@ async function handle_advance(data: any) {
 async function handle_inspect(data: any) {
   console.debug(`received inspect request data${data}`);
   try {
-    const url = hexToString(data.payload).split("/");
-    console.log("url is ", url);
-    return router.process(<string>url[0], url[1]);
+    const payloadString = hexToString(data.payload).trim();
+    console.log("payload string is ", payloadString);
+    
+    // Parse the JSON payload
+    const payload = JSON.parse(payloadString);
+    console.log("parsed payload is ", payload);
+    
+    const method = payload.method;
+    const param = payload.param;
+    
+    console.log("method:", method, "param:", param);
+    return router.process(method, param);
   } catch (e) {
     const error_msg = `failed to process inspect request ${e}`;
     console.debug(error_msg);

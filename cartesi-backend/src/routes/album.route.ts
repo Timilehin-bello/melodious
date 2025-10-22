@@ -22,9 +22,9 @@ class CreateAlbumRoute extends AdvanceRoute {
 
       const album = this.album.createAlbum({
         walletAddress: signer,
-        createdAt: new Date(request.metadata.timestamp * 1000),
-        updatedAt: new Date(request.metadata.timestamp * 1000),
-        releaseDate: new Date(request.metadata.timestamp * 1000),
+        createdAt: new Date(request.metadata.block_timestamp * 1000),
+        updatedAt: new Date(request.metadata.block_timestamp * 1000),
+        releaseDate: new Date(request.metadata.block_timestamp * 1000),
         ...request_payload,
       }) as Notice | Error_out;
 
@@ -57,7 +57,7 @@ class UpdateAlbumRoute extends AdvanceRoute {
       console.log("Executing Update album request");
       return this.album.updateAlbum({
         walletAddress: signer,
-        updatedAt: new Date(request.metadata.timestamp * 1000),
+        updatedAt: new Date(request.metadata.block_timestamp * 1000),
         ...request_payload,
       });
     } catch (error) {

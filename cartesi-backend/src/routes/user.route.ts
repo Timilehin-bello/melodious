@@ -28,8 +28,8 @@ class CreateUserRoute extends AdvanceRoute {
 
       return this.user.create({
         walletAddress: signer,
-        createdAt: new Date(request.metadata.timestamp * 1000),
-        updatedAt: new Date(request.metadata.timestamp * 1000),
+        createdAt: new Date(request.metadata.block_timestamp * 1000),
+        updatedAt: new Date(request.metadata.block_timestamp * 1000),
         ...request_payload,
       });
     } catch (error) {
@@ -60,7 +60,7 @@ class UpdateUserRoute extends AdvanceRoute {
 
       return this.user.updateUser({
         walletAddress: signer,
-        timestamp: request.metadata.timestamp,
+        timestamp: request.metadata.block_timestamp,
         ...request_payload,
       });
     } catch (error) {

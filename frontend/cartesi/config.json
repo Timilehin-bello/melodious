@@ -6,12 +6,26 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
+  },
+  "0x343a": {
+    "token": "ETH",
+    "label": "canon",
+    "rpcUrl": "http://127.0.0.1:6751/anvil",
+    "graphqlAPIURL": "http://127.0.0.1:6751",
+    "inspectAPIURL": "http://127.0.0.1:6751",
+    "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0xaa36a7": {
     "token": "SepETH",
@@ -20,12 +34,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0xaa37dc": {
     "token": "OPSep",
@@ -34,12 +48,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0x66eee": {
     "token": "AGOSep",
@@ -48,12 +62,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0x14a34": {
     "token": "BASESep",
@@ -62,12 +76,12 @@
     "graphqlAPIURL": "https://melodious2.fly.dev",
     "inspectAPIURL": "https://melodious2.fly.dev",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0xa": {
     "token": "OP",
@@ -76,12 +90,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0xa4b1": {
     "token": "AGO",
@@ -90,12 +104,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0x1": {
     "token": "ETH",
@@ -104,12 +118,12 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   },
   "0x2105": {
     "token": "BASE",
@@ -118,11 +132,11 @@
     "graphqlAPIURL": "http://localhost:8080",
     "inspectAPIURL": "http://localhost:8080",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
-    "InputBoxAddress": "0x59b22D57D4f067708AB0c00552767405926dc768",
-    "EtherPortalAddress": "0xFfdbe43d4c855BF7e0f105c400A50857f53AB044",
-    "Erc20PortalAddress": "0x9C21AEb2093C32DDbC53eEF24B873BDCd1aDa1DB",
-    "Erc721PortalAddress": "0x237F8DD094C0e47f4236f12b4Fa01d6Dae89fb87",
-    "Erc1155SinglePortalAddress": "0x7CFB0193Ca87eB6e48056885E026552c3A941FC4",
-    "Erc1155BatchPortalAddress": "0xedB53860A6B52bbb7561Ad596416ee9965B055Aa"
+    "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
+    "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
+    "Erc20PortalAddress": "0xc700D6aDd016eECd59d989C028214Eaa0fCC0051",
+    "Erc721PortalAddress": "0xc700d52F5290e978e9CAe7D1E092935263b60051",
+    "Erc1155SinglePortalAddress": "0xc700A261279aFC6F755A3a67D86ae43E2eBD0051",
+    "Erc1155BatchPortalAddress": "0xc700A2e5531E720a2434433b6ccf4c0eA2400051"
   }
 }
