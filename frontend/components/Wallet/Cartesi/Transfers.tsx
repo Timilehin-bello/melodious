@@ -12,7 +12,6 @@ interface IProps {
 }
 
 const Transfers: React.FC<IProps> = ({ dappAddress }) => {
-
   const tabs = [
     {
       name: "Vouchers",
