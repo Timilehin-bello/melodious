@@ -219,6 +219,15 @@ const send_request = async (output: Output | Set<Output>) => {
 async function handle_advance(data: any) {
   console.log("Received advance request data " + JSON.stringify(data));
   try {
+    // Set up rollup address from metadata if not already set
+    if (!rollup_address && data.metadata.app_contract) {
+      rollup_address = data.metadata.app_contract;
+      router.set_rollup_address(rollup_address, "ether_withdraw");
+      router.set_rollup_address(rollup_address, "erc20_withdraw");
+      router.set_rollup_address(rollup_address, "erc721_withdraw");
+      console.log("Setting DApp address from metadata:", rollup_address);
+    }
+
     const payload = data.payload;
     console.log("payload is", payload);
     const payloadStr = hexToString(payload);
@@ -237,22 +246,6 @@ async function handle_advance(data: any) {
       } catch (e) {
         return new Error_out(`failed to process ether deposit ${payload} ${e}`);
       }
-    }
-    if (
-      msg_sender.toLowerCase() ===
-      deployments.contracts.DAppAddressRelay.address.toLowerCase()
-    ) {
-      rollup_address = payload;
-      router.set_rollup_address(rollup_address, "ether_withdraw");
-      router.set_rollup_address(rollup_address, "erc20_withdraw");
-      router.set_rollup_address(rollup_address, "erc721_withdraw");
-      // router.set_rollup_address(rollup_address, "erc1155_withdraw");
-      // router.set_rollup_address(rollup_address, "erc1155_batch_withdraw");
-
-      console.log("Setting DApp address");
-      return new Notice(
-        `DApp address set up successfully to ${rollup_address}`
-      );
     }
 
     if (

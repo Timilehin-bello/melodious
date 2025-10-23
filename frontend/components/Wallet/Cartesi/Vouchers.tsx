@@ -65,6 +65,7 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
 
   // Use vouchers directly from useVouchers hook (memoized to prevent unnecessary re-renders)
   const vouchersList = useMemo(() => {
+    console.log("vouchersList vouchers", vouchers);
     return vouchers || [];
   }, [vouchers]);
 

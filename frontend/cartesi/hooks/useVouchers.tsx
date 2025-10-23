@@ -23,7 +23,7 @@ export const useVouchers = () => {
     pollInterval: 0,
   });
 
-  console.log("data", data);
+  console.log("Data for ever", data);
 
   const vouchers: Voucher[] =
     data &&
@@ -34,7 +34,7 @@ export const useVouchers = () => {
         if (!proof || !proof.validity || !proof.context) {
           return false;
         }
-
+        console.log("const validity = proof.validity");
         // Validate all required proof fields are present and properly populated
         const validity = proof.validity;
         return (

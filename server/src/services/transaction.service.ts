@@ -155,8 +155,10 @@ const submitTransaction = async (tx: { data: string; signer: string }) => {
 
     const contract = new ethers.Contract(config.inputboxAddress, abi, signer);
     console.log(`contract is: ${contract.address}`);
+    console.log(`dappAddress is: ${config.dappAddress}`);
 
     const finalTx = await contract.addInput(config.dappAddress, txHex);
+    console.log("finalTx", finalTx.hash);
     const isTxComplete = await finalTx.wait();
     console.log(`Transaction hash is: ${isTxComplete.transactionHash}`);
 
