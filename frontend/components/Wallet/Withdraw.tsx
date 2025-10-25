@@ -11,7 +11,7 @@ import {
 } from "@headlessui/react";
 import { toast } from "react-hot-toast";
 import {
-  sendAddress,
+  // sendAddress, // Removed - not needed for v2.0
   depositErc20ToPortal,
   depositEtherToPortal,
   withdrawErc20,

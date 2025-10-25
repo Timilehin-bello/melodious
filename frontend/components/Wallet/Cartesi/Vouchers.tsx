@@ -45,10 +45,9 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
       const statuses: { [key: string]: boolean } = {};
 
       for (const voucher of vouchersList) {
-        const voucherKey = `${voucher.input.index}-${voucher.index}`;
+        const voucherKey = `${voucher.input.id}-${voucher.index}`;
         try {
-          const executed = await rollups.dappContract.wasVoucherExecuted(
-            ethers.BigNumber.from(voucher.input.index),
+          const executed = await rollups.dappContract.wasOutputExecuted(
             ethers.BigNumber.from(voucher.index)
           );
           statuses[voucherKey] = executed;
@@ -66,6 +65,8 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
   // Use vouchers directly from useVouchers hook (memoized to prevent unnecessary re-renders)
   const vouchersList = useMemo(() => {
     console.log("vouchersList vouchers", vouchers);
+    console.log("vouchers length:", vouchers?.length);
+    console.log("vouchers raw data:", JSON.stringify(vouchers, null, 2));
     return vouchers || [];
   }, [vouchers]);
 
@@ -74,7 +75,7 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
     useQuery({
       queryKey: [
         "voucherExecutionStatuses",
-        vouchersList?.map((v) => `${v.input.index}-${v.index}`).join(","),
+        vouchersList?.map((v) => `${v.input.id}-${v.index}`).join(","),
       ],
       queryFn: async () => {
         if (!rollups || !vouchersList || vouchersList.length === 0) return {};
@@ -94,7 +95,7 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
   // Set voucher for execution with TanStack Query integration
   const setVoucher = useCallback(
     async (voucher: any) => {
-      const voucherKey = `${voucher.input.index}-${voucher.index}`;
+      const voucherKey = `${voucher.input.id}-${voucher.index}`;
 
       // Check if we already have the execution status from TanStack Query
       if (
@@ -105,8 +106,7 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
       } else if (rollups) {
         // Fallback: check directly if not in cache
         try {
-          voucher.executed = await rollups.dappContract.wasVoucherExecuted(
-            ethers.BigNumber.from(voucher.input.index),
+          voucher.executed = await rollups.dappContract.wasOutputExecuted(
             ethers.BigNumber.from(voucher.index)
           );
         } catch (error) {
@@ -121,15 +121,37 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
 
   // Filter vouchers to show only those belonging to the current user
   const userVouchers = useMemo(() => {
-    if (!account?.address || !vouchersList) return [];
+    if (!account?.address || !vouchersList) {
+      console.log("No account or vouchersList:", {
+        account: account?.address,
+        vouchersList,
+      });
+      return [];
+    }
 
-    return vouchersList.filter((voucher: any) => {
+    console.log("Filtering vouchers for user:", account.address);
+    console.log("Total vouchers before filtering:", vouchersList.length);
+
+    const filtered = vouchersList.filter((voucher: any) => {
+      console.log("Checking voucher:", {
+        voucherMsgSender: voucher.input?.msgSender,
+        userAddress: account.address,
+        match:
+          voucher.input?.msgSender?.toLowerCase() ===
+          account.address.toLowerCase(),
+      });
+
       // Check if the voucher's input msgSender matches the current user's address
       return (
         voucher.input?.msgSender?.toLowerCase() ===
         account.address.toLowerCase()
       );
     });
+
+    console.log("Filtered vouchers:", filtered.length);
+    console.log("Filtered vouchers data:", JSON.stringify(filtered, null, 2));
+
+    return filtered;
   }, [vouchersList, account?.address]);
 
   return (
@@ -210,8 +232,8 @@ export const Vouchers: React.FC<IVoucherProps> = ({ dappAddress }) => {
                         voucherToExecute,
                         rollups!
                       );
+                      console.log("await executeVoucher", res);
                       if (res) {
-                        toast.success("Voucher executed successfully");
                         // Update the current voucher's executed status
                         setVoucherToExecute((prev: any) => ({
                           ...prev,

@@ -15,21 +15,21 @@ import { ApolloClient } from "@apollo/client";
 import toast from "react-hot-toast";
 import { TrackNFTABI } from "@/configs";
 
-export const sendAddress = async (
-  rollups: RollupsContracts | undefined,
-  dappAddress: string
-) => {
-  if (rollups) {
-    try {
-      const relayTx = await rollups.relayContract.relayDAppAddress(dappAddress);
-      const tx = await relayTx.wait(1);
-      return tx.transactionHash;
-    } catch (e) {
-      console.log(`${e}`);
-      return e;
-    }
-  }
-};
+// export const sendAddress = async (
+//   rollups: RollupsContracts | undefined,
+//   dappAddress: string
+// ) => {
+//   if (rollups) {
+//     try {
+//       const relayTx = await rollups.relayContract.relayDAppAddress(dappAddress);
+//       const tx = await relayTx.wait(1);
+//       return tx.transactionHash;
+//     } catch (e) {
+//       console.log(`${e}`);
+//       return e;
+//     }
+//   }
+// };
 
 export const addInput = async (
   rollups: RollupsContracts | undefined,
@@ -363,7 +363,7 @@ export const withdrawEther = async (
       const ether_amount = ethers.utils.parseEther(String(amount)).toString();
       console.log("ether after parsing: ", ether_amount);
       const input_obj = {
-        method: "ether_withdraw",
+        method: "withdraw_ether",
         args: {
           amount: ether_amount,
         },
@@ -665,10 +665,11 @@ export const executeVoucher = async (
     console.log("voucher.input.index", voucher.input.index);
     console.log("voucher.index", voucher.index);
     // ethers.BigNumber.from(voucher.input.index);
-    const isExecuted = await rollups.dappContract.wasVoucherExecuted(
-      BigInt(voucher.input.index),
+    const isExecuted = await rollups.dappContract.wasOutputExecuted(
       BigInt(voucher.index)
     );
+
+    console.log("isExecuted", isExecuted);
 
     if (isExecuted) {
       toast.error("Fund already withdrawn");
@@ -684,11 +685,7 @@ export const executeVoucher = async (
       voucher.input.index
     );
 
-    const voucherWithProof = await getVoucherWithProof(
-      client,
-      voucher.index,
-      voucher.input.index
-    );
+    const voucherWithProof = await getVoucherWithProof(client, voucher.index);
 
     console.log("voucherWithProof", voucherWithProof);
 
@@ -711,37 +708,18 @@ export const executeVoucher = async (
       return { message: "Voucher proof data incomplete" };
     }
 
-    // Validate proof structure completeness to prevent 0x87332c01 ABI error
+    // Validate proof structure for v2.0 (simplified structure)
     const proof = voucherWithProof.proof;
     if (
-      !proof.validity ||
-      !proof.context ||
-      proof.validity.inputIndexWithinEpoch === undefined ||
-      proof.validity.outputIndexWithinInput === undefined ||
-      !proof.validity.outputHashesRootHash ||
-      !proof.validity.vouchersEpochRootHash ||
-      !proof.validity.noticesEpochRootHash ||
-      !proof.validity.machineStateHash ||
-      !Array.isArray(proof.validity.outputHashInOutputHashesSiblings) ||
-      !Array.isArray(proof.validity.outputHashesInEpochSiblings)
+      !proof ||
+      proof.outputIndex === undefined ||
+      !Array.isArray(proof.outputHashesSiblings)
     ) {
       console.log("Proof structure incomplete - not ready for execution:", {
-        hasValidity: !!proof.validity,
-        hasContext: !!proof.context,
-        hasInputIndexWithinEpoch:
-          proof.validity?.inputIndexWithinEpoch !== undefined,
-        hasOutputIndexWithinInput:
-          proof.validity?.outputIndexWithinInput !== undefined,
-        hasOutputHashesRootHash: !!proof.validity?.outputHashesRootHash,
-        hasVouchersEpochRootHash: !!proof.validity?.vouchersEpochRootHash,
-        hasNoticesEpochRootHash: !!proof.validity?.noticesEpochRootHash,
-        hasMachineStateHash: !!proof.validity?.machineStateHash,
-        hasOutputHashSiblings: Array.isArray(
-          proof.validity?.outputHashInOutputHashesSiblings
-        ),
-        hasEpochSiblings: Array.isArray(
-          proof.validity?.outputHashesInEpochSiblings
-        ),
+        hasProof: !!proof,
+        hasOutputIndex: proof?.outputIndex !== undefined,
+        hasOutputHashesSiblings: Array.isArray(proof?.outputHashesSiblings),
+        proofStructure: proof,
       });
       return {
         message:
@@ -763,35 +741,16 @@ export const executeVoucher = async (
         JSON.stringify(voucherWithProof.proof, null, 2)
       );
 
-      // Convert proof structure to match contract expectations
+      // Use the v2.0 proof structure with proper BigNumber conversion
       const formattedProof = {
-        validity: {
-          inputIndexWithinEpoch: ethers.BigNumber.from(
-            voucherWithProof.proof.validity.inputIndexWithinEpoch
-          ),
-          outputIndexWithinInput: ethers.BigNumber.from(
-            voucherWithProof.proof.validity.outputIndexWithinInput
-          ),
-          outputHashesRootHash:
-            voucherWithProof.proof.validity.outputHashesRootHash,
-          vouchersEpochRootHash:
-            voucherWithProof.proof.validity.vouchersEpochRootHash,
-          noticesEpochRootHash:
-            voucherWithProof.proof.validity.noticesEpochRootHash,
-          machineStateHash: voucherWithProof.proof.validity.machineStateHash,
-          outputHashInOutputHashesSiblings:
-            voucherWithProof.proof.validity.outputHashInOutputHashesSiblings,
-          outputHashesInEpochSiblings:
-            voucherWithProof.proof.validity.outputHashesInEpochSiblings,
-        },
-        context: voucherWithProof.proof.context,
+        outputIndex: ethers.BigNumber.from(voucherWithProof.proof.outputIndex),
+        outputHashesSiblings: voucherWithProof.proof.outputHashesSiblings,
       };
 
-      console.log("Formatted proof:", formattedProof);
+      console.log("Formatted proof for v2.0:", formattedProof);
 
       try {
-        const tx = await rollups.dappContract.executeVoucher(
-          voucherWithProof.destination,
+        const tx = await rollups.dappContract.executeOutput(
           voucherWithProof.payload,
           formattedProof
         );
@@ -861,8 +820,7 @@ export const executeVouchers = async (
 
     const newVoucherToExecute = { ...voucher };
     try {
-      const tx = await rollups.dappContract.executeVoucher(
-        voucher.destination,
+      const tx = await rollups.dappContract.executeOutput(
         voucher.payload,
         voucher.proof
       );
@@ -873,8 +831,7 @@ export const executeVouchers = async (
           newVoucherToExecute.msg
         } - resulting events: ${JSON.stringify(receipt.events)}`;
         newVoucherToExecute.executed =
-          await rollups.dappContract.wasVoucherExecuted(
-            ethers.BigNumber.from(voucher.input.index),
+          await rollups.dappContract.wasOutputExecuted(
             ethers.BigNumber.from(voucher.index)
           );
       }

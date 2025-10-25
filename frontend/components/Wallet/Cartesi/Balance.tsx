@@ -82,7 +82,7 @@ const Balance: React.FC<BalanceProps> = ({
                 {isLoading ? (
                   <div className="animate-pulse h-9 w-24 bg-white/10 rounded" />
                 ) : (
-                  String(userDetails?.cartesiTokenBalance || "0")
+                  Number(userDetails?.cartesiTokenBalance || "0").toFixed(4)
                 )}
               </div>
             </div>

@@ -1,8 +1,21 @@
 export type Voucher = {
+  id: string;
   index: number;
   payload: string;
   destination: string;
+  value: string;
+  executed: boolean;
+  transactionHash?: string;
   proof: any;
+  application: {
+    id: string;
+    name: string;
+    address: string;
+  };
+  input: {
+    id: string;
+    index: number;
+  };
 };
 
 export async function fetchVouchers() {
@@ -12,23 +25,26 @@ export async function fetchVouchers() {
         vouchers {
             edges {
             node {
+                id
                 index
                 input {
+                id
                 index
                 }
                 destination
                 payload
+                value
+                executed
+                transactionHash
+                application {
+                id
+                name
+                address
+                }
                 proof {
                 validity {
-                    inputIndexWithinEpoch
-                    outputIndexWithinInput
-                    outputHashesRootHash
-                    vouchersEpochRootHash
-                    noticesEpochRootHash
-                    machineStateHash
-                    outputHashInOutputHashesSiblings
-                    outputHashesInEpochSiblings
-                    
+                    outputIndex
+                    outputHashesSiblings
                 }
                 context
                 }
@@ -61,16 +77,29 @@ export async function fetchVouchers() {
     const all_Vouchers: Voucher[] = [];
 
     for (let i = 0; i < vouchers.length; i++) {
-      const index = vouchers[i].node.index;
-      const payload = vouchers[i].node.payload;
-      const destination = vouchers[i].node.destination;
-      const proof = vouchers[i].node.proof;
+      const node = vouchers[i].node;
+      const id = node.id;
+      const index = node.index;
+      const payload = node.payload;
+      const destination = node.destination;
+      const value = node.value;
+      const executed = node.executed;
+      const transactionHash = node.transactionHash;
+      const proof = node.proof;
+      const application = node.application;
+      const input = node.input;
 
       all_Vouchers.push({
+        id: id,
         index: index,
         payload: payload,
         destination: destination,
+        value: value,
+        executed: executed,
+        transactionHash: transactionHash,
         proof: proof,
+        application: application,
+        input: input,
       });
     }
     return all_Vouchers;

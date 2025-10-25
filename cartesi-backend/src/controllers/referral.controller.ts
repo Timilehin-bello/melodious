@@ -54,9 +54,9 @@ class ReferralController {
         newUserName,
         referralCode,
         this.config.referralPoints,
-        timestamp ? new Date(timestamp * 1000) : new Date(),
+        timestamp ? timestamp : new Date(),
         "COMPLETED",
-        timestamp ? new Date(timestamp * 1000) : new Date()
+        timestamp ? timestamp : new Date()
       );
 
       // Add referral to repository
@@ -73,7 +73,7 @@ class ReferralController {
         referral.id,
         newUserName,
         newUserWalletAddress,
-        timestamp ? new Date(timestamp * 1000) : new Date()
+        timestamp ? timestamp : new Date()
       );
       RepositoryService.referralTransactions.push(transaction);
 

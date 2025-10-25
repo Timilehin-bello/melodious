@@ -5,6 +5,7 @@ import deployments from "./rollups.json";
 
 import * as Controllers from "./controllers";
 import * as Routes from "./routes";
+import { VoucherV2 } from "./services/withdrawal.service";
 import { RepositoryService } from "./services/repository.service";
 
 let rollup_address = "";
@@ -173,7 +174,7 @@ router.addRoute(
 );
 router.addRoute("get_nft_stats", new Routes.GetNFTStatsRoute(nft));
 
-// Subscription Route
+// Subscription Routes
 const subscription = new Controllers.SubscriptionController();
 router.addRoute("subscribe", new Routes.SubscribeRoute(subscription));
 router.addRoute(
@@ -185,34 +186,66 @@ router.addRoute(
   new Routes.GetAllSubscriptionsRoute(subscription)
 );
 
-const send_request = async (output: Output | Set<Output>) => {
-  if (output instanceof Output) {
-    let endpoint;
-    console.log("type of output", output.type);
+// Withdrawal Routes
+const withdrawal = new Controllers.WithdrawalController();
+router.addRoute("withdraw_ether", new Routes.EtherWithdrawalRoute(withdrawal, wallet));
+router.addRoute("withdraw_erc20", new Routes.ERC20WithdrawalRoute(withdrawal, wallet));
+router.addRoute(
+  "withdraw_erc721",
+  new Routes.ERC721WithdrawalRoute(withdrawal, wallet)
+);
+router.addRoute(
+  "withdrawal_history",
+  new Routes.WithdrawalHistoryRoute(withdrawal, wallet)
+);
 
-    if (output.type == "notice") {
-      endpoint = "/notice";
-    } else if (output.type == "voucher") {
+const send_request = async (output: Output | VoucherV2 | Set<Output>) => {
+  if (output instanceof Set) {
+    output.forEach((value: Output) => {
+      send_request(value);
+    });
+  } else {
+    // Handle Output or VoucherV2
+    let endpoint;
+    let requestBody;
+
+    // Check if it's a VoucherV2 object (has destination, payload, and type properties)
+    if ('destination' in output && 'payload' in output && output.type === 'voucher') {
       endpoint = "/voucher";
+      // Format VoucherV2 for Cartesi v2.0 voucher endpoint
+      requestBody = {
+        destination: output.destination,
+        payload: output.payload,
+        value: output.value || "0x"
+      };
     } else {
-      endpoint = "/report";
+      // Handle cartesi-wallet Output objects
+      console.log("type of output", output.type);
+
+      if (output.type == "notice") {
+        endpoint = "/notice";
+      } else if (output.type == "voucher") {
+        endpoint = "/voucher";
+      } else {
+        endpoint = "/report";
+      }
+      requestBody = output;
     }
 
-    console.log(`sending request ${typeof output}`);
+    console.log("sending request object");
+    console.log(requestBody);
+    console.log("endpoint:", endpoint);
+    
     const response = await fetch(rollup_server + endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(output),
+      body: JSON.stringify(requestBody),
     });
     console.debug(
       `received ${output.payload} status ${response.status} body ${response.body}`
     );
-  } else {
-    output.forEach((value: Output) => {
-      send_request(value);
-    });
   }
 };
 
@@ -222,9 +255,9 @@ async function handle_advance(data: any) {
     // Set up rollup address from metadata if not already set
     if (!rollup_address && data.metadata.app_contract) {
       rollup_address = data.metadata.app_contract;
-      router.set_rollup_address(rollup_address, "ether_withdraw");
-      router.set_rollup_address(rollup_address, "erc20_withdraw");
-      router.set_rollup_address(rollup_address, "erc721_withdraw");
+      router.set_rollup_address(rollup_address, "withdraw_ether");
+      router.set_rollup_address(rollup_address, "withdraw_erc20");
+      router.set_rollup_address(rollup_address, "withdraw_erc721");
       console.log("Setting DApp address from metadata:", rollup_address);
     }
 
@@ -335,14 +368,14 @@ async function handle_inspect(data: any) {
   try {
     const payloadString = hexToString(data.payload).trim();
     console.log("payload string is ", payloadString);
-    
+
     // Parse the JSON payload
     const payload = JSON.parse(payloadString);
     console.log("parsed payload is ", payload);
-    
+
     const method = payload.method;
     const param = payload.param;
-    
+
     console.log("method:", method, "param:", param);
     return router.process(method, param);
   } catch (e) {

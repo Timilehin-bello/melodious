@@ -62,7 +62,7 @@ class ProcessReferralRoute extends AdvanceRoute {
         request_payload.referralCode,
         signer,
         request_payload.userName,
-        this.msg_timestamp
+        request.metadata.block_timestamp
       );
 
       return referral;

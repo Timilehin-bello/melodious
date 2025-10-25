@@ -8,6 +8,8 @@ type Proof {
 
 "Request submitted to the application to advance its state"
 type Input {
+  "Input identifier"
+  id: String!
   "Input index starting from genesis"
   index: Int!
   "Address responsible for submitting the input"
@@ -25,31 +27,34 @@ type Input {
   "Get report from this particular input given the report's index"
   report(index: Int!): Report!
   "Get vouchers from this particular input with support for pagination"
-  vouchers(first: Int, last: Int, after: String, before: String): VoucherConnection!
+  vouchers(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): VoucherConnection!
   "Get notices from this particular input with support for pagination"
-  notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
+  notices(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): NoticeConnection!
   "Get reports from this particular input with support for pagination"
-  reports(first: Int, last: Int, after: String, before: String): ReportConnection!
+  reports(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): ReportConnection!
 }
 
 "Validity proof for an output"
 type OutputValidityProof {
-  "Local input index within the context of the related epoch"
-  inputIndexWithinEpoch: Int!
-  "Output index within the context of the input that produced it"
-  outputIndexWithinInput: Int!
-  "Merkle root of all output hashes of the related input, given in Ethereum hex binary format (32 bytes), starting with '0x'"
-  outputHashesRootHash: String!
-  "Merkle root of all voucher hashes of the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x'"
-  vouchersEpochRootHash: String!
-  "Merkle root of all notice hashes of the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x'"
-  noticesEpochRootHash: String!
-  "Hash of the machine state claimed for the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x'"
-  machineStateHash: String!
-  "Proof that this output hash is in the output-hashes merkle tree. This array of siblings is bottom-up ordered (from the leaf to the root). Each hash is given in Ethereum hex binary format (32 bytes), starting with '0x'."
-  outputHashInOutputHashesSiblings: [String!]!
-  "Proof that this output-hashes root hash is in epoch's output merkle tree. This array of siblings is bottom-up ordered (from the leaf to the root). Each hash is given in Ethereum hex binary format (32 bytes), starting with '0x'."
-  outputHashesInEpochSiblings: [String!]!
+  "Output index for this output"
+  outputIndex: Int!
+  "Array of sibling hashes for merkle proof"
+  outputHashesSiblings: [String!]!
 }
 
 "Representation of a transaction that can be carried out on the base layer blockchain, such as a transfer of assets"
@@ -62,28 +67,75 @@ type Voucher {
   destination: String!
   "Transaction payload in Ethereum hex binary format, starting with '0x'"
   payload: String!
+  "Value in wei to be transferred along with the voucher execution"
+  value: String!
+  "Whether the voucher has been executed on the base layer"
+  executed: Boolean!
+  "Transaction hash of the voucher execution, if executed"
+  transactionHash: String
   "Proof object that allows this voucher to be validated and executed on the base layer blockchain"
-  proof: Proof
+  proof: VoucherProof
+  "Application that generated this voucher"
+  application: Application!
+}
+
+"Proof data for voucher validation and execution"
+type VoucherProof {
+  "Output index for this voucher"
+  outputIndex: Int!
+  "Array of sibling hashes for merkle proof"
+  outputHashesSiblings: [String!]!
+}
+
+"Application information"
+type Application {
+  "Application identifier"
+  id: String!
+  "Application name"
+  name: String!
+  "Application contract address"
+  address: String!
 }
 
 "Top level queries"
 type Query {
   "Get input based on its identifier"
-  input(index: Int!): Input!
-  "Get voucher based on its index"
-  voucher(voucherIndex: Int!, inputIndex: Int!): Voucher!
+  input(id: String!): Input!
+  "Get voucher based on its output index"
+  voucher(outputIndex: Int!): Voucher!
   "Get notice based on its index"
   notice(noticeIndex: Int!, inputIndex: Int!): Notice!
   "Get report based on its index"
   report(reportIndex: Int!, inputIndex: Int!): Report!
   "Get inputs with support for pagination"
-  inputs(first: Int, last: Int, after: String, before: String, where: InputFilter): InputConnection!
+  inputs(
+    first: Int
+    last: Int
+    after: String
+    before: String
+    where: InputFilter
+  ): InputConnection!
   "Get vouchers with support for pagination"
-  vouchers(first: Int, last: Int, after: String, before: String): VoucherConnection!
+  vouchers(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): VoucherConnection!
   "Get notices with support for pagination"
-  notices(first: Int, last: Int, after: String, before: String): NoticeConnection!
+  notices(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): NoticeConnection!
   "Get reports with support for pagination"
-  reports(first: Int, last: Int, after: String, before: String): ReportConnection!
+  reports(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): ReportConnection!
 }
 
 "Pagination entry"
@@ -146,8 +198,10 @@ type ReportConnection {
 
 "Filter object to restrict results depending on input properties"
 input InputFilter {
-  "Filter only inputs with index lower than a given value" indexLowerThan: Int
-  "Filter only inputs with index greater than a given value" indexGreaterThan: Int
+  "Filter only inputs with index lower than a given value"
+  indexLowerThan: Int
+  "Filter only inputs with index greater than a given value"
+  indexGreaterThan: Int
 }
 
 scalar BigInt

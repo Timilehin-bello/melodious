@@ -61,7 +61,7 @@ class WithdrawalRewardRoute extends AdvanceRoute {
       return this.vault.withdraw({
         walletAddress: signer,
         amount: request_payload.amount,
-        timestamp: this.msg_timestamp,
+        timestamp: request.metadata.block_timestamp,
       });
     } catch (error) {
       const error_msg = `Failed to create vault ${error}`;

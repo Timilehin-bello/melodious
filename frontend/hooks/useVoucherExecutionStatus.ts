@@ -12,7 +12,7 @@ export const voucherExecutionKeys = {
       ...voucherExecutionKeys.lists(),
       {
         dappAddress,
-        voucherIds: vouchers.map((v) => `${v.input.index}-${v.index}`),
+        voucherIds: vouchers.map((v) => `${v.input.id}-${v.index}`),
       },
     ] as const,
 };
@@ -36,18 +36,17 @@ export const useVoucherExecutionStatus = (
       // Check execution status for all vouchers in parallel
       const statusPromises = vouchers.map(async (voucher) => {
         try {
-          const executed = await rollups.dappContract.wasVoucherExecuted(
-            ethers.BigNumber.from(voucher.input.index),
+          const executed = await rollups.dappContract.wasOutputExecuted(
             ethers.BigNumber.from(voucher.index)
           );
-          const key = `${voucher.input.index}-${voucher.index}`;
+          const key = `${voucher.input.id}-${voucher.index}`;
           return { key, executed };
         } catch (error) {
           console.log(
-            `Error checking voucher ${voucher.input.index}-${voucher.index} execution status:`,
+            `Error checking voucher ${voucher.input.id}-${voucher.index} execution status:`,
             error
           );
-          const key = `${voucher.input.index}-${voucher.index}`;
+          const key = `${voucher.input.id}-${voucher.index}`;
           return { key, executed: false };
         }
       });
@@ -80,7 +79,7 @@ export const useSingleVoucherExecutionStatus = (
       "voucherExecution",
       "single",
       dappAddress,
-      voucher ? `${voucher.input.index}-${voucher.index}` : null,
+      voucher ? `${voucher.input.id}-${voucher.index}` : null,
     ],
     queryFn: async (): Promise<boolean> => {
       if (!rollups || !voucher) {
@@ -88,14 +87,13 @@ export const useSingleVoucherExecutionStatus = (
       }
 
       try {
-        const executed = await rollups.dappContract.wasVoucherExecuted(
-          ethers.BigNumber.from(voucher.input.index),
+        const executed = await rollups.dappContract.wasOutputExecuted(
           ethers.BigNumber.from(voucher.index)
         );
         return executed;
       } catch (error) {
         console.log(
-          `Error checking voucher ${voucher.input.index}-${voucher.index} execution status:`,
+          `Error checking voucher ${voucher.input.id}-${voucher.index} execution status:`,
           error
         );
         return false;
