@@ -24,10 +24,10 @@ const getContractAddresses = (repositoryData: any) => {
       process.env.NEXT_PUBLIC_MELODIOUS_VAULT_ADDRESS,
     inputBox:
       process.env.NEXT_PUBLIC_INPUTBOX_ADDRESS ||
-      "0x59b22D57D4f067708AB0c00552767405926dc768",
+      "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
     dappAddress:
       process.env.NEXT_PUBLIC_DAPP_ADDRESS ||
-      "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
+      "0x42a9deb3d560884b3dfd4ae83908d80f9c1bc5db",
   };
 };
 
@@ -292,11 +292,12 @@ export const useCartesiSubscribe = () => {
     },
     onSuccess: (data, request) => {
       toast.success("Subscription created successfully!");
-      
+
       // Apply optimistic updates only on success
-      const currentSubscriptions = queryClient.getQueryData(
-        cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address)
-      ) as CartesiSubscription[] || [];
+      const currentSubscriptions =
+        (queryClient.getQueryData(
+          cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address)
+        ) as CartesiSubscription[]) || [];
 
       // Create optimistic subscription data
       const optimisticSubscription: CartesiSubscription = {
@@ -313,8 +314,11 @@ export const useCartesiSubscribe = () => {
       };
 
       // Update the user subscriptions data
-      const updatedSubscriptions = [...currentSubscriptions, optimisticSubscription];
-      
+      const updatedSubscriptions = [
+        ...currentSubscriptions,
+        optimisticSubscription,
+      ];
+
       queryClient.setQueryData(
         cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address),
         updatedSubscriptions
@@ -322,15 +326,20 @@ export const useCartesiSubscribe = () => {
 
       // Also update the status query directly
       queryClient.setQueryData(
-        [...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address), "status"],
+        [
+          ...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address),
+          "status",
+        ],
         {
           hasActiveSubscription: true,
           currentSubscription: optimisticSubscription,
           subscriptionLevel: request.subscriptionLevel.toUpperCase(),
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          expiresAt: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000
+          ).toISOString(),
         }
       );
-      
+
       // Schedule a delayed refetch to get real data from backend
       setTimeout(() => {
         // Only invalidate the specific user subscription queries
@@ -339,12 +348,17 @@ export const useCartesiSubscribe = () => {
             activeAccount?.address
           ),
         });
-        
+
         // Also invalidate the status query
         queryClient.invalidateQueries({
-          queryKey: [...cartesiSubscriptionKeys.userSubscriptions(activeAccount?.address), "status"],
+          queryKey: [
+            ...cartesiSubscriptionKeys.userSubscriptions(
+              activeAccount?.address
+            ),
+            "status",
+          ],
         });
-        
+
         // Only refetch notices once, not twice
         queryClient.invalidateQueries({
           queryKey: noticesKeys.all,

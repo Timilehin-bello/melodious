@@ -8,8 +8,6 @@ import { ChainOptions } from "thirdweb/chains";
 import { client } from "@/lib/client";
 
 import {
-  CartesiDApp,
-  CartesiDApp__factory,
   InputBox,
   InputBox__factory,
   EtherPortal,
@@ -18,9 +16,9 @@ import {
   ERC20Portal__factory,
   ERC721Portal,
   ERC721Portal__factory,
-  DAppAddressRelay,
-  DAppAddressRelay__factory,
   ERC1155SinglePortal,
+  IApplication,
+  IApplication__factory,
   ERC1155SinglePortal__factory,
   ERC1155BatchPortal,
   ERC1155BatchPortal__factory,
@@ -30,10 +28,9 @@ import { networkChain } from "@/components/ConnectWallet";
 const config: any = configFile;
 
 export interface RollupsContracts {
-  dappContract: CartesiDApp;
   signer: any;
-  relayContract: DAppAddressRelay;
   inputContract: InputBox;
+  dappContract: IApplication;
   etherPortalContract: EtherPortal;
   erc20PortalContract: ERC20Portal;
   erc721PortalContract: ERC721Portal;
@@ -142,13 +139,7 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
         );
       }
       // dapp contract
-      const dappContract = CartesiDApp__factory.connect(dappAddress, signer);
-
-      // relay contract
-      const relayContract = DAppAddressRelay__factory.connect(
-        dappRelayAddress,
-        signer
-      );
+      const dappContract = IApplication__factory.connect(dappAddress, signer);
 
       // input contract
       const inputContract = InputBox__factory.connect(inputBoxAddress, signer);
@@ -180,10 +171,9 @@ export const useRollups = (dAddress: string): RollupsContracts | undefined => {
       );
 
       return {
-        dappContract,
         signer,
-        relayContract,
         inputContract,
+        dappContract,
         etherPortalContract,
         erc20PortalContract,
         erc721PortalContract,

@@ -18,11 +18,24 @@ export type Scalars = {
   BigInt: { input: any; output: any; }
 };
 
+/** Application information */
+export type Application = {
+  __typename?: 'Application';
+  /** Application contract address */
+  address: Scalars['String']['output'];
+  /** Application identifier */
+  id: Scalars['String']['output'];
+  /** Application name */
+  name: Scalars['String']['output'];
+};
+
 /** Request submitted to the application to advance its state */
 export type Input = {
   __typename?: 'Input';
   /** Number of the base layer block in which the input was recorded */
   blockNumber: Scalars['BigInt']['output'];
+  /** Input identifier */
+  id: Scalars['String']['output'];
   /** Input index starting from genesis */
   index: Scalars['Int']['output'];
   /** Address responsible for submitting the input */
@@ -154,22 +167,10 @@ export type NoticeEdge = {
 /** Validity proof for an output */
 export type OutputValidityProof = {
   __typename?: 'OutputValidityProof';
-  /** Local input index within the context of the related epoch */
-  inputIndexWithinEpoch: Scalars['Int']['output'];
-  /** Hash of the machine state claimed for the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x' */
-  machineStateHash: Scalars['String']['output'];
-  /** Merkle root of all notice hashes of the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x' */
-  noticesEpochRootHash: Scalars['String']['output'];
-  /** Proof that this output hash is in the output-hashes merkle tree. This array of siblings is bottom-up ordered (from the leaf to the root). Each hash is given in Ethereum hex binary format (32 bytes), starting with '0x'. */
-  outputHashInOutputHashesSiblings: Array<Scalars['String']['output']>;
-  /** Proof that this output-hashes root hash is in epoch's output merkle tree. This array of siblings is bottom-up ordered (from the leaf to the root). Each hash is given in Ethereum hex binary format (32 bytes), starting with '0x'. */
-  outputHashesInEpochSiblings: Array<Scalars['String']['output']>;
-  /** Merkle root of all output hashes of the related input, given in Ethereum hex binary format (32 bytes), starting with '0x' */
-  outputHashesRootHash: Scalars['String']['output'];
-  /** Output index within the context of the input that produced it */
-  outputIndexWithinInput: Scalars['Int']['output'];
-  /** Merkle root of all voucher hashes of the related epoch, given in Ethereum hex binary format (32 bytes), starting with '0x' */
-  vouchersEpochRootHash: Scalars['String']['output'];
+  /** Array of sibling hashes for merkle proof */
+  outputHashesSiblings: Array<Scalars['String']['output']>;
+  /** Output index for this output */
+  outputIndex: Scalars['Int']['output'];
 };
 
 /** Page metadata for the cursor-based Connection pagination pattern */
@@ -209,7 +210,7 @@ export type Query = {
   report: Report;
   /** Get reports with support for pagination */
   reports: ReportConnection;
-  /** Get voucher based on its index */
+  /** Get voucher based on its output index */
   voucher: Voucher;
   /** Get vouchers with support for pagination */
   vouchers: VoucherConnection;
@@ -218,7 +219,7 @@ export type Query = {
 
 /** Top level queries */
 export type QueryInputArgs = {
-  index: Scalars['Int']['input'];
+  id: Scalars['String']['input'];
 };
 
 
@@ -266,8 +267,7 @@ export type QueryReportsArgs = {
 
 /** Top level queries */
 export type QueryVoucherArgs = {
-  inputIndex: Scalars['Int']['input'];
-  voucherIndex: Scalars['Int']['input'];
+  outputIndex: Scalars['Int']['input'];
 };
 
 
@@ -313,8 +313,12 @@ export type ReportEdge = {
 /** Representation of a transaction that can be carried out on the base layer blockchain, such as a transfer of assets */
 export type Voucher = {
   __typename?: 'Voucher';
+  /** Application that generated this voucher */
+  application: Application;
   /** Transaction destination address in Ethereum hex binary format (20 bytes), starting with '0x' */
   destination: Scalars['String']['output'];
+  /** Whether the voucher has been executed on the base layer */
+  executed: Scalars['Boolean']['output'];
   /** Voucher index within the context of the input that produced it */
   index: Scalars['Int']['output'];
   /** Input whose processing produced the voucher */
@@ -322,7 +326,11 @@ export type Voucher = {
   /** Transaction payload in Ethereum hex binary format, starting with '0x' */
   payload: Scalars['String']['output'];
   /** Proof object that allows this voucher to be validated and executed on the base layer blockchain */
-  proof?: Maybe<Proof>;
+  proof?: Maybe<VoucherProof>;
+  /** Transaction hash of the voucher execution, if executed */
+  transactionHash?: Maybe<Scalars['String']['output']>;
+  /** Value in wei to be transferred along with the voucher execution */
+  value: Scalars['String']['output'];
 };
 
 /** Pagination result */
@@ -345,13 +353,22 @@ export type VoucherEdge = {
   node: Voucher;
 };
 
+/** Proof data for voucher validation and execution */
+export type VoucherProof = {
+  __typename?: 'VoucherProof';
+  /** Array of sibling hashes for merkle proof */
+  outputHashesSiblings: Array<Scalars['String']['output']>;
+  /** Output index for this voucher */
+  outputIndex: Scalars['Int']['output'];
+};
+
 export type NoticeQueryVariables = Exact<{
   noticeIndex: Scalars['Int']['input'];
   inputIndex: Scalars['Int']['input'];
 }>;
 
 
-export type NoticeQuery = { __typename?: 'Query', notice: { __typename?: 'Notice', index: number, payload: string, input: { __typename?: 'Input', index: number }, proof?: { __typename?: 'Proof', context: string, validity: { __typename?: 'OutputValidityProof', inputIndexWithinEpoch: number, outputIndexWithinInput: number, outputHashesRootHash: string, vouchersEpochRootHash: string, noticesEpochRootHash: string, machineStateHash: string, outputHashInOutputHashesSiblings: Array<string>, outputHashesInEpochSiblings: Array<string> } } | null } };
+export type NoticeQuery = { __typename?: 'Query', notice: { __typename?: 'Notice', index: number, payload: string, input: { __typename?: 'Input', index: number }, proof?: { __typename?: 'Proof', context: string, validity: { __typename?: 'OutputValidityProof', outputIndex: number, outputHashesSiblings: Array<string> } } | null } };
 
 export type NoticesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -359,31 +376,30 @@ export type NoticesQueryVariables = Exact<{ [key: string]: never; }>;
 export type NoticesQuery = { __typename?: 'Query', notices: { __typename?: 'NoticeConnection', edges: Array<{ __typename?: 'NoticeEdge', node: { __typename?: 'Notice', index: number, payload: string, input: { __typename?: 'Input', index: number } } }> } };
 
 export type NoticesByInputQueryVariables = Exact<{
-  inputIndex: Scalars['Int']['input'];
+  inputId: Scalars['String']['input'];
 }>;
 
 
-export type NoticesByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', notices: { __typename?: 'NoticeConnection', edges: Array<{ __typename?: 'NoticeEdge', node: { __typename?: 'Notice', index: number, payload: string, input: { __typename?: 'Input', index: number } } }> } } };
+export type NoticesByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', notices: { __typename?: 'NoticeConnection', edges: Array<{ __typename?: 'NoticeEdge', node: { __typename?: 'Notice', index: number, payload: string, input: { __typename?: 'Input', id: string } } }> } } };
 
 export type VoucherQueryVariables = Exact<{
-  voucherIndex: Scalars['Int']['input'];
-  inputIndex: Scalars['Int']['input'];
+  outputIndex: Scalars['Int']['input'];
 }>;
 
 
-export type VoucherQuery = { __typename?: 'Query', voucher: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number }, proof?: { __typename?: 'Proof', context: string, validity: { __typename?: 'OutputValidityProof', inputIndexWithinEpoch: number, outputIndexWithinInput: number, outputHashesRootHash: string, vouchersEpochRootHash: string, noticesEpochRootHash: string, machineStateHash: string, outputHashInOutputHashesSiblings: Array<string>, outputHashesInEpochSiblings: Array<string> } } | null } };
+export type VoucherQuery = { __typename?: 'Query', voucher: { __typename?: 'Voucher', index: number, destination: string, payload: string, value: string, executed: boolean, transactionHash?: string | null, input: { __typename?: 'Input', index: number }, proof?: { __typename?: 'VoucherProof', outputIndex: number, outputHashesSiblings: Array<string> } | null, application: { __typename?: 'Application', id: string, name: string, address: string } } };
 
 export type VouchersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type VouchersQuery = { __typename?: 'Query', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number, msgSender: string }, proof?: { __typename?: 'Proof', context: string, validity: { __typename?: 'OutputValidityProof', inputIndexWithinEpoch: number, outputIndexWithinInput: number, outputHashesRootHash: string, vouchersEpochRootHash: string, noticesEpochRootHash: string, machineStateHash: string, outputHashInOutputHashesSiblings: Array<string>, outputHashesInEpochSiblings: Array<string> } } | null } }> } };
+export type VouchersQuery = { __typename?: 'Query', vouchers: { __typename?: 'VoucherConnection', totalCount: number, edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, value: string, executed: boolean, transactionHash?: string | null, input: { __typename?: 'Input', index: number, msgSender: string }, proof?: { __typename?: 'VoucherProof', outputIndex: number, outputHashesSiblings: Array<string> } | null, application: { __typename?: 'Application', id: string, name: string, address: string } } }> } };
 
 export type VouchersByInputQueryVariables = Exact<{
-  inputIndex: Scalars['Int']['input'];
+  inputIndex: Scalars['String']['input'];
 }>;
 
 
-export type VouchersByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', vouchers: { __typename?: 'VoucherConnection', edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, input: { __typename?: 'Input', index: number, msgSender: string } } }> } } };
+export type VouchersByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', id: string, index: number, payload: string, msgSender: string, vouchers: { __typename?: 'VoucherConnection', totalCount: number, edges: Array<{ __typename?: 'VoucherEdge', node: { __typename?: 'Voucher', index: number, destination: string, payload: string, value: string, executed: boolean, transactionHash?: string | null, input: { __typename?: 'Input', index: number, msgSender: string }, proof?: { __typename?: 'VoucherProof', outputIndex: number, outputHashesSiblings: Array<string> } | null, application: { __typename?: 'Application', id: string, name: string, address: string } } }> } } };
 
 export type ReportQueryVariables = Exact<{
   reportIndex: Scalars['Int']['input'];
@@ -399,11 +415,11 @@ export type ReportsQueryVariables = Exact<{ [key: string]: never; }>;
 export type ReportsQuery = { __typename?: 'Query', reports: { __typename?: 'ReportConnection', edges: Array<{ __typename?: 'ReportEdge', node: { __typename?: 'Report', index: number, payload: string, input: { __typename?: 'Input', index: number } } }> } };
 
 export type ReportsByInputQueryVariables = Exact<{
-  inputIndex: Scalars['Int']['input'];
+  inputId: Scalars['String']['input'];
 }>;
 
 
-export type ReportsByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', reports: { __typename?: 'ReportConnection', edges: Array<{ __typename?: 'ReportEdge', node: { __typename?: 'Report', index: number, payload: string, input: { __typename?: 'Input', index: number } } }> } } };
+export type ReportsByInputQuery = { __typename?: 'Query', input: { __typename?: 'Input', reports: { __typename?: 'ReportConnection', edges: Array<{ __typename?: 'ReportEdge', node: { __typename?: 'Report', index: number, payload: string, input: { __typename?: 'Input', id: string } } }> } } };
 
 
 export const NoticeDocument = gql`
@@ -416,14 +432,8 @@ export const NoticeDocument = gql`
     payload
     proof {
       validity {
-        inputIndexWithinEpoch
-        outputIndexWithinInput
-        outputHashesRootHash
-        vouchersEpochRootHash
-        noticesEpochRootHash
-        machineStateHash
-        outputHashInOutputHashesSiblings
-        outputHashesInEpochSiblings
+        outputIndex
+        outputHashesSiblings
       }
       context
     }
@@ -454,14 +464,14 @@ export function useNoticesQuery(options?: Omit<Urql.UseQueryArgs<NoticesQueryVar
   return Urql.useQuery<NoticesQuery, NoticesQueryVariables>({ query: NoticesDocument, ...options });
 };
 export const NoticesByInputDocument = gql`
-    query noticesByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+    query noticesByInput($inputId: String!) {
+  input(id: $inputId) {
     notices {
       edges {
         node {
           index
           input {
-            index
+            id
           }
           payload
         }
@@ -475,26 +485,25 @@ export function useNoticesByInputQuery(options: Omit<Urql.UseQueryArgs<NoticesBy
   return Urql.useQuery<NoticesByInputQuery, NoticesByInputQueryVariables>({ query: NoticesByInputDocument, ...options });
 };
 export const VoucherDocument = gql`
-    query voucher($voucherIndex: Int!, $inputIndex: Int!) {
-  voucher(voucherIndex: $voucherIndex, inputIndex: $inputIndex) {
+    query voucher($outputIndex: Int!) {
+  voucher(outputIndex: $outputIndex) {
     index
     input {
       index
     }
     destination
     payload
+    value
+    executed
+    transactionHash
     proof {
-      validity {
-        inputIndexWithinEpoch
-        outputIndexWithinInput
-        outputHashesRootHash
-        vouchersEpochRootHash
-        noticesEpochRootHash
-        machineStateHash
-        outputHashInOutputHashesSiblings
-        outputHashesInEpochSiblings
-      }
-      context
+      outputIndex
+      outputHashesSiblings
+    }
+    application {
+      id
+      name
+      address
     }
   }
 }
@@ -506,6 +515,7 @@ export function useVoucherQuery(options: Omit<Urql.UseQueryArgs<VoucherQueryVari
 export const VouchersDocument = gql`
     query vouchers {
   vouchers {
+    totalCount
     edges {
       node {
         index
@@ -515,18 +525,17 @@ export const VouchersDocument = gql`
         }
         destination
         payload
+        value
+        executed
+        transactionHash
         proof {
-          validity {
-            inputIndexWithinEpoch
-            outputIndexWithinInput
-            outputHashesRootHash
-            vouchersEpochRootHash
-            noticesEpochRootHash
-            machineStateHash
-            outputHashInOutputHashesSiblings
-            outputHashesInEpochSiblings
-          }
-          context
+          outputIndex
+          outputHashesSiblings
+        }
+        application {
+          id
+          name
+          address
         }
       }
     }
@@ -538,9 +547,14 @@ export function useVouchersQuery(options?: Omit<Urql.UseQueryArgs<VouchersQueryV
   return Urql.useQuery<VouchersQuery, VouchersQueryVariables>({ query: VouchersDocument, ...options });
 };
 export const VouchersByInputDocument = gql`
-    query vouchersByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+    query vouchersByInput($inputIndex: String!) {
+  input(id: $inputIndex) {
+    id
+    index
+    payload
+    msgSender
     vouchers {
+      totalCount
       edges {
         node {
           index
@@ -550,6 +564,18 @@ export const VouchersByInputDocument = gql`
           }
           destination
           payload
+          value
+          executed
+          transactionHash
+          proof {
+            outputIndex
+            outputHashesSiblings
+          }
+          application {
+            id
+            name
+            address
+          }
         }
       }
     }
@@ -595,14 +621,14 @@ export function useReportsQuery(options?: Omit<Urql.UseQueryArgs<ReportsQueryVar
   return Urql.useQuery<ReportsQuery, ReportsQueryVariables>({ query: ReportsDocument, ...options });
 };
 export const ReportsByInputDocument = gql`
-    query reportsByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+    query reportsByInput($inputId: String!) {
+  input(id: $inputId) {
     reports {
       edges {
         node {
           index
           input {
-            index
+            id
           }
           payload
         }

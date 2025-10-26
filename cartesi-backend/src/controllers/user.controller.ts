@@ -81,7 +81,8 @@ class UserController {
         referralNotice = referralController.processReferral(
           userBody.referralCode.trim(),
           user.walletAddress,
-          user.name
+          user.name,
+          user.createdAt
         );
 
         if (referralNotice instanceof Error_out) {

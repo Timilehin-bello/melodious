@@ -24,9 +24,9 @@ class CreateTrackRoute extends AdvanceRoute {
       const track = this.track.createTrack(
         {
           walletAddress: signer,
-          createdAt: new Date(request.metadata.timestamp * 1000),
-          updatedAt: new Date(request.metadata.timestamp * 1000),
-          releaseDate: new Date(request.metadata.timestamp * 1000),
+          createdAt: new Date(request.metadata.block_timestamp * 1000),
+          updatedAt: new Date(request.metadata.block_timestamp * 1000),
+          releaseDate: new Date(request.metadata.block_timestamp * 1000),
           ...request_payload,
         },
         true
@@ -62,7 +62,7 @@ class UpdateTrackRoute extends AdvanceRoute {
       const updatedTrack = this.track.updateTrack(
         {
           walletAddress: signer,
-          updatedAt: new Date(request.metadata.timestamp * 1000),
+          updatedAt: new Date(request.metadata.block_timestamp * 1000),
           ...request_payload,
         },
         true

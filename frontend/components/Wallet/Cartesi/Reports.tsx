@@ -91,7 +91,7 @@ const Reports: React.FC = () => {
             ) : (
               reports.map((report: any, index: number) => (
                 <motion.div
-                  key={`${report.input.index}-${report.index}`}
+                  key={`${report.input.index}-${report.index}-${index}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
@@ -100,8 +100,8 @@ const Reports: React.FC = () => {
                     "hover:bg-zinc-800/30 transition-colors duration-200"
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-4 ">
+                    <div className="flex-1 w-10 overflow-x-scroll">
                       <div className="text-sm text-zinc-300 break-words">
                         {report.payload}
                       </div>

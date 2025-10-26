@@ -14,6 +14,13 @@ export type Voucher = {
   payload: string;
   proof: any;
   executed: any;
+  value: string;
+  transactionHash?: string;
+  application: {
+    id: string;
+    name: string;
+    address: string;
+  };
 };
 
 export const useVouchers = () => {
@@ -23,35 +30,40 @@ export const useVouchers = () => {
     pollInterval: 0,
   });
 
-  console.log("data", data);
+  console.log("useVouchers - GraphQL data:", data);
+  console.log("useVouchers - GraphQL error:", error);
+  console.log("useVouchers - GraphQL loading:", loading);
+  console.log("useVouchers - Raw vouchers edges:", data?.vouchers?.edges);
+  console.log("useVouchers - Total count:", data?.vouchers?.totalCount);
 
   const vouchers: Voucher[] =
     data &&
     data.vouchers.edges
       .filter((node: any) => {
+        console.log("Filtering voucher node:", node);
         // Only include vouchers that have complete proof data to prevent ABI errors
         const proof = node.node?.proof;
-        if (!proof || !proof.validity || !proof.context) {
+        console.log("Voucher proof:", proof);
+
+        if (!proof) {
+          console.log("Voucher filtered out - missing proof data");
           return false;
         }
-
+        console.log("const validity = proof.validity");
         // Validate all required proof fields are present and properly populated
-        const validity = proof.validity;
-        return (
-          validity.inputIndexWithinEpoch !== undefined &&
-          validity.outputIndexWithinInput !== undefined &&
-          validity.outputHashesRootHash &&
-          validity.vouchersEpochRootHash &&
-          validity.noticesEpochRootHash &&
-          validity.machineStateHash &&
-          Array.isArray(validity.outputHashInOutputHashesSiblings) &&
-          Array.isArray(validity.outputHashesInEpochSiblings)
-        );
+        const validity = proof;
+        const isValid =
+          validity.outputIndex !== undefined &&
+          validity.outputHashesSiblings &&
+          Array.isArray(validity.outputHashesSiblings);
+        console.log("Voucher validity check:", isValid);
+        return isValid;
       })
       .map((node: any) => {
         const n = node.node;
         let payload = n?.payload;
         let inputPayload = n?.input.payload;
+        const inputPayloadValue = n?.value;
         if (inputPayload) {
           try {
             // Changed from ethers.toUtf8String to ethers.utils.toUtf8String
@@ -129,10 +141,11 @@ export const useVouchers = () => {
               }
               default: {
                 const decode = decoder.decode(["address", "uint256"], payload);
+
                 // Changed from ethers.formatEther to ethers.utils.formatEther
-                payload = `CTSI Transfer - Amount: ${ethers.utils.formatEther(
-                  decode[1]
-                )} - Address: ${decode[0]}`;
+                console.log("decode 0x6a627842", decode);
+                console.log("payload 0x6a627842", payload);
+                payload = `CTSI Transfer - Address: ${decode[0]} ${inputPayloadValue}`;
 
                 break;
               }
@@ -150,19 +163,23 @@ export const useVouchers = () => {
           index: parseInt(n?.index),
           destination: `${n?.destination ?? ""}`,
           payload: `${payload}`,
+          value: `${n?.value ?? "0"}`,
+          transactionHash: n?.transactionHash,
+          application: n?.application || { id: "", name: "", address: "" },
           input: n
             ? {
+                id: n.input.id,
                 index: n.input.index,
                 payload: inputPayload,
                 msgSender: n.input.msgSender,
               }
             : {},
           proof: n?.proof || null,
-          executed: null,
+          executed: n?.executed || null,
         };
       })
       .sort((a: any, b: any) => {
-        if (b.input.index === a.input.index) {
+        if (b.input.id === a.input.id) {
           return b.index - a.index;
         } else {
           return b.input.index - a.input.index;

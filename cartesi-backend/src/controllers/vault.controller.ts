@@ -1,6 +1,7 @@
-import { Error_out, Log, Voucher } from "cartesi-wallet";
+import { Error_out, Log } from "cartesi-wallet";
+import { VoucherV2 } from "../services/withdrawal.service";
 import { IDeposit, IWithdrawal } from "../interfaces";
-import { encodeFunctionData, hexToBytes, parseEther } from "viem";
+import { encodeFunctionData, hexToBytes, parseEther, zeroHash } from "viem";
 import { ctsiTokenConfigABI, MelodiousVaultConfigABI } from "../configs";
 import {
   ConfigService,
@@ -43,10 +44,12 @@ class VaultController {
 
       console.log("callData", callData);
 
-      const voucher = new Voucher(
-        getConfigService.cartesiTokenContractAddress,
-        hexToBytes(callData)
-      );
+      const voucher: VoucherV2 = {
+        type: "voucher",
+        destination: getConfigService.cartesiTokenContractAddress,
+        payload: callData,
+        value: zeroHash
+      };
       console.log("voucher", voucher);
 
       getConfigService.vaultBalance += depositBody.amount;
@@ -105,15 +108,14 @@ class VaultController {
 
       console.log("callData", callData);
 
-      const voucher = new Voucher(
-        getConfigService.vaultContractAddress,
-        hexToBytes(callData)
-      );
+      const voucher: VoucherV2 = {
+        type: "voucher",
+        destination: getConfigService.vaultContractAddress,
+        payload: callData,
+        value: zeroHash
+      };
 
       console.log("voucher", voucher);
-
-      // Note: Vault balance is already decremented in ListeningRewardService
-      // getConfigService.vaultBalance -= withdrawBody.amount;
 
       //TODO: Check later if this gives the expected value
       getConfigService.lastVaultBalanceDistributed -= withdrawBody.amount;
@@ -123,9 +125,9 @@ class VaultController {
         walletAddress: withdrawBody.walletAddress,
         amount: withdrawBody.amount,
         userType: user.artist ? "artist" : "listener",
-        timestamp: withdrawBody.timestamp 
-          ? new Date(withdrawBody.timestamp * 1000).toISOString()
-          : new Date().toISOString(),
+        timestamp: withdrawBody.timestamp
+          ? new Date(withdrawBody.timestamp * 1000)
+          : new Date(),
         voucher: {
           destination: voucher.destination,
           payload: voucher.payload,

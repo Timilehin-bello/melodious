@@ -1,7 +1,0 @@
-services:
-  dapp:
-    image: melodious-music-backend
-    build:
-      context: .
-    volumes:
-      - ./db:/opt/cartesi/dapp/db # Mount the host's db directory to the container's db directory

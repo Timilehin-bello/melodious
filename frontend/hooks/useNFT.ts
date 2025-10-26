@@ -24,10 +24,10 @@ const getContractAddresses = (repositoryData: any) => {
     ctsiToken: repositoryData?.config?.cartesiTokenContractAddress,
     inputBox:
       process.env.NEXT_PUBLIC_INPUTBOX_ADDRESS ||
-      "0x59b22D57D4f067708AB0c00552767405926dc768",
+      "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
     dappAddress:
       process.env.NEXT_PUBLIC_DAPP_ADDRESS ||
-      "0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e",
+      "0x42a9deb3d560884b3dfd4ae83908d80f9c1bc5db",
   };
 };
 

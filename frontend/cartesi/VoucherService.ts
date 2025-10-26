@@ -37,17 +37,8 @@ interface VoucherWithProof {
   destination: string;
   payload: string;
   proof: {
-    validity: {
-      inputIndexWithinEpoch: number;
-      outputIndexWithinInput: number;
-      outputHashesRootHash: string;
-      vouchersEpochRootHash: string;
-      noticesEpochRootHash: string;
-      machineStateHash: string;
-      outputHashInOutputHashesSiblings: string[];
-      outputHashesInEpochSiblings: string[];
-    };
-    context: string;
+    outputIndex: number;
+    outputHashesSiblings: string[];
   };
 }
 
@@ -97,12 +88,11 @@ const getVouchers = async (client: Client): Promise<VoucherEdge[]> => {
 const getVoucherWithProof = async (
   client: ApolloClient<any>,
   // client: Client,
-  voucherIndex: number,
-  inputIndex: number
+  outputIndex: number
 ): Promise<VoucherWithProof | null> => {
   const query = gql`
-    query GetVoucher($voucherIndex: Int!, $inputIndex: Int!) {
-      voucher(voucherIndex: $voucherIndex, inputIndex: $inputIndex) {
+    query GetVoucher($outputIndex: Int!) {
+      voucher(outputIndex: $outputIndex) {
         index
         input {
           index
@@ -111,17 +101,8 @@ const getVoucherWithProof = async (
         destination
         payload
         proof {
-          validity {
-            inputIndexWithinEpoch
-            outputIndexWithinInput
-            outputHashesRootHash
-            vouchersEpochRootHash
-            noticesEpochRootHash
-            machineStateHash
-            outputHashInOutputHashesSiblings
-            outputHashesInEpochSiblings
-          }
-          context
+          outputIndex
+          outputHashesSiblings
         }
       }
     }
@@ -130,8 +111,7 @@ const getVoucherWithProof = async (
   const result = await client.query({
     query,
     variables: {
-      voucherIndex,
-      inputIndex,
+      outputIndex,
     },
     fetchPolicy: "network-only",
   });

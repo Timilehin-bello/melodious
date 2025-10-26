@@ -19,7 +19,7 @@ const baseUserSchema = {
       .pattern(/^[a-zA-Z0-9_]+$/),
     userType: Joi.string().valid("LISTENER", "ARTIST").required(),
     walletAddress: Joi.string().custom(ethAddress).required(),
-    chainId: Joi.string().valid("31337", "84532").required(),
+    chainId: Joi.string().valid("31337", "13370", "84532").required(),
   }),
 };
 
@@ -58,14 +58,20 @@ const register = {
       //    ARTIST: Joi.string().valid("ARTIST"),
       //  })
       .required(),
-    chainId: Joi.string().valid("31337", "84532").required().custom(ethAddress),
+    chainId: Joi.string()
+      .valid("31337", "13370", "84532")
+      .required()
+      .custom(ethAddress),
   }),
 };
 
 const loginRequest = {
   query: Joi.object().keys({
     walletAddress: Joi.string().required(),
-    chainId: Joi.string().valid("31337", "84532").required().custom(ethAddress),
+    chainId: Joi.string()
+      .valid("31337", "13370", "84532")
+      .required()
+      .custom(ethAddress),
   }),
 };
 

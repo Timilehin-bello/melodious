@@ -23,8 +23,8 @@ class CreateGenreRoute extends AdvanceRoute {
 
     try {
       return this.genre.createGenre({
-        createdAt: new Date(request.metadata.timestamp * 1000),
-        updatedAt: new Date(request.metadata.timestamp * 1000),
+        createdAt: new Date(request.metadata.block_timestamp * 1000),
+        updatedAt: new Date(request.metadata.block_timestamp * 1000),
         ...request_payload,
       });
     } catch (error) {
@@ -57,7 +57,7 @@ class UpdateGenreRoute extends AdvanceRoute {
     try {
       console.log("Executing Update genre request");
       return this.genre.updateGenre({
-        updatedAt: new Date(request.metadata.timestamp * 1000),
+        updatedAt: new Date(request.metadata.block_timestamp * 1000),
         ...request_payload,
       });
     } catch (error) {

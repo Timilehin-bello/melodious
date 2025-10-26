@@ -36,7 +36,9 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 }) => {
   const rollups = useRollups(dappAddress);
   const account = useActiveAccount();
-  const { data: subscriptionStatus, isLoading } = useCartesiSubscriptionStatus(account?.address);
+  const { data: subscriptionStatus, isLoading } = useCartesiSubscriptionStatus(
+    account?.address
+  );
   const activeSubscription = subscriptionStatus?.currentSubscription;
 
   // Debug logging
@@ -73,8 +75,7 @@ export const SubscriptionVouchers: React.FC<ISubscriptionVouchersProps> = ({
 
     // Check if voucher is already executed
     try {
-      const isAlreadyExecuted = await rollups.dappContract.wasVoucherExecuted(
-        ethers.BigNumber.from(voucherToExecute.input.index),
+      const isAlreadyExecuted = await rollups.dappContract.wasOutputExecuted(
         ethers.BigNumber.from(voucherToExecute.index)
       );
 

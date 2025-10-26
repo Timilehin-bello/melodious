@@ -88,6 +88,13 @@ import {
   GetAllSubscriptionsRoute,
 } from "./subscription.route";
 
+import {
+  EtherWithdrawalRoute,
+  ERC20WithdrawalRoute,
+  ERC721WithdrawalRoute,
+  WithdrawalHistoryRoute,
+} from "./withdrawal.route";
+
 export {
   // User
   CreateUserRoute,
@@ -170,4 +177,10 @@ export {
   SubscribeRoute,
   GetSubscriptionRoute,
   GetAllSubscriptionsRoute,
+
+  // Withdrawal
+  EtherWithdrawalRoute,
+  ERC20WithdrawalRoute,
+  ERC721WithdrawalRoute,
+  WithdrawalHistoryRoute,
 };

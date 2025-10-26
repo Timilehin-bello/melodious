@@ -148,19 +148,23 @@ const Release = () => {
         </div> */}
 
         {activeTab === "tracks" && (
-          <div className="flex flex-wrap gap-4 items-center">
-            <SearchInput />
-            <Button className="bg-[#D1E1E11C] h-[45px]">Singles</Button>
-            <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
-            <Button>
-              <Link
-                href="/artist/genre"
-                className="bg-[#D1E1E11C] rounded-md p-2 hover:text-[#950944] text-white"
-              >
-                Genre
-              </Link>
-            </Button>
-          </div>
+          <>
+            <div className="flex flex-wrap gap-4 items-center">
+              <SearchInput />
+              <Button className="bg-[#D1E1E11C] h-[45px]">Singles</Button>
+              <Button className="bg-[#D1E1E11C] h-[45px]">Sort By</Button>
+            </div>
+            <div className="flex justify-end p-6">
+              <Button>
+                <Link
+                  href="/artist/release/single"
+                  className="bg-gradient-to-r from-[#950844] to-[#7a0635] hover:from-[#7a0635] hover:to-[#950844] text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  Create
+                </Link>
+              </Button>
+            </div>
+          </>
         )}
         {activeTab === "tracks" &&
           (tracks.length !== 0 ? (
