@@ -17,17 +17,10 @@ export const useInspectCall = () => {
   const [inspectData, setInspectData] = useState<string>("");
   const [reports, setReports] = useState<string[]>([]);
   const [metadata, setMetadata] = useState<any>({});
-  const [hexData, setHexData] = useState<boolean>(false);
-  const [postData, setPostData] = useState<boolean>(false);
   const [decodedReports, setDecodedReports] = useState<any>({});
 
-  const inspectCall = async (payload: string) => {
+  const inspectCall = async (methodOrPath: string, param?: any) => {
     try {
-      if (hexData) {
-        const uint8array = ethers.utils.toUtf8Bytes(payload);
-        payload = new TextDecoder().decode(uint8array);
-      }
-
       if (!chain) {
         return;
       }
@@ -35,7 +28,9 @@ export const useInspectCall = () => {
       let apiURL = "";
 
       if (config[toHex(chain.id)]?.inspectAPIURL) {
-        apiURL = `${config[toHex(chain.id)].inspectAPIURL}/inspect`;
+        apiURL = `${config[toHex(chain.id)].inspectAPIURL}/inspect/${
+          process.env.NEXT_PUBLIC_DAPP_ADDRESS
+        }`;
       } else {
         console.log(
           `No inspect interface defined for chain ${toHex(chain.id)}`
@@ -43,15 +38,40 @@ export const useInspectCall = () => {
         return;
       }
 
-      let response;
-      if (postData) {
-        const payloadBlob = new TextEncoder().encode(payload);
-        response = await fetch(apiURL, { method: "POST", body: payloadBlob });
+      // Parse method and param from the input
+      let method: string;
+      let finalParam: any;
+
+      if (methodOrPath.includes("/")) {
+        // Split by '/' to extract method and param
+        const parts = methodOrPath.split("/");
+        method = parts[0];
+        finalParam = parts.slice(1).join("/"); // Join remaining parts in case there are multiple '/'
       } else {
-        response = await fetch(`${apiURL}/${payload}`);
+        // Use as method directly, with optional param
+        method = methodOrPath;
+        finalParam = param;
       }
 
+      // Create request body with method and param
+      const requestBody = {
+        method: method,
+        param: finalParam,
+      };
+
+      console.log("Request body:", requestBody);
+
+      const response = await fetch(apiURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
       const data = await response.json();
+      console.log("Response data:", data);
+
       setReports(data.reports);
       setMetadata({
         metadata: data.metadata,
@@ -60,15 +80,32 @@ export const useInspectCall = () => {
       });
 
       // Decode payload from each report
-      const decode = data.reports.map((report: Report) => {
-        return ethers.utils.toUtf8String(report.payload);
-      });
+      const decodedReports =
+        data.reports?.map((report: Report) => {
+          try {
+            // Try to decode the hex payload to string
+            const decodedString = ethers.utils.toUtf8String(report.payload);
+            console.log("Decoded string:", decodedString);
 
-      console.log("Decoded Reports:", decode);
-      const reportData: any = JSON.parse(decode);
-      console.log("Report data: ", reportData);
+            // Try to parse as JSON if possible
+            try {
+              console.log("Attempting to parse JSON:", decodedString);
+              return JSON.parse(decodedString);
+            } catch {
+              console.log(
+                "Failed to parse JSON, returning raw string:",
+                decodedString
+              );
+              return decodedString;
+            }
+          } catch (error) {
+            console.log("Error decoding payload:", error);
+            return report.payload; // Return raw payload if decoding fails
+          }
+        }) || [];
 
-      setDecodedReports(reportData);
+      console.log("Decoded Reports:", decodedReports);
+      setDecodedReports(decodedReports[0]);
       toast.success("Successfully fetched");
     } catch (error: any) {
       console.log("Error fetching inspect data:", error);
@@ -81,10 +118,6 @@ export const useInspectCall = () => {
     metadata,
     setInspectData,
     inspectData,
-    setHexData,
-    hexData,
-    setPostData,
-    postData,
     decodedReports,
     inspectCall,
   };

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set common variables
-INPUT_BOX_ADDRESS="0x59b22D57D4f067708AB0c00552767405926dc768"
+INPUT_BOX_ADDRESS="0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051"
 APPLICATION_ADDRESS="0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e"
 MNEMONIC="test test test test test test test test test test test junk"
 RPC_URL="http://localhost:8545/"

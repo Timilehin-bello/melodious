@@ -17,7 +17,7 @@ class CreatePlaylistRoute extends AdvanceRoute {
       const playlistData = {
         ...this.request_args,
         walletAddress: this.msg_sender,
-        timestamp: this.msg_timestamp,
+        timestamp: request.metadata.block_timestamp,
       };
       return this.playlist.create(playlistData);
     } catch (error) {
@@ -43,7 +43,7 @@ class UpdatePlaylistRoute extends AdvanceRoute {
       const playlistData = {
         ...this.request_args,
         walletAddress: this.msg_sender,
-        timestamp: this.msg_timestamp,
+        timestamp: request.metadata.block_timestamp,
       };
       return this.playlist.updatePlaylist(playlistData);
     } catch (error) {

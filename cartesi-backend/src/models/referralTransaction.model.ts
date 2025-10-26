@@ -80,7 +80,7 @@ class ReferralTransaction {
       userWalletAddress,
       "EARNED",
       meloPoints,
-      timestamp ? new Date(timestamp * 1000) : new Date(),
+      timestamp ? timestamp : new Date(),
       `Earned ${meloPoints} Melo points for referring ${referredUserName} (${referredWalletAddress})`,
       undefined,
       undefined,

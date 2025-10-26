@@ -1,80 +1,17 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Tab } from "@headlessui/react";
 import { Vouchers } from "./Vouchers";
 import Reports from "./Reports";
-import { useRollups } from "@/cartesi/hooks/useRollups";
-import { sendAddress } from "@/cartesi/Portals";
-import { toast } from "react-hot-toast";
-import { useActiveAccount } from "thirdweb/react";
 import { cn } from "@/lib/utils";
-import { Ticket, Bell, Loader2, ExternalLink, AlertCircle } from "lucide-react";
+import { Ticket, Bell, AlertCircle } from "lucide-react";
 
 interface IProps {
   dappAddress: string;
 }
 
 const Transfers: React.FC<IProps> = ({ dappAddress }) => {
-  const [dappRelayedAddress, setDappRelayedAddress] = useState(false);
-  const [isRelaying, setIsRelaying] = useState(false);
-  const [isCheckingRelayStatus, setIsCheckingRelayStatus] = useState(true);
-  const account = useActiveAccount();
-  const rollups = useRollups(dappAddress);
-
-  // Check relay status on component mount
-  useEffect(() => {
-    const checkRelayStatus = async () => {
-      try {
-        // Check localStorage first
-        const storedRelayStatus = localStorage.getItem(
-          `dapp_relayed_${dappAddress}`
-        );
-        if (storedRelayStatus === "true") {
-          setDappRelayedAddress(true);
-          setIsCheckingRelayStatus(false);
-          return;
-        }
-
-        // If not in localStorage, check if vouchers exist as an indicator
-        // This is a simple way to determine if the address has been relayed
-        const response = await fetch("/graphql", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: `
-              query {
-                vouchers(first: 1) {
-                  edges {
-                    node {
-                      id
-                    }
-                  }
-                }
-              }
-            `,
-          }),
-        });
-
-        const data = await response.json();
-        const hasVouchers = data?.data?.vouchers?.edges?.length > 0;
-
-        if (hasVouchers) {
-          setDappRelayedAddress(true);
-          localStorage.setItem(`dapp_relayed_${dappAddress}`, "true");
-        }
-      } catch (error) {
-        console.log("Error checking relay status:", error);
-      } finally {
-        setIsCheckingRelayStatus(false);
-      }
-    };
-
-    checkRelayStatus();
-  }, [dappAddress]);
-
   const tabs = [
     {
       name: "Vouchers",
@@ -91,51 +28,7 @@ const Transfers: React.FC<IProps> = ({ dappAddress }) => {
             </div>
           </div>
 
-          {!dappRelayedAddress ? (
-            <div className="bg-zinc-900/50 rounded-lg p-6 text-center">
-              <p className="text-zinc-300 mb-4">
-                Let the dApp know its address!
-              </p>
-              <button
-                onClick={async () => {
-                  setIsRelaying(true);
-                  try {
-                    const tx = await sendAddress(rollups, dappAddress);
-                    setDappRelayedAddress(true);
-                    // Store relay status in localStorage
-                    localStorage.setItem(`dapp_relayed_${dappAddress}`, "true");
-                    toast.success("Address relayed successfully");
-                  } catch (err) {
-                    toast.error(`Failed to relay address: ${String(err)}`);
-                  } finally {
-                    setIsRelaying(false);
-                  }
-                }}
-                disabled={!rollups || isRelaying}
-                className={cn(
-                  "px-6 py-3 rounded-lg font-medium transition-all duration-200",
-                  "bg-gradient-to-r from-[#950844] to-[#7e0837]",
-                  "hover:from-[#7e0837] hover:to-[#950844]",
-                  "text-white flex items-center justify-center gap-2",
-                  "disabled:opacity-50 disabled:cursor-not-allowed"
-                )}
-              >
-                {isRelaying ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Relaying...
-                  </>
-                ) : (
-                  <>
-                    <ExternalLink className="w-4 h-4" />
-                    Relay Address
-                  </>
-                )}
-              </button>
-            </div>
-          ) : (
-            <Vouchers dappAddress={dappAddress} />
-          )}
+          <Vouchers dappAddress={dappAddress} />
         </div>
       ),
     },

@@ -20,12 +20,22 @@ const Balance: React.FC<BalanceProps> = ({
   decodedReports,
   userDetails,
   fetchData,
+  refetchUserDetails,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRefresh = async () => {
     if (account?.address) {
-      await inspectCall(`balance/${account.address}`);
+      setIsLoading(true);
+      try {
+        await inspectCall(`balance/${account.address}`);
+        // Also refetch user details to update CTSI balance
+        if (refetchUserDetails) {
+          refetchUserDetails();
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -82,7 +92,7 @@ const Balance: React.FC<BalanceProps> = ({
                 {isLoading ? (
                   <div className="animate-pulse h-9 w-24 bg-white/10 rounded" />
                 ) : (
-                  String(userDetails?.cartesiTokenBalance || "0")
+                  Number(userDetails?.cartesiTokenBalance || "0").toFixed(4)
                 )}
               </div>
             </div>

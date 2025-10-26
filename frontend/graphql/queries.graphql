@@ -9,14 +9,8 @@ query notice($noticeIndex: Int!, $inputIndex: Int!) {
     payload
     proof {
       validity {
-        inputIndexWithinEpoch
-        outputIndexWithinInput
-        outputHashesRootHash
-        vouchersEpochRootHash
-        noticesEpochRootHash
-        machineStateHash
-        outputHashInOutputHashesSiblings
-        outputHashesInEpochSiblings
+        outputIndex
+        outputHashesSiblings
       }
       context
     }
@@ -37,14 +31,14 @@ query notices {
   }
 }
 
-query noticesByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+query noticesByInput($inputId: String!) {
+  input(id: $inputId) {
     notices {
       edges {
         node {
           index
           input {
-            index
+            id
           }
           payload
         }
@@ -55,32 +49,32 @@ query noticesByInput($inputIndex: Int!) {
 
 # VOUCHERS
 
-query voucher($voucherIndex: Int!, $inputIndex: Int!) {
-  voucher(voucherIndex: $voucherIndex, inputIndex: $inputIndex) {
+query voucher($outputIndex: Int!) {
+  voucher(outputIndex: $outputIndex) {
     index
     input {
       index
     }
     destination
     payload
+    value
+    executed
+    transactionHash
     proof {
-      validity {
-        inputIndexWithinEpoch
-        outputIndexWithinInput
-        outputHashesRootHash
-        vouchersEpochRootHash
-        noticesEpochRootHash
-        machineStateHash
-        outputHashInOutputHashesSiblings
-        outputHashesInEpochSiblings
-      }
-      context
+      outputIndex
+      outputHashesSiblings
+    }
+    application {
+      id
+      name
+      address
     }
   }
 }
 
 query vouchers {
   vouchers {
+    totalCount
     edges {
       node {
         index
@@ -90,27 +84,31 @@ query vouchers {
         }
         destination
         payload
+        value
+        executed
+        transactionHash
         proof {
-          validity {
-            inputIndexWithinEpoch
-            outputIndexWithinInput
-            outputHashesRootHash
-            vouchersEpochRootHash
-            noticesEpochRootHash
-            machineStateHash
-            outputHashInOutputHashesSiblings
-            outputHashesInEpochSiblings
-          }
-          context
+          outputIndex
+          outputHashesSiblings
+        }
+        application {
+          id
+          name
+          address
         }
       }
     }
   }
 }
 
-query vouchersByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+query vouchersByInput($inputIndex: String!) {
+  input(id: $inputIndex) {
+    id
+    index
+    payload
+    msgSender
     vouchers {
+      totalCount
       edges {
         node {
           index
@@ -120,6 +118,18 @@ query vouchersByInput($inputIndex: Int!) {
           }
           destination
           payload
+          value
+          executed
+          transactionHash
+          proof {
+            outputIndex
+            outputHashesSiblings
+          }
+          application {
+            id
+            name
+            address
+          }
         }
       }
     }
@@ -152,14 +162,14 @@ query reports {
   }
 }
 
-query reportsByInput($inputIndex: Int!) {
-  input(index: $inputIndex) {
+query reportsByInput($inputId: String!) {
+  input(id: $inputId) {
     reports {
       edges {
         node {
           index
           input {
-            index
+            id
           }
           payload
         }

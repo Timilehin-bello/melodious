@@ -101,8 +101,47 @@ const fetchNotices = async (): Promise<Notice[]> => {
       let payload = node.payload;
       if (payload) {
         try {
-          payload = ethers.utils.toUtf8String(payload);
-          console.log("📄 Decoded payload:", payload);
+          console.log("🔍 Raw payload:", payload);
+          
+          // Try different decoding strategies
+          try {
+            // First, try to strip function selector (first 4 bytes) and decode as ABI string
+            let cleanPayload = payload;
+            if (payload.startsWith('0x') && payload.length > 10) {
+              // Remove function selector (first 4 bytes = 8 hex chars after 0x)
+              cleanPayload = '0x' + payload.slice(10);
+              console.log("🧹 Payload after removing function selector:", cleanPayload);
+            }
+            
+            // Try ABI decoding
+            const abiCoder = new ethers.utils.AbiCoder();
+            payload = abiCoder.decode(['string'], cleanPayload)[0];
+            console.log("📄 ABI decoded payload:", payload);
+          } catch (abiError) {
+            console.log("⚠️ ABI decoding failed:", abiError);
+            
+            // Try manual hex parsing - look for the actual string data
+            try {
+              // Find the string length and data in the hex
+              // Skip function selector (4 bytes) + offset (32 bytes) + length (32 bytes)
+              const hexWithoutPrefix = payload.startsWith('0x') ? payload.slice(2) : payload;
+              
+              // Skip function selector (8 chars) + offset (64 chars) + get length (64 chars)
+              const lengthHex = hexWithoutPrefix.slice(72, 136);
+              const length = parseInt(lengthHex, 16);
+              console.log("📏 String length:", length);
+              
+              // Extract the actual string data
+              const stringDataHex = hexWithoutPrefix.slice(136, 136 + (length * 2));
+              payload = ethers.utils.toUtf8String('0x' + stringDataHex);
+              console.log("📄 Manually decoded payload:", payload);
+            } catch (manualError) {
+              console.log("⚠️ Manual decoding failed:", manualError);
+              // Final fallback to direct UTF-8 decoding
+              payload = ethers.utils.toUtf8String(payload);
+              console.log("📄 UTF-8 decoded payload:", payload);
+            }
+          }
         } catch (e) {
           payload = payload + " (hex)";
           console.log("⚠️ Could not decode payload, keeping as hex:", payload);

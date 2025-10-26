@@ -16,9 +16,9 @@ import axios from "axios";
 export const networkChain =
   process.env.NEXT_PUBLIC_NODE_ENV === "development"
     ? defineChain({
-        id: 31337,
-        name: "localhost",
-        rpc: "http://127.0.0.1:8545",
+        id: 13370,
+        name: "Cannon Testnet",
+        rpc: "http://127.0.0.1:6751/anvil",
       })
     : baseSepolia;
 
@@ -33,7 +33,9 @@ const ConnectWallet = () => {
   // const [userDetails, setUserDetails] = useState<any>({});
 
   const [successfulLogin, setSuccessfulLogin] = useState(false);
-  const [previousWalletAddress, setPreviousWalletAddress] = useState<string | null>(null);
+  const [previousWalletAddress, setPreviousWalletAddress] = useState<
+    string | null
+  >(null);
 
   const pathname = usePathname();
   const activeAccount = useActiveAccount();
@@ -45,7 +47,7 @@ const ConnectWallet = () => {
   const performLogout = useCallback(async () => {
     let data = localStorage.getItem("xx-mu") as any | null;
     data = JSON.parse(data) ?? null;
-    
+
     if (data && data["tokens"]) {
       try {
         await axios.post(
@@ -64,7 +66,7 @@ const ConnectWallet = () => {
         console.log("Error during logout:", error);
       }
     }
-    
+
     localStorage.clear();
     setUserData(null);
     setPreviousWalletAddress(null);
@@ -74,7 +76,7 @@ const ConnectWallet = () => {
   // Monitor wallet address changes
   useEffect(() => {
     const currentAddress = activeAccount?.address;
-    
+
     // If there's no current address, reset previous address
     if (!currentAddress) {
       setPreviousWalletAddress(null);
@@ -90,13 +92,20 @@ const ConnectWallet = () => {
     // If the address has changed and user is logged in, log them out
     if (previousWalletAddress !== currentAddress && isLoggedIn) {
       console.log("Wallet address changed, logging out user");
-      toast.error("Wallet address changed. Please reconnect with the new wallet.");
+      toast.error(
+        "Wallet address changed. Please reconnect with the new wallet."
+      );
       performLogout();
     } else if (previousWalletAddress !== currentAddress) {
       // Update the previous address even if not logged in
       setPreviousWalletAddress(currentAddress);
     }
-  }, [activeAccount?.address, previousWalletAddress, isLoggedIn, performLogout]);
+  }, [
+    activeAccount?.address,
+    previousWalletAddress,
+    isLoggedIn,
+    performLogout,
+  ]);
 
   // Step 1: Ensure `checkLoginStatus` runs first and updates state
   useEffect(() => {

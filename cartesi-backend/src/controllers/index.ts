@@ -5,6 +5,7 @@ import { AlbumController } from "./album.controller";
 import { GenreController } from "./genre.controller";
 import { TrackController } from "./track.controller";
 import { VaultController } from "./vault.controller";
+import { WithdrawalController } from "./withdrawal.controller";
 import {
   ListeningRewardController,
   ReferralRewardController,
@@ -23,6 +24,7 @@ export {
   GenreController,
   TrackController,
   VaultController,
+  WithdrawalController,
   ListeningRewardController,
   ReferralRewardController,
   ConfigController,
