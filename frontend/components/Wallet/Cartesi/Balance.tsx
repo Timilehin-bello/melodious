@@ -20,12 +20,22 @@ const Balance: React.FC<BalanceProps> = ({
   decodedReports,
   userDetails,
   fetchData,
+  refetchUserDetails,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRefresh = async () => {
     if (account?.address) {
-      await inspectCall(`balance/${account.address}`);
+      setIsLoading(true);
+      try {
+        await inspectCall(`balance/${account.address}`);
+        // Also refetch user details to update CTSI balance
+        if (refetchUserDetails) {
+          refetchUserDetails();
+        }
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 

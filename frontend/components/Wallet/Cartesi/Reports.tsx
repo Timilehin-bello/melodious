@@ -100,8 +100,8 @@ const Reports: React.FC = () => {
                     "hover:bg-zinc-800/30 transition-colors duration-200"
                   )}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="flex-1">
+                  <div className="flex items-start gap-4 ">
+                    <div className="flex-1 w-10 overflow-x-scroll">
                       <div className="text-sm text-zinc-300 break-words">
                         {report.payload}
                       </div>

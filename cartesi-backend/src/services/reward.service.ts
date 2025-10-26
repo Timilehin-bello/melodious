@@ -4,6 +4,23 @@ import { ConfigService } from "./config.service";
 import { ArtistController, UserController } from "../controllers";
 import { RepositoryService } from "./repository.service";
 
+// Utility function for precise decimal arithmetic
+function preciseSubtract(a: number, b: number): number {
+  // Convert to integers by multiplying by 10^8 to handle up to 8 decimal places
+  const factor = 100000000;
+  const aInt = Math.round(a * factor);
+  const bInt = Math.round(b * factor);
+  return (aInt - bInt) / factor;
+}
+
+function preciseAdd(a: number, b: number): number {
+  // Convert to integers by multiplying by 10^8 to handle up to 8 decimal places
+  const factor = 100000000;
+  const aInt = Math.round(a * factor);
+  const bInt = Math.round(b * factor);
+  return (aInt + bInt) / factor;
+}
+
 class ListeningRewardService {
   // calculateArtistRewardBaseOnListeningTime(
   //   ListeningRewardBody: IListeningReward[]
@@ -198,10 +215,10 @@ class ListeningRewardService {
     }
 
     // Deduct the amount from the user's balance
-    user.cartesiTokenBalance -= withdrawalRewardBody.amount;
+    user.cartesiTokenBalance = preciseSubtract(user.cartesiTokenBalance, withdrawalRewardBody.amount);
 
     // Deduct the amount from the vault balance
-    getConfigService.vaultBalance -= withdrawalRewardBody.amount;
+    getConfigService.vaultBalance = preciseSubtract(getConfigService.vaultBalance, withdrawalRewardBody.amount);
 
     return true;
   }

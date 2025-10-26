@@ -188,8 +188,14 @@ router.addRoute(
 
 // Withdrawal Routes
 const withdrawal = new Controllers.WithdrawalController();
-router.addRoute("withdraw_ether", new Routes.EtherWithdrawalRoute(withdrawal, wallet));
-router.addRoute("withdraw_erc20", new Routes.ERC20WithdrawalRoute(withdrawal, wallet));
+router.addRoute(
+  "withdraw_ether",
+  new Routes.EtherWithdrawalRoute(withdrawal, wallet)
+);
+router.addRoute(
+  "withdraw_erc20",
+  new Routes.ERC20WithdrawalRoute(withdrawal, wallet)
+);
 router.addRoute(
   "withdraw_erc721",
   new Routes.ERC721WithdrawalRoute(withdrawal, wallet)
@@ -210,13 +216,17 @@ const send_request = async (output: Output | VoucherV2 | Set<Output>) => {
     let requestBody;
 
     // Check if it's a VoucherV2 object (has destination, payload, and type properties)
-    if ('destination' in output && 'payload' in output && output.type === 'voucher') {
+    if (
+      "destination" in output &&
+      "payload" in output &&
+      output.type === "voucher"
+    ) {
       endpoint = "/voucher";
       // Format VoucherV2 for Cartesi v2.0 voucher endpoint
       requestBody = {
         destination: output.destination,
         payload: output.payload,
-        value: output.value || "0x"
+        value: output.value || "0x",
       };
     } else {
       // Handle cartesi-wallet Output objects
@@ -235,7 +245,7 @@ const send_request = async (output: Output | VoucherV2 | Set<Output>) => {
     console.log("sending request object");
     console.log(requestBody);
     console.log("endpoint:", endpoint);
-    
+
     const response = await fetch(rollup_server + endpoint, {
       method: "POST",
       headers: {

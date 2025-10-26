@@ -53,7 +53,7 @@ class WithdrawalService {
         type: "voucher",
         destination: request.walletAddress,
         payload: "0x", // Empty payload for direct Ether transfer
-        value: numberToHex(amountInWei), // Amount in Wei as proper hex
+        value: `0x${amountInWei.toString(16)}`, // Amount in Wei as proper hex string
       };
 
       // Create repository notice for withdrawal tracking

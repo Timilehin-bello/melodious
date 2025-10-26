@@ -106,18 +106,18 @@ const Wallet = () => {
       onClick: () => setIsWithdrawalCTSModalOpen(true),
       className: "bg-zinc-800 hover:bg-zinc-700 text-[#1f9d55]",
     },
-    {
-      label: "Transfer",
-      icon: <ArrowUpRight className="w-4 h-4" />,
-      onClick: () => setIsTransferModalOpen(true),
-      className: "bg-zinc-800 hover:bg-zinc-700 text-blue-300",
-    },
-    {
-      label: "Withdraw",
-      icon: <ArrowDownLeft className="w-4 h-4" />,
-      onClick: () => setIsWithdrawModalOpen(true),
-      className: "bg-zinc-800 hover:bg-zinc-700 text-green-300",
-    },
+    // {
+    //   label: "Transfer",
+    //   icon: <ArrowUpRight className="w-4 h-4" />,
+    //   onClick: () => setIsTransferModalOpen(true),
+    //   className: "bg-zinc-800 hover:bg-zinc-700 text-blue-300",
+    // },
+    // {
+    //   label: "Withdraw",
+    //   icon: <ArrowDownLeft className="w-4 h-4" />,
+    //   onClick: () => setIsWithdrawModalOpen(true),
+    //   className: "bg-zinc-800 hover:bg-zinc-700 text-green-300",
+    // },
   ];
 
   return (
@@ -143,6 +143,7 @@ const Wallet = () => {
                   decodedReports={decodedReports}
                   userDetails={userDetails}
                   fetchData={async () => {}} // No longer needed with notice-based approach
+                  refetchUserDetails={refetchUserDetails}
                 />
               </div>
 

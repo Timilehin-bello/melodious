@@ -63,6 +63,7 @@ export const useVouchers = () => {
         const n = node.node;
         let payload = n?.payload;
         let inputPayload = n?.input.payload;
+        const inputPayloadValue = n?.value;
         if (inputPayload) {
           try {
             // Changed from ethers.toUtf8String to ethers.utils.toUtf8String
@@ -144,9 +145,7 @@ export const useVouchers = () => {
                 // Changed from ethers.formatEther to ethers.utils.formatEther
                 console.log("decode 0x6a627842", decode);
                 console.log("payload 0x6a627842", payload);
-                payload = `CTSI Transfer - Amount: ${ethers.utils.formatEther(
-                  decode[1]
-                )} - Address: ${decode[0]}`;
+                payload = `CTSI Transfer - Address: ${decode[0]} ${inputPayloadValue}`;
 
                 break;
               }

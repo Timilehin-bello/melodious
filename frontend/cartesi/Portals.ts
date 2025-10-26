@@ -805,7 +805,7 @@ export const executeVoucher = async (
     }
   } catch (e) {
     console.log("Error executing voucher:", e);
-    errorAlert(`Could not execute voucher ${e}`);
+    toast.error(`Please try again later.`);
     return e;
   }
 };

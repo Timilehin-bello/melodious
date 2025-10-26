@@ -2,6 +2,24 @@ import { Error_out, Wallet } from "cartesi-wallet";
 import { Router } from "cartesi-router";
 import { Listener } from "./listener.model";
 import { Artist } from "./artist.model";
+
+// Utility function for precise decimal arithmetic
+function preciseAdd(a: number, b: number): number {
+  // Convert to integers by multiplying by 10^8 to handle up to 8 decimal places
+  const factor = 100000000;
+  const aInt = Math.round(a * factor);
+  const bInt = Math.round(b * factor);
+  return (aInt + bInt) / factor;
+}
+
+function preciseSubtract(a: number, b: number): number {
+  // Convert to integers by multiplying by 10^8 to handle up to 8 decimal places
+  const factor = 100000000;
+  const aInt = Math.round(a * factor);
+  const bInt = Math.round(b * factor);
+  return (aInt - bInt) / factor;
+}
+
 const wallet = new Wallet(new Map());
 
 const router = new Router(wallet);
@@ -95,7 +113,7 @@ class User {
     if (points <= 0) {
       throw new Error_out("Points to add must be positive");
     }
-    this.meloPoints += points;
+    this.meloPoints = preciseAdd(this.meloPoints, points);
     this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 
@@ -107,9 +125,9 @@ class User {
       throw new Error_out("Points to deduct must be positive");
     }
     if (this.meloPoints < points) {
-      throw new Error_out("Insufficient Melo points balance");
+      throw new Error_out("Insufficient Melo points");
     }
-    this.meloPoints -= points;
+    this.meloPoints = preciseSubtract(this.meloPoints, points);
     this.updatedAt = timestamp ? new Date(timestamp * 1000) : new Date();
   }
 

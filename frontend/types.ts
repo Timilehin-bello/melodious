@@ -64,6 +64,7 @@ interface BalanceProps {
   transactionStatus: boolean; // Indicates if a transaction has occurred
   userDetails: any;
   fetchData?: (user: any) => Promise<void>; // Optional since we're moving to notice-based approach
+  refetchUserDetails?: () => void; // Function to refetch user details
 }
 
 export type { DecodedReports, Account, InspectCallFunction, BalanceProps };
