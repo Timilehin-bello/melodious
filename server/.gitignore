@@ -136,3 +136,5 @@ dist
 logs
 ./build
 ./dist
+.vercel
+env.production.txt

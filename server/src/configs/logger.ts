@@ -22,14 +22,25 @@ const enumerateErrorFormat = winston.format((info: any) => {
   return info;
 });
 
-const transport = new DailyRotateFile({
-  filename: config.logConfig.logFolder + config.logConfig.logFile,
-  datePattern: "YYYY-MM-DD",
-  zippedArchive: true,
-  maxSize: "20m",
-  maxFiles: "3",
-  // prepend: true,
-});
+// Create transports array conditionally
+const transports: winston.transport[] = [
+  new winston.transports.Console({
+    stderrLevels: ["error"],
+  }),
+];
+
+// Only add file transport in development or when not in serverless environment
+if (config.env === "development" || process.env.VERCEL !== "1") {
+  const transport = new DailyRotateFile({
+    filename: config.logConfig.logFolder + config.logConfig.logFile,
+    datePattern: "YYYY-MM-DD",
+    zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "3",
+    // prepend: true,
+  });
+  transports.push(transport);
+}
 
 const logger: Logger = winston.createLogger({
   level: config.env === "development" ? "debug" : "info",
@@ -41,12 +52,7 @@ const logger: Logger = winston.createLogger({
     winston.format.splat(),
     winston.format.printf(({ level, message }) => `${level}: ${message}`)
   ),
-  transports: [
-    transport,
-    new winston.transports.Console({
-      stderrLevels: ["error"],
-    }),
-  ],
+  transports,
 });
 
 export default logger;
