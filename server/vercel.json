@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "yarn build",
+  "buildCommand": "yarn install && yarn build",
   "outputDirectory": "dist",
   "builds": [
     {
