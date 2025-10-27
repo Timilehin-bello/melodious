@@ -1,21 +1,16 @@
 {
   "version": 2,
-  "buildCommand": "yarn install && yarn build",
   "builds": [
     {
-      "src": "package.json",
-      "use": "@vercel/node"
+      "src": "dist/index.js",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["dist/**"] }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/dist/index.js"
+      "dest": "dist/index.js"
     }
-  ],
-  "functions": {
-    "dist/index.js": {
-      "runtime": "nodejs22.x"
-    }
-  }
+  ]
 }
