@@ -12,6 +12,9 @@ jobs:
   build:
     name: build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cartesi-backend/
 
     permissions:
       contents: read
