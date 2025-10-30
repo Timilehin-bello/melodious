@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
-import { useRepositoryData, noticesKeys } from "./useNoticesQuery";
+import {
+  useRepositoryDataJsonRpc,
+  jsonRpcNoticesKeys,
+} from "./useNoticesJsonRpcQuery";
 import {
   getContract,
   prepareContractCall,
@@ -121,7 +124,9 @@ export const nftKeys = {
 
 // Hook to get Track NFTs (ERC-721)
 export const useTrackNFTs = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
+
+  console.log("repositoryData data", repositoryData);
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -169,7 +174,7 @@ export const useTrackNFTs = (walletAddress?: string) => {
 
 // Hook to get Artist Tokens (ERC-1155)
 export const useArtistTokens = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -217,7 +222,7 @@ export const useArtistTokens = (walletAddress?: string) => {
 
 // Hook to get Artist Token Purchases
 export const useArtistTokenPurchases = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -261,7 +266,7 @@ export const useArtistTokenPurchases = (walletAddress?: string) => {
 
 // Hook to get all Track NFTs (unfiltered)
 export const useAllTrackNFTs = () => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -298,7 +303,7 @@ export const useAllTrackNFTs = () => {
 
 // Hook to get all Artist Tokens (unfiltered)
 export const useAllArtistTokens = () => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -335,7 +340,7 @@ export const useAllArtistTokens = () => {
 
 // Marketplace hook that combines all necessary data for the marketplace page
 export const useMarketplace = () => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
   const purchaseTokensMutation = usePurchaseArtistTokens();
 
@@ -423,7 +428,7 @@ export const useMarketplace = () => {
 
 // Hook to get NFT Statistics
 export const useNFTStats = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -498,7 +503,9 @@ export const useNFTStats = (walletAddress?: string) => {
 export const useMintTrackNFT = () => {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
+
+  console.log("useMintTrackNFT repositoryData", repositoryData);
 
   return useMutation({
     mutationFn: async (request: MintTrackNFTRequest) => {
@@ -521,7 +528,7 @@ export const useMintTrackNFT = () => {
           abi: TrackNFTABI as any,
         });
 
-        console.log("Minting Track NFT for trackId:", contract);
+        console.log("Minting Track NFT for trackId:", contract, addresses);
 
         // Construct JSON payload for Cartesi backend
         const payload = JSON.stringify({
@@ -541,6 +548,8 @@ export const useMintTrackNFT = () => {
         const payloadBytes = ethers.utils.hexlify(
           ethers.utils.toUtf8Bytes(payload)
         );
+
+        console.log("Payload bytes:", payloadBytes, request);
 
         // Prepare the contract call
         const transaction = prepareContractCall({
@@ -562,6 +571,8 @@ export const useMintTrackNFT = () => {
           account: activeAccount,
         });
 
+        console.log("Transaction result useMintTrackNFT:", result);
+
         return result;
       } catch (error) {
         console.error("Error minting Track NFT:", error);
@@ -576,7 +587,7 @@ export const useMintTrackNFT = () => {
       // Add a delay for backend processing, then force refetch
       setTimeout(() => {
         queryClient.invalidateQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
         });
         queryClient.invalidateQueries({
           queryKey: nftKeys.trackNFTs(activeAccount?.address),
@@ -591,7 +602,7 @@ export const useMintTrackNFT = () => {
           queryKey: nftKeys.marketplace(),
         });
         queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
           type: "active",
         });
         queryClient.refetchQueries({
@@ -615,7 +626,7 @@ export const useMintTrackNFT = () => {
 export const useMintArtistTokens = () => {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   return useMutation({
     mutationFn: async (request: MintArtistTokensRequest) => {
@@ -689,7 +700,7 @@ export const useMintArtistTokens = () => {
       // Add a delay for backend processing, then force refetch
       setTimeout(() => {
         queryClient.invalidateQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
         });
         queryClient.invalidateQueries({
           queryKey: nftKeys.artistTokens(activeAccount?.address),
@@ -705,7 +716,7 @@ export const useMintArtistTokens = () => {
         });
 
         queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
           type: "active",
         });
         queryClient.refetchQueries({
@@ -729,7 +740,7 @@ export const useMintArtistTokens = () => {
 export const usePurchaseArtistTokens = () => {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   const mutation = useMutation({
     mutationFn: async (request: PurchaseArtistTokensRequest) => {
@@ -927,17 +938,17 @@ export const usePurchaseArtistTokens = () => {
 
       // Immediate invalidation
       queryClient.invalidateQueries({
-        queryKey: noticesKeys.lists(),
+        queryKey: jsonRpcNoticesKeys.lists(),
       });
 
       // Add a small delay to allow backend processing, then force refetch
       setTimeout(() => {
         // Force refetch notices query to refresh repository data immediately
         queryClient.resetQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
         });
         queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
           type: "active",
         });
 
@@ -974,7 +985,7 @@ export const usePurchaseArtistTokens = () => {
       //   queryKey: nftKeys.nftStats(activeAccount?.address),
       // });
       // queryClient.invalidateQueries({
-      //   queryKey: noticesKeys.lists(),
+      //   queryKey: jsonRpcNoticesKeys.lists(),
       // });
       queryClient.invalidateQueries({
         queryKey: nftKeys.marketplace(),
@@ -1031,7 +1042,7 @@ export const useMyNFTData = () => {
 
       // Also invalidate notices to refresh repository data
       queryClient.invalidateQueries({
-        queryKey: noticesKeys.lists(),
+        queryKey: jsonRpcNoticesKeys.lists(),
       });
     },
   };

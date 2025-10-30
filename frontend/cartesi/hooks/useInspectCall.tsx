@@ -106,7 +106,8 @@ export const useInspectCall = () => {
 
       console.log("Decoded Reports:", decodedReports);
       setDecodedReports(decodedReports[0]);
-      toast.success("Successfully fetched");
+      return decodedReports[0];
+      // toast.success("Successfully fetched");
     } catch (error: any) {
       console.log("Error fetching inspect data:", error);
       toast.error("Failed to fetch");

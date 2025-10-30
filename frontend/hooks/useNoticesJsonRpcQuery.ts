@@ -152,14 +152,14 @@ const fetchNoticesJsonRpc = async (): Promise<JsonRpcNotice[]> => {
   );
 
   // First, get the last accepted epoch index
-  const epochIndex = await fetchLastAcceptedEpochIndex();
+  // const epochIndex = await fetchLastAcceptedEpochIndex();
 
   // Then, fetch outputs (notices) for that epoch
   const result = await makeJsonRpcCall<OutputsResponse>("cartesi_listOutputs", {
     application: DAPP_ADDRESS,
-    epoch_index: epochIndex,
+    // epoch_index: epochIndex,
     output_type: "0xc258d6e5", // Filter for notices only Notice
-    limit: 50, // Reasonable limit
+    // limit: 50, // Reasonable limit
     offset: 0,
   });
 

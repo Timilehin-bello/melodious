@@ -34,10 +34,11 @@ export const adQueryKeys = {
 export const useShouldShowAds = () => {
   const { isLoggedIn, userData } = useMelodiousContext();
   const activeAccount = useActiveAccount();
-  const { data: subscriptionStatus, isLoading: subscriptionLoading } = 
+  const { data: subscriptionStatus, isLoading: subscriptionLoading } =
     useCartesiSubscriptionStatus(activeAccount?.address);
 
-  const hasActiveSubscription = subscriptionStatus?.hasActiveSubscription || false;
+  const hasActiveSubscription =
+    subscriptionStatus?.hasActiveSubscription || false;
   const isPremiumUser = hasActiveSubscription;
 
   return useQuery({
@@ -69,9 +70,12 @@ export const useShouldShowAds = () => {
 export const useAdDisplayLogic = () => {
   const { data: shouldShowAds, isLoading: adsLoading } = useShouldShowAds();
   const activeAccount = useActiveAccount();
-  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
-  
-  const hasActiveSubscription = subscriptionStatus?.hasActiveSubscription || false;
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
+
+  const hasActiveSubscription =
+    subscriptionStatus?.hasActiveSubscription || false;
   const isPremiumUser = hasActiveSubscription;
 
   const canShowAds =

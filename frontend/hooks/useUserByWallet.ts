@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRepositoryData } from "./useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "./useNoticesJsonRpcQuery";
 
 // User type definition based on the backend model
 export interface User {
@@ -21,7 +21,7 @@ export interface User {
 // Hook to get user details by wallet address using repository notices
 export const useUserByWallet = (walletAddress?: string) => {
   const { users, isLoading, isError, error, refetch, isFetching, isSuccess } =
-    useRepositoryData();
+    useRepositoryDataJsonRpc();
 
   const userDetails = useMemo(() => {
     if (!walletAddress || !users || users.length === 0) {
@@ -60,7 +60,7 @@ export const useUserByWallet = (walletAddress?: string) => {
 // Hook to get multiple users by wallet addresses
 export const useUsersByWallets = (walletAddresses: string[] = []) => {
   const { users, isLoading, isError, error, refetch, isFetching, isSuccess } =
-    useRepositoryData();
+    useRepositoryDataJsonRpc();
 
   const usersDetails = useMemo(() => {
     if (!walletAddresses.length || !users || users.length === 0) {

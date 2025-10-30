@@ -1,5 +1,8 @@
 import { useMemo } from "react";
-import { useRepositoryData } from "./useNoticesQuery";
+import {
+  useRepositoryDataJsonRpc,
+  jsonRpcNoticesKeys,
+} from "./useNoticesJsonRpcQuery";
 
 export interface Genre {
   id: number;
@@ -21,7 +24,7 @@ export function useGenres() {
     isError,
     error,
     refetch,
-  } = useRepositoryData();
+  } = useRepositoryDataJsonRpc();
 
   const genres = useMemo(() => {
     // Use genres directly from repository data

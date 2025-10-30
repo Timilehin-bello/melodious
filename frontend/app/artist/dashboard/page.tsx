@@ -20,6 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@headlessui/react";
+import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
 export interface IUser {
   id: string;
   walletAddress: string;
@@ -33,8 +34,21 @@ export default function Page() {
     isError,
     error,
   } = useUserByWallet(account?.address);
+  const [userInfo, setUserInfo] = useState<{
+    id: string;
+    walletAddress: string;
+    name: string;
+    email: string;
+    cartesiTokenBalance: number;
+    artist: {
+      id: string;
+      name: string;
+      totalListeningTime: number;
+    };
+  } | null>(null);
 
   const { tracks: allTracks } = useTracks();
+  const { inspectCall } = useInspectCall();
 
   // Calculate the real number of tracks uploaded by this artist
   const artistTrackCount = useMemo(() => {
@@ -46,12 +60,20 @@ export default function Page() {
 
   // Log user details when they change
   useEffect(() => {
-    if (userDetails) {
-      console.log("User details from notices:", userDetails);
-    }
-    if (isError) {
-      console.error("Error fetching user details:", error);
-    }
+    (async () => {
+      if (userDetails) {
+        const userInfo = await inspectCall(
+          "get_user_info",
+          userDetails.walletAddress
+        );
+        setUserInfo(userInfo);
+        console.log("User info:", userInfo);
+      }
+
+      if (isError) {
+        console.error("Error fetching user details:", error);
+      }
+    })();
   }, [userDetails, isError, error]);
 
   return (
@@ -94,8 +116,8 @@ export default function Page() {
               <div>
                 <p className="text-white text-sm mb-3">Listening Time</p>
                 <h4 className="text-white font-semibold text-2xl">
-                  {userDetails?.artist?.totalListeningTime
-                    ? userDetails?.artist?.totalListeningTime
+                  {userInfo?.artist?.totalListeningTime
+                    ? userInfo?.artist?.totalListeningTime
                     : 0}
                 </h4>
               </div>
@@ -124,8 +146,8 @@ export default function Page() {
                 <Link href="/artist/wallet">
                   <p className="text-white text-sm mb-3">Total CTSI Balance</p>
                   <h4 className="text-white font-semibold text-2xl">
-                    {userDetails?.cartesiTokenBalance
-                      ? userDetails?.cartesiTokenBalance
+                    {userInfo?.cartesiTokenBalance
+                      ? userInfo?.cartesiTokenBalance.toFixed(4)
                       : 0}
                   </h4>
                 </Link>
