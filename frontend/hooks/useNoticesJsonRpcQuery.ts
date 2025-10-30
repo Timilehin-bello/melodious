@@ -11,6 +11,28 @@ interface JsonRpcRequest {
   id: number;
 }
 
+interface MelodiousConfig {
+  adminWalletAddresses: string[];
+  cartesiTokenContractAddress: `0x${string}`;
+  vaultContractAddress: `0x${string}`;
+  vaultBalance: number;
+  feeBalance: number;
+  artistPercentage: number;
+  poolPercentage: number;
+  feePercentage: number;
+  serverAddress: string;
+  relayerAddress: string;
+  dappContractAddress: string;
+  melodiousNftAddress: string;
+  trackNftContractAddress: `0x${string}`;
+  artistTokenContractAddress: `0x${string}`;
+  lastVaultBalanceDistributed: number;
+  referralPoints: number;
+  conversionRate: number;
+  minConversion: number;
+  maxDailyConversion: number;
+}
+
 interface JsonRpcResponse<T = any> {
   jsonrpc: "2.0";
   id: number;
@@ -318,7 +340,7 @@ export const useRepositoryDataJsonRpc = () => {
     listeners: repositoryData?.listeners || [],
     genres: repositoryData?.genres || [],
     subscriptions: repositoryData?.subscriptions || [],
-    config: repositoryData?.config,
+    config: repositoryData?.config as MelodiousConfig | null,
     stats: repositoryData?.stats,
   };
 };

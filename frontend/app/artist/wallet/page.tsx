@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserByWallet } from "@/hooks/useUserByWallet";
+import { useRepositoryConfigInspect } from "@/hooks/useConfigInspect";
 import { IUser } from "../dashboard/page";
 
 const Wallet = () => {
@@ -41,6 +42,13 @@ const Wallet = () => {
     error,
     refetch: refetchUserDetails,
   } = useUserByWallet(account?.address);
+
+  // Get config data for vault balance and other configuration
+  const {
+    config: melodiousConfig,
+    isLoading: configLoading,
+    isError: configError,
+  } = useRepositoryConfigInspect();
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
@@ -88,6 +96,7 @@ const Wallet = () => {
   useEffect(() => {
     if (userDetails) {
       console.log("User details from notices:", userDetails);
+      console.log("melodiousConfig details from notices:", melodiousConfig);
     }
     if (isError) {
       console.error("Error fetching user details:", error);
@@ -205,6 +214,9 @@ const Wallet = () => {
         updateTransactionStatus={setTransactionStatus}
         userDetails={userDetails}
         refetchUserDetails={refetchUserDetails}
+        melodiousConfig={melodiousConfig}
+        configLoading={configLoading}
+        configError={configError}
       />
     </div>
   );
