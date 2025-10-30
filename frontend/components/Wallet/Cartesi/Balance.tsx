@@ -29,6 +29,7 @@ const Balance: React.FC<BalanceProps> = ({
       setIsLoading(true);
       try {
         await inspectCall(`balance/${account.address}`);
+
         // Also refetch user details to update CTSI balance
         if (refetchUserDetails) {
           refetchUserDetails();

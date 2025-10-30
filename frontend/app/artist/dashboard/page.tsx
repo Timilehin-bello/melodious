@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@headlessui/react";
-import { useInspectCall } from "@/cartesi/hooks/useInspectCall";
+import { useUserInfoInspect } from "@/hooks/useUserInfoInspect";
 export interface IUser {
   id: string;
   walletAddress: string;
@@ -34,21 +34,8 @@ export default function Page() {
     isError,
     error,
   } = useUserByWallet(account?.address);
-  const [userInfo, setUserInfo] = useState<{
-    id: string;
-    walletAddress: string;
-    name: string;
-    email: string;
-    cartesiTokenBalance: number;
-    artist: {
-      id: string;
-      name: string;
-      totalListeningTime: number;
-    };
-  } | null>(null);
 
   const { tracks: allTracks } = useTracks();
-  const { inspectCall } = useInspectCall();
 
   // Calculate the real number of tracks uploaded by this artist
   const artistTrackCount = useMemo(() => {
@@ -58,24 +45,12 @@ export default function Page() {
     ).length;
   }, [allTracks, userDetails?.artist?.id]);
 
-  // Log user details when they change
-  useEffect(() => {
-    (async () => {
-      if (userDetails) {
-        const userInfo = await inspectCall(
-          "get_user_info",
-          userDetails.walletAddress
-        );
-        setUserInfo(userInfo);
-        console.log("User info:", userInfo);
-      }
-
-      if (isError) {
-        console.error("Error fetching user details:", error);
-      }
-    })();
-  }, [userDetails, isError, error]);
-
+  const {
+    data: userInfo,
+    isLoading: userInfoLoading,
+    isError: userInfoError,
+    error: userInfoErrorDetails,
+  } = useUserInfoInspect(account?.address);
   return (
     <div className="px-4 mt-6 mb-4 max-w-7xl mx-auto">
       <h1 className="text-white text-2xl">Dashboard Overview</h1>

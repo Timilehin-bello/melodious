@@ -23,8 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useUserByWallet } from "@/hooks/useUserByWallet";
 import { useRepositoryConfigInspect } from "@/hooks/useConfigInspect";
-import { IUser } from "@/app/artist/dashboard/page";
-import NoticesQueryTest from "@/components/NoticesQueryTest";
+import { useUserInfoInspect } from "@/hooks/useUserInfoInspect";
 
 const Wallet = () => {
   const account = useActiveAccount();
@@ -50,6 +49,14 @@ const Wallet = () => {
     isLoading: configLoading,
     isError: configError,
   } = useRepositoryConfigInspect();
+
+  // Get user info using inspect call with TanStack Query
+  const {
+    data: userInfo,
+    isLoading: userInfoLoading,
+    isError: userInfoError,
+    error: userInfoErrorDetails,
+  } = useUserInfoInspect(account?.address);
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
@@ -93,16 +100,6 @@ const Wallet = () => {
     setProviderInstance(provider);
   }, [account]);
 
-  // Log user details when they change
-  useEffect(() => {
-    if (userDetails) {
-      console.log("User details from notices:", userDetails);
-    }
-    if (isError) {
-      console.error("Error fetching user details:", error);
-    }
-  }, [userDetails, isError, error]);
-
   useEffect(() => {
     getData();
   }, [getData]);
@@ -129,7 +126,7 @@ const Wallet = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
+    <div className=" min-h-screen bg-gradient-to-br from-[#3D2250] to-[#1E1632] text-white">
       <div className="max-w-screen-2xl mx-auto px-4 py-8">
         {/* Wallet Header */}
         <div className="mb-8">
@@ -149,7 +146,7 @@ const Wallet = () => {
                   inspectCall={inspectCall}
                   reports={reports}
                   decodedReports={decodedReports}
-                  userDetails={userDetails}
+                  userDetails={userInfo}
                   fetchData={async () => {}} // No longer needed with notice-based approach
                   refetchUserDetails={refetchUserDetails}
                 />
@@ -187,11 +184,6 @@ const Wallet = () => {
             <Transfers dappAddress={dappAddress} />
           </div>
         </div>
-
-        {/* Notices Query Test Section */}
-        {/* <div className="max-w-5xl mx-auto mt-8">
-          <NoticesQueryTest />
-        </div> */}
       </div>
 
       {/* Modals */}
@@ -217,7 +209,7 @@ const Wallet = () => {
         isOpen={isWithdrawalCTSModalOpen}
         onClose={() => setIsWithdrawalCTSModalOpen(false)}
         updateTransactionStatus={setTransactionStatus}
-        userDetails={userDetails}
+        userDetails={userInfo}
         refetchUserDetails={refetchUserDetails}
         melodiousConfig={melodiousConfig}
         configLoading={configLoading}
