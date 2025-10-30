@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import {
   RefreshCw,
   Loader2,
@@ -35,7 +35,7 @@ const RepositoryNoticesDemo: React.FC = () => {
     refetch,
     isFetching,
     isSuccess,
-  } = useRepositoryData();
+  } = useRepositoryDataJsonRpc();
 
   const [testLoading, setTestLoading] = useState(false);
   const [testResults, setTestResults] = useState<string[]>([]);
