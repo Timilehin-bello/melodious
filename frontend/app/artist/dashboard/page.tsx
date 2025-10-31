@@ -14,11 +14,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useUserByWallet } from "@/hooks/useUserByWallet";
 import { useTracks } from "@/hooks/useTracks";
 import { useActiveAccount } from "thirdweb/react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@headlessui/react";
 import { useUserInfoInspect } from "@/hooks/useUserInfoInspect";
 export interface IUser {
@@ -92,8 +87,15 @@ export default function Page() {
                 <p className="text-white text-sm mb-3">Listening Time</p>
                 <h4 className="text-white font-semibold text-2xl">
                   {userInfo?.artist?.totalListeningTime
-                    ? userInfo?.artist?.totalListeningTime
-                    : 0}
+                    ? (() => {
+                        const totalSeconds = userInfo.artist.totalListeningTime;
+                        const minutes = Math.floor(totalSeconds / 60);
+                        const seconds = totalSeconds % 60;
+                        return `${minutes}:${seconds
+                          .toString()
+                          .padStart(2, "0")}`;
+                      })()
+                    : "0:00"}
                 </h4>
               </div>
 
@@ -122,7 +124,7 @@ export default function Page() {
                   <p className="text-white text-sm mb-3">Total CTSI Balance</p>
                   <h4 className="text-white font-semibold text-2xl">
                     {userInfo?.cartesiTokenBalance
-                      ? userInfo?.cartesiTokenBalance.toFixed(4)
+                      ? userInfo?.cartesiTokenBalance.toFixed(2)
                       : 0}
                   </h4>
                 </Link>

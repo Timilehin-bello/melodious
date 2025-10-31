@@ -98,7 +98,7 @@ const NFTManagementPage = () => {
   };
 
   const formatPrice = (price: number) => {
-    return `${price.toFixed(4)} CTSI`;
+    return `${price.toFixed(2)} CTSI`;
   };
 
   if (!activeAccount) {
