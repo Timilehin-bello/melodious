@@ -18,7 +18,7 @@ import AddPlaylistModal from "@/components/AddPlaylistModal";
 import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
 import { Track } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import { useMemo } from "react";
 
 // Utility function to format time ago
@@ -72,7 +72,7 @@ const Playlist = () => {
     isLoading,
     error,
     refetch,
-  } = useRepositoryData();
+  } = useRepositoryDataJsonRpc();
   // Filter playlists by current user
   const playlistsData = useMemo(() => {
     if (!allPlaylists || !activeAccount?.address) return [];

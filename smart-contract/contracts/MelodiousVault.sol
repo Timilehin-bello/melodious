@@ -17,9 +17,9 @@ contract MelodiousVault is ReentrancyGuard {
     address public immutable admin;
     IInputBox public inputBox;
     address public dappAddress;
-    
+
     // Subscription pricing
-    uint256 public subscriptionPrice; // Price in CTSI tokens (wei)
+    uint256 public subscriptionPrice;
 
     // Events for logging
     event Deposited(address indexed user, uint256 amount);
@@ -28,7 +28,7 @@ contract MelodiousVault is ReentrancyGuard {
     event SubscriptionPriceUpdated(uint256 newPrice);
 
     constructor(
-        IERC20 _ctsiToken, 
+        IERC20 _ctsiToken,
         address _admin,
         address _inputBox,
         address _dappAddress,
@@ -41,7 +41,10 @@ contract MelodiousVault is ReentrancyGuard {
         require(_admin != address(0), "Invalid admin address");
         require(_inputBox != address(0), "Invalid InputBox address");
         require(_dappAddress != address(0), "Invalid DApp address");
-        require(_subscriptionPrice > 0, "Subscription price must be greater than zero");
+        require(
+            _subscriptionPrice > 0,
+            "Subscription price must be greater than zero"
+        );
 
         ctsiToken = _ctsiToken;
         admin = _admin;
@@ -59,15 +62,21 @@ contract MelodiousVault is ReentrancyGuard {
     // Subscribe function - handles payment and sends payload to Cartesi
     function subscribe(bytes calldata payload) external nonReentrant {
         require(payload.length > 0, "Payload cannot be empty");
-        
+
         // Check user's CTSI balance
         uint256 userBalance = ctsiToken.balanceOf(msg.sender);
-        require(userBalance >= subscriptionPrice, "Insufficient CTSI balance for subscription");
-        
+        require(
+            userBalance >= subscriptionPrice,
+            "Insufficient CTSI balance for subscription"
+        );
+
         // Check allowance
         uint256 allowance = ctsiToken.allowance(msg.sender, address(this));
-        require(allowance >= subscriptionPrice, "Insufficient CTSI allowance for subscription");
-        
+        require(
+            allowance >= subscriptionPrice,
+            "Insufficient CTSI allowance for subscription"
+        );
+
         // Transfer CTSI tokens from user to vault
         bool success = ctsiToken.transferFrom(
             msg.sender,
@@ -75,10 +84,10 @@ contract MelodiousVault is ReentrancyGuard {
             subscriptionPrice
         );
         require(success, "CTSI token transfer failed");
-        
+
         // Send payload to Cartesi backend
         inputBox.addInput(dappAddress, payload);
-        
+
         emit Subscribed(msg.sender, subscriptionPrice, block.timestamp);
     }
 
@@ -123,7 +132,7 @@ contract MelodiousVault is ReentrancyGuard {
     function getVaultBalance() external view returns (uint256) {
         return ctsiToken.balanceOf(address(this));
     }
-    
+
     // Function to get current subscription price
     function getSubscriptionPrice() external view returns (uint256) {
         return subscriptionPrice;

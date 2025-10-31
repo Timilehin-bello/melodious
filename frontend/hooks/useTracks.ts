@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRepositoryData } from "./useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "./useNoticesJsonRpcQuery";
 import { useUserByWallet } from "./useUserByWallet";
 
 export interface Track {
@@ -26,7 +26,7 @@ export function useTracks() {
     isError,
     error,
     refetch,
-  } = useRepositoryData();
+  } = useRepositoryDataJsonRpc();
 
   const tracks = useMemo(() => {
     // Use tracks directly from repository data

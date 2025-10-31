@@ -198,7 +198,7 @@ const NFTMarketplace = () => {
           { id: loadingToast }
         );
         purchaseTokensMutation.refetch();
-        
+
         // Remove loading state for this specific token after completion
         setPurchasingTokens((prev) => {
           const newSet = new Set(prev);
@@ -218,8 +218,15 @@ const NFTMarketplace = () => {
     } catch (error) {
       // Dismiss loading toast on error
       toast.dismiss();
+      // Show error toast
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Purchase failed. Please try again."
+      );
+
       console.error("Purchase failed:", error);
-      
+
       // Remove loading state for this specific token on error
       setPurchasingTokens((prev) => {
         const newSet = new Set(prev);

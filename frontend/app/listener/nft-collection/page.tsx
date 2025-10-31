@@ -21,7 +21,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useArtistTokenPurchases, useMyNFTData } from "@/hooks/useNFT";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPlayed";
 import { format } from "date-fns";
 import { Track } from "@/types";
@@ -66,7 +66,7 @@ const NFTCollection = () => {
     isLoading: nftLoading,
     refetch,
   } = useMyNFTData();
-  const { repositoryData, isLoading: repoLoading } = useRepositoryData();
+  const { repositoryData, isLoading: repoLoading } = useRepositoryDataJsonRpc();
 
   // Music player
   const { currentTrack, isPlaying, playTrack, togglePlay } = useMusicPlayer();
@@ -131,7 +131,8 @@ const NFTCollection = () => {
             ? {
                 id: track.id,
                 title: track.title,
-                artist: artist?.displayName || artist?.username || "Unknown Artist",
+                artist:
+                  artist?.displayName || artist?.username || "Unknown Artist",
                 coverArt: track.imageUrl, // Use imageUrl from backend as coverArt
                 duration: track.duration,
                 audioUrl: track.audioUrl, // Add missing audioUrl field

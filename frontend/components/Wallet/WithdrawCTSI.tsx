@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { toast } from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
-import { X, Loader2, ArrowUpRight, Coins } from "lucide-react";
+import { X, Loader2, ArrowUpRight, Coins, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MelodiousConfig } from "@/hooks/useConfigInspect";
 
 interface WithdrawalCTSIModalProps {
   isOpen: boolean;
@@ -13,6 +14,9 @@ interface WithdrawalCTSIModalProps {
   updateTransactionStatus: (status: boolean) => void;
   userDetails: any;
   refetchUserDetails?: () => void;
+  melodiousConfig: MelodiousConfig | null;
+  configLoading: boolean;
+  configError: boolean;
 }
 
 export default function WithdrawCTSIModal({
@@ -20,6 +24,9 @@ export default function WithdrawCTSIModal({
   onClose,
   userDetails,
   refetchUserDetails,
+  melodiousConfig,
+  configLoading,
+  configError,
 }: WithdrawalCTSIModalProps) {
   const [ctsiAmount, setCtsiAmount] = useState<string>("");
   const [loadWithdrawCTSI, setLoadWithdrawCTSI] = useState(false);
@@ -35,6 +42,7 @@ export default function WithdrawCTSIModal({
   const handleWithdrawCTSI = async () => {
     const amount = Number(ctsiAmount);
     const availableBalance = Number(userDetails?.cartesiTokenBalance || 0);
+    const vaultBalance = melodiousConfig?.vaultBalance || 0;
 
     if (!amount) {
       toast.error("Please enter a valid amount");
@@ -48,6 +56,14 @@ export default function WithdrawCTSIModal({
 
     if (amount > availableBalance) {
       toast.error(`Insufficient balance. Available: ${availableBalance} CTSI`);
+      return;
+    }
+
+    // Check if vault has sufficient balance for withdrawal
+    if (amount > vaultBalance) {
+      toast.error(
+        `Insufficient vault balance. Vault has: ${vaultBalance.toFixed(4)} CTSI`
+      );
       return;
     }
 
@@ -133,18 +149,50 @@ export default function WithdrawCTSIModal({
               </div>
             </div>
 
-            {/* Balance Info (Optional) */}
-            <div className="flex justify-between items-center text-sm text-zinc-400">
-              <span>Available Balance</span>
-              <span className="font-medium">
-                {userDetails?.cartesiTokenBalance} CTSI
-              </span>
+            {/* Balance Info */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center text-sm text-zinc-400">
+                <span>Available Balance</span>
+                <span className="font-medium">
+                  {userDetails?.cartesiTokenBalance || 0} CTSI
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm text-zinc-400">
+                <span>Vault Balance</span>
+                <span
+                  className={cn(
+                    "font-medium",
+                    configLoading && "animate-pulse",
+                    configError && "text-red-400"
+                  )}
+                >
+                  {configLoading
+                    ? "Loading..."
+                    : configError
+                    ? "Error"
+                    : `${melodiousConfig?.vaultBalance.toFixed(2) || 0} CTSI`}
+                </span>
+              </div>
+              {melodiousConfig &&
+                Number(ctsiAmount) > melodiousConfig.vaultBalance && (
+                  <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 p-2 rounded">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span>Insufficient vault balance for this withdrawal</span>
+                  </div>
+                )}
             </div>
 
             {/* Withdraw Button */}
             <button
               onClick={handleWithdrawCTSI}
-              disabled={loadWithdrawCTSI || !ctsiAmount}
+              disabled={
+                loadWithdrawCTSI ||
+                !ctsiAmount ||
+                configLoading ||
+                (melodiousConfig
+                  ? Number(ctsiAmount) > melodiousConfig.vaultBalance
+                  : false)
+              }
               className={cn(
                 "w-full px-4 py-3 rounded-lg font-medium",
                 "bg-gradient-to-r from-[#950844] to-[#7e0837]",

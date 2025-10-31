@@ -12,7 +12,7 @@ import { client } from "@/lib/client";
 import { twMerge } from "tailwind-merge";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useTracks } from "@/hooks/useTracks";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import toast from "react-hot-toast";
 import { useMelodiousContext } from "@/contexts/melodious";
 import { useMusic } from "@/contexts/melodious/MusicPlayerContext";
@@ -27,7 +27,7 @@ import { Clock } from "lucide-react";
 
 export default function Page() {
   const { tracks, isLoading, isError, error } = useTracks();
-  const { users } = useRepositoryData();
+  const { users } = useRepositoryDataJsonRpc();
   const {
     currentTrack,
     isPlaying,

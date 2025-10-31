@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import {
   RefreshCw,
   Loader2,
@@ -36,7 +36,7 @@ const RepositoryDataTest: React.FC = () => {
     refetch,
     isFetching,
     isSuccess,
-  } = useRepositoryData();
+  } = useRepositoryDataJsonRpc();
 
   // Console log the repository data whenever it changes
   useEffect(() => {

@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
-import { useRepositoryData, noticesKeys } from "./useNoticesQuery";
+import {
+  useRepositoryDataJsonRpc,
+  jsonRpcNoticesKeys,
+} from "./useNoticesJsonRpcQuery";
 import {
   getContract,
   prepareContractCall,
@@ -75,7 +78,7 @@ export const cartesiSubscriptionKeys = {
 
 // Hook to get user's subscriptions from Cartesi notices
 export const useCartesiUserSubscriptions = (walletAddress?: string) => {
-  const { subscriptions, isLoading, error } = useRepositoryData();
+  const { subscriptions, isLoading, error } = useRepositoryDataJsonRpc();
   const { user, isLoading: userLoading } = useUserByWallet(walletAddress);
   return useQuery({
     queryKey: cartesiSubscriptionKeys.userSubscriptions(walletAddress),
@@ -117,7 +120,7 @@ export const useCartesiUserSubscriptions = (walletAddress?: string) => {
 
 // Hook to get all subscriptions from Cartesi notices
 export const useCartesiAllSubscriptions = () => {
-  const { subscriptions, isLoading, error } = useRepositoryData();
+  const { subscriptions, isLoading, error } = useRepositoryDataJsonRpc();
 
   return useQuery({
     queryKey: cartesiSubscriptionKeys.allSubscriptions(),
@@ -131,7 +134,7 @@ export const useCartesiAllSubscriptions = () => {
 export const useCartesiSubscribe = () => {
   const queryClient = useQueryClient();
   const activeAccount = useActiveAccount();
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   return useMutation({
     mutationFn: async (request: SubscribeRequest) => {
@@ -361,7 +364,7 @@ export const useCartesiSubscribe = () => {
 
         // Only refetch notices once, not twice
         queryClient.invalidateQueries({
-          queryKey: noticesKeys.all,
+          queryKey: jsonRpcNoticesKeys.all,
         });
       }, 10000); // Wait 3 seconds for backend processing
     },
@@ -370,7 +373,7 @@ export const useCartesiSubscribe = () => {
 
 // Hook to get subscription price from MelodiousVault contract
 export const useSubscriptionPrice = () => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   return useQuery({
     queryKey: ["subscription-price"],

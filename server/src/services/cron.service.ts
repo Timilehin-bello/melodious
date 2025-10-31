@@ -173,6 +173,13 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
     };
   }
 
+  const vaultPaylod = {
+    method: "vault_deposit",
+    args: {
+      amount: 100000,
+    },
+  };
+
   const userPayload = {
     method: "distribute_reward_to_artists",
     args: {
@@ -182,9 +189,17 @@ export const distributeRewardToArtistsBasedOnTotalTrackListens = async () => {
 
   console.log("userPayload", JSON.stringify(userPayload));
 
+  const vaultTxhash = await transactionService.signMessages(vaultPaylod);
+
+  console.log("vaultTxhash 1", vaultTxhash);
+
   const txhash = await transactionService.signMessages(userPayload);
 
   console.log("txhash", txhash);
+
+  const vaultTxhash2 = await transactionService.signMessages(vaultPaylod);
+
+  console.log("vaultTxhash 2", vaultTxhash2);
 
   return {
     success: true,

@@ -48,7 +48,7 @@ class VaultController {
         type: "voucher",
         destination: getConfigService.cartesiTokenContractAddress,
         payload: callData,
-        value: zeroHash
+        value: zeroHash,
       };
       console.log("voucher", voucher);
 
@@ -112,7 +112,7 @@ class VaultController {
         type: "voucher",
         destination: getConfigService.vaultContractAddress,
         payload: callData,
-        value: zeroHash
+        value: zeroHash,
       };
 
       console.log("voucher", voucher);

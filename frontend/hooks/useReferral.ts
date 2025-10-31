@@ -4,10 +4,10 @@ import { useMelodiousContext } from "@/contexts/melodious";
 import { toast } from "react-hot-toast";
 import { useActiveAccount } from "thirdweb/react";
 import {
-  useNoticesQuery,
-  useRepositoryData,
-  noticesKeys,
-} from "./useNoticesQuery";
+  useNoticesJsonRpcQuery,
+  useRepositoryDataJsonRpc,
+  jsonRpcNoticesKeys,
+} from "./useNoticesJsonRpcQuery";
 
 // Referral types
 export interface ReferralStats {
@@ -87,7 +87,7 @@ export const referralKeys = {
 
 // Hook to get referral statistics
 export const useReferralStats = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -215,7 +215,7 @@ export const useReferralStats = (walletAddress?: string) => {
 
 // Hook to get referral transactions
 export const useReferralTransactions = (walletAddress?: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
   const activeAccount = useActiveAccount();
 
   return useQuery({
@@ -263,7 +263,7 @@ export const useReferralTransactions = (walletAddress?: string) => {
 
 // Hook to get conversion information
 export const useConversionInfo = () => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   return useQuery({
     queryKey: referralKeys.conversionInfo(),
@@ -299,7 +299,7 @@ export const useConversionInfo = () => {
 
 // Hook to validate referral code
 export const useValidateReferralCode = (referralCode: string) => {
-  const { repositoryData } = useRepositoryData();
+  const { repositoryData } = useRepositoryDataJsonRpc();
 
   return useQuery({
     queryKey: referralKeys.validation(referralCode),
@@ -391,7 +391,7 @@ export const useConvertMeloPoints = () => {
 
       // Immediate invalidation
       queryClient.invalidateQueries({
-        queryKey: noticesKeys.lists(),
+        queryKey: jsonRpcNoticesKeys.lists(),
       });
 
       // Add a small delay to allow backend processing, then force refetch
@@ -399,10 +399,10 @@ export const useConvertMeloPoints = () => {
         // Force refetch notices query to refresh repository data immediately
         // Reset staleTime to 0 to force fresh data fetch
         queryClient.resetQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
         });
         queryClient.refetchQueries({
-          queryKey: noticesKeys.lists(),
+          queryKey: jsonRpcNoticesKeys.lists(),
           type: "active",
         });
 

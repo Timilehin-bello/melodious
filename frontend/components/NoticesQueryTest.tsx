@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useNoticesQuery } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import {
   RefreshCw,
   Loader2,
@@ -12,15 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const NoticesQueryTest: React.FC = () => {
-  const {
-    data: notices,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    isFetching,
-    isSuccess,
-  } = useNoticesQuery();
+  const { notices, isLoading, isError, error, refetch, isFetching, isSuccess } =
+    useRepositoryDataJsonRpc();
 
   // Console log the notices data whenever it changes
   useEffect(() => {

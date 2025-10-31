@@ -14,12 +14,8 @@ import { useEffect, useState, useMemo } from "react";
 import { useUserByWallet } from "@/hooks/useUserByWallet";
 import { useTracks } from "@/hooks/useTracks";
 import { useActiveAccount } from "thirdweb/react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@headlessui/react";
+import { useUserInfoInspect } from "@/hooks/useUserInfoInspect";
 export interface IUser {
   id: string;
   walletAddress: string;
@@ -44,16 +40,12 @@ export default function Page() {
     ).length;
   }, [allTracks, userDetails?.artist?.id]);
 
-  // Log user details when they change
-  useEffect(() => {
-    if (userDetails) {
-      console.log("User details from notices:", userDetails);
-    }
-    if (isError) {
-      console.error("Error fetching user details:", error);
-    }
-  }, [userDetails, isError, error]);
-
+  const {
+    data: userInfo,
+    isLoading: userInfoLoading,
+    isError: userInfoError,
+    error: userInfoErrorDetails,
+  } = useUserInfoInspect(account?.address);
   return (
     <div className="px-4 mt-6 mb-4 max-w-7xl mx-auto">
       <h1 className="text-white text-2xl">Dashboard Overview</h1>
@@ -94,9 +86,16 @@ export default function Page() {
               <div>
                 <p className="text-white text-sm mb-3">Listening Time</p>
                 <h4 className="text-white font-semibold text-2xl">
-                  {userDetails?.artist?.totalListeningTime
-                    ? userDetails?.artist?.totalListeningTime
-                    : 0}
+                  {userInfo?.artist?.totalListeningTime
+                    ? (() => {
+                        const totalSeconds = userInfo.artist.totalListeningTime;
+                        const minutes = Math.floor(totalSeconds / 60);
+                        const seconds = totalSeconds % 60;
+                        return `${minutes}:${seconds
+                          .toString()
+                          .padStart(2, "0")}`;
+                      })()
+                    : "0:00"}
                 </h4>
               </div>
 
@@ -124,8 +123,8 @@ export default function Page() {
                 <Link href="/artist/wallet">
                   <p className="text-white text-sm mb-3">Total CTSI Balance</p>
                   <h4 className="text-white font-semibold text-2xl">
-                    {userDetails?.cartesiTokenBalance
-                      ? userDetails?.cartesiTokenBalance
+                    {userInfo?.cartesiTokenBalance
+                      ? userInfo?.cartesiTokenBalance.toFixed(2)
                       : 0}
                   </h4>
                 </Link>

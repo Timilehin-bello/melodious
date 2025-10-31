@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserByWallet } from "@/hooks/useUserByWallet";
+import { useRepositoryConfigInspect } from "@/hooks/useConfigInspect";
+import { useUserInfoInspect } from "@/hooks/useUserInfoInspect";
 import { IUser } from "../dashboard/page";
 
 const Wallet = () => {
@@ -41,6 +43,21 @@ const Wallet = () => {
     error,
     refetch: refetchUserDetails,
   } = useUserByWallet(account?.address);
+
+  // Get config data for vault balance and other configuration
+  const {
+    config: melodiousConfig,
+    isLoading: configLoading,
+    isError: configError,
+  } = useRepositoryConfigInspect();
+
+  // Get user info using inspect call with TanStack Query
+  const {
+    data: userInfo,
+    isLoading: userInfoLoading,
+    isError: userInfoError,
+    error: userInfoErrorDetails,
+  } = useUserInfoInspect(account?.address);
 
   const dappAddress = process.env.NEXT_PUBLIC_DAPP_ADDRESS as string;
 
@@ -83,16 +100,6 @@ const Wallet = () => {
 
     setProviderInstance(provider);
   }, [account]);
-
-  // Log user details when they change
-  useEffect(() => {
-    if (userDetails) {
-      console.log("User details from notices:", userDetails);
-    }
-    if (isError) {
-      console.error("Error fetching user details:", error);
-    }
-  }, [userDetails, isError, error]);
 
   useEffect(() => {
     getData();
@@ -140,7 +147,7 @@ const Wallet = () => {
                   inspectCall={inspectCall}
                   reports={reports}
                   decodedReports={decodedReports}
-                  userDetails={userDetails}
+                  userDetails={userInfo}
                   fetchData={async () => {}} // No longer needed with notice-based approach
                   refetchUserDetails={refetchUserDetails}
                 />
@@ -203,8 +210,11 @@ const Wallet = () => {
         isOpen={isWithdrawalCTSModalOpen}
         onClose={() => setIsWithdrawalCTSModalOpen(false)}
         updateTransactionStatus={setTransactionStatus}
-        userDetails={userDetails}
+        userDetails={userInfo}
         refetchUserDetails={refetchUserDetails}
+        melodiousConfig={melodiousConfig}
+        configLoading={configLoading}
+        configError={configError}
       />
     </div>
   );

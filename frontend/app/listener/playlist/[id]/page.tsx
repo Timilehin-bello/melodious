@@ -13,7 +13,7 @@ import { useMusicPlayer } from "@/contexts/melodious/MusicProviderWithRecentlyPl
 import { useCartesiSubscriptionStatus } from "@/hooks/useCartesiSubscription";
 import { useActiveAccount } from "thirdweb/react";
 import SongList from "@/components/SongList";
-import { useRepositoryData } from "@/hooks/useNoticesQuery";
+import { useRepositoryDataJsonRpc } from "@/hooks/useNoticesJsonRpcQuery";
 import { useMemo } from "react";
 
 // Utility function to format time ago
@@ -47,7 +47,9 @@ const Playlist = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [removingTrackId, setRemovingTrackId] = useState<string | null>(null);
   const activeAccount = useActiveAccount();
-  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(activeAccount?.address);
+  const { data: subscriptionStatus } = useCartesiSubscriptionStatus(
+    activeAccount?.address
+  );
   const isPremiumUser = subscriptionStatus?.hasActiveSubscription || false;
 
   // Music player hooks
@@ -55,7 +57,8 @@ const Playlist = () => {
     useMusicPlayer();
 
   // Fetch playlist from repository notices
-  const { playlists, users, isLoading, error, refetch } = useRepositoryData();
+  const { playlists, users, isLoading, error, refetch } =
+    useRepositoryDataJsonRpc();
   console.log("playlists user --", playlists);
 
   // Find the specific playlist by ID
