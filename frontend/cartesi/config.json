@@ -30,9 +30,9 @@
   "0xaa36a7": {
     "token": "SepETH",
     "label": "Sepolia Test Network",
-    "rpcUrl": "https://eth-sepolia.g.alchemy.com/v2/demo",
-    "graphqlAPIURL": "http://localhost:8080",
-    "inspectAPIURL": "http://localhost:8080",
+    "rpcUrl": "https://ethereum-sepolia-rpc.publicnode.com",
+    "graphqlAPIURL": "https://melodious-inspect.deeabifem.com",
+    "inspectAPIURL": "https://melodious-inspect.deeabifem.com",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
     "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
     "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",

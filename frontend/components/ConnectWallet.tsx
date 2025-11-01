@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useActiveWallet, useActiveAccount } from "thirdweb/react";
 import { useCallback, useEffect, useState } from "react";
 import { defineChain } from "thirdweb";
-import { baseSepolia } from "thirdweb/chains";
+import { sepolia } from "thirdweb/chains";
 import { useMelodiousContext } from "@/contexts/melodious";
 import toast from "react-hot-toast";
 import fetchMethod from "@/lib/readState";
@@ -20,7 +20,7 @@ export const networkChain =
         name: "Cannon Testnet",
         rpc: "http://127.0.0.1:6751/anvil",
       })
-    : baseSepolia;
+    : sepolia;
 
 interface User {
   artist?: boolean;
