@@ -62,18 +62,16 @@ const register = {
       .required(),
     chainId: Joi.string()
       .valid("31337", "13370", "84532", "11155111")
-      .required()
-      .custom(ethAddress),
+      .required(),
   }),
 };
 
 const loginRequest = {
   query: Joi.object().keys({
-    walletAddress: Joi.string().required(),
+    walletAddress: Joi.string().required().custom(ethAddress),
     chainId: Joi.string()
       .valid("31337", "13370", "84532", "11155111")
-      .required()
-      .custom(ethAddress),
+      .required(),
   }),
 };
 
