@@ -1,10 +1,12 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "deploy:cannon": "hardhat run --network cannon scripts/deployAll.ts",
-    "ignition:deploy:cannon": "hardhat ignition deploy ./ignition/modules/AllContracts.ts --network cannon",
+    "deploy:cannon": "hardhat ignition deploy ignition/modules/MelodiousVault.ts --network cannon",
+    "ignition:deploy:cannon": "hardhat ignition deploy ignition/modules/MelodiousVault.ts --network cannon",
     "mint:ctsi": "hardhat run --network cannon scripts/mintCtsi.ts",
-    "mint:ctsi-to": "hardhat run --network cannon scripts/mintCtsi.ts"
+    "mint:ctsi-to": "hardhat run --network cannon scripts/mintCtsi.ts",
+    "verify:deployment": "hardhat run --network cannon scripts/verifyDeployment.ts",
+    "deploy:artist-token": "hardhat run --network cannon scripts/deployArtistToken.ts"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
