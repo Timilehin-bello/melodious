@@ -1,5 +1,11 @@
 {
   "name": "hardhat-project",
+  "scripts": {
+    "deploy:cannon": "hardhat run --network cannon scripts/deployAll.ts",
+    "ignition:deploy:cannon": "hardhat ignition deploy ./ignition/modules/AllContracts.ts --network cannon",
+    "mint:ctsi": "hardhat run --network cannon scripts/mintCtsi.ts",
+    "mint:ctsi-to": "hardhat run --network cannon scripts/mintCtsi.ts"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.0",
     "@nomicfoundation/hardhat-ethers": "^3.0.0",
@@ -14,6 +20,7 @@
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "chai": "^4.2.0",
+    "dotenv": "^17.2.3",
     "ethers": "^6.4.0",
     "hardhat": "^2.22.15",
     "hardhat-gas-reporter": "^1.0.8",
