@@ -20,7 +20,11 @@ export const networkChain =
         name: "Cannon Testnet",
         rpc: "http://127.0.0.1:6751/anvil",
       })
-    : sepolia;
+    : defineChain({
+        id: 13370,
+        name: "Melodious Cannon Testnet",
+        rpc: "https://melodious-rpc.deeabifem.com/anvil",
+      });
 
 interface User {
   artist?: boolean;
