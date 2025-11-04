@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { BalanceProps } from "@/types";
 import {
@@ -11,6 +11,9 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { userInfoInspectKeys } from "@/hooks/useUserInfoInspect";
+import { jsonRpcNoticesKeys } from "@/hooks/useNoticesJsonRpcQuery";
 
 const Balance: React.FC<BalanceProps> = ({
   account,
@@ -23,22 +26,42 @@ const Balance: React.FC<BalanceProps> = ({
   refetchUserDetails,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleRefresh = async () => {
     if (account?.address) {
       setIsLoading(true);
       try {
         await inspectCall(`balance/${account.address}`);
-
-        // Also refetch user details to update CTSI balance
+        // Invalidate and refetch user info and repository notices
+        queryClient.invalidateQueries({
+          queryKey: userInfoInspectKeys.byAddress(account.address),
+        });
+        queryClient.invalidateQueries({
+          queryKey: jsonRpcNoticesKeys.lists(),
+        });
+        // Also trigger explicit refetch if provided
         if (refetchUserDetails) {
           refetchUserDetails();
         }
+
       } finally {
         setIsLoading(false);
       }
     }
   };
+
+  // Invalidate on mount or when account changes (covers page refresh)
+  useEffect(() => {
+    if (account?.address) {
+      queryClient.invalidateQueries({
+        queryKey: userInfoInspectKeys.byAddress(account.address),
+      });
+      queryClient.invalidateQueries({
+        queryKey: jsonRpcNoticesKeys.lists(),
+      });
+    }
+  }, [account?.address, queryClient]);
 
   const formatERC20Value = (value: string): string => {
     try {
