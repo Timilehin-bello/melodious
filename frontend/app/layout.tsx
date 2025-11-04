@@ -55,13 +55,14 @@ export default function RootLayout({
                   />
 
                   <MelodiousMusicPlayer />
-                   <CombinedAdPlayer />
+                  <CombinedAdPlayer />
                 </EnhancedMusicPlayerProvider>
               </QueryProvider>
             </MelodiousProvider>
           </LayoutWrapper>
         </ThirdwebProvider>
       </body>
+      <AdSenseScript clientId="ca-pub-6093920640789352" testMode={false} />
     </html>
   );
 }
