@@ -1,7 +1,7 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "deploy:cannon": "hardhat ignition deploy ignition/modules/MelodiousVault.ts --network cannon",
+    "deploy:cannon": "npx hardhat run --network cannon scripts/deployAll.ts",
     "ignition:deploy:cannon": "hardhat ignition deploy ignition/modules/MelodiousVault.ts --network cannon",
     "mint:ctsi": "hardhat run --network cannon scripts/mintCtsi.ts",
     "mint:ctsi-to": "hardhat run --network cannon scripts/mintCtsi.ts",

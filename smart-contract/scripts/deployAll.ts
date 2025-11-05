@@ -42,6 +42,18 @@ async function main() {
   await vault.waitForDeployment();
   console.log("MelodiousVault deployed:", vault.target);
 
+  // 2b) Mint initial CTSI supply to the MelodiousVault
+  // Mint 10,000,000 CTSI (18 decimals) to the vault for operations
+  const initialMintAmount = ethers.parseUnits("10000000", 18);
+  console.log("Minting 10,000,000 CTSI to MelodiousVault...");
+  const mintTx = await ctsi.mint(vault.target, initialMintAmount);
+  await mintTx.wait();
+  const vaultBalance = await ctsi.balanceOf(vault.target);
+  console.log(
+    "CTSI minted to vault. Current Vault CTSI balance:",
+    vaultBalance.toString()
+  );
+
   // 3) Deploy TrackNFT
   const TrackNFT = await ethers.getContractFactory("TrackNFT");
   const trackNft = await TrackNFT.deploy(
@@ -55,9 +67,9 @@ async function main() {
   // 4) Deploy ArtistToken
   const ArtistToken = await ethers.getContractFactory("ArtistToken");
   const artistToken = await ArtistToken.deploy(
-    deployer.address, // platformWallet
-    deployer.address, // initialOwner
-    ctsi.target, // ctsiTokenAddress
+    deployer.address,
+    deployer.address,
+    ctsi.target,
     inputBoxAddress,
     dappAddress
   );
@@ -65,10 +77,10 @@ async function main() {
   await artistToken.waitForDeployment();
   console.log("ArtistToken deployed:", artistToken.target);
   console.log("\nDeployment complete.");
-  console.log("CTSI:", ctsi.target);
-  console.log("TrackNFT:", trackNft.target);
-  console.log("ArtistToken:", artistToken.target);
-  console.log("Vault:", vault.target);
+  // console.log("CTSI:", ctsi.target);
+  // console.log("Vault:", vault.target);
+  // console.log("TrackNFT:", trackNft.target);
+  // console.log("ArtistToken:", artistToken.target);
 }
 
 main().catch((error) => {

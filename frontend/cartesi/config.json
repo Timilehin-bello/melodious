@@ -16,9 +16,9 @@
   "0x343a": {
     "token": "ETH",
     "label": "canon",
-    "rpcUrl": "https://melodious-rpc.deeabifem.com/anvil",
-    "graphqlAPIURL": "https://melodious-rpc.deeabifem.com",
-    "inspectAPIURL": "https://melodious-rpc.deeabifem.com",
+    "rpcUrl": "http://127.0.0.1:6751/anvil",
+    "graphqlAPIURL": "http://127.0.0.1:6751",
+    "inspectAPIURL": "http://127.0.0.1:6751",
     "DAppRelayAddress": "0xF5DE34d6BbC0446E2a45719E718efEbaaE179daE",
     "InputBoxAddress": "0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051",
     "EtherPortalAddress": "0xc70076a466789B595b50959cdc261227F0D70051",
