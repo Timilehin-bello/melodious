@@ -1,50 +1,36 @@
 services:
-  app:
-    build: .
-    ports:
-      - ${PORT}:${PORT}
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: melodious
     environment:
-      - NODE_ENV=production
-      - PORT=${PORT}
-      - DATABASE_URL=${DATABASE_URL}
-      - RPC_URL=${RPC_URL}
-      - PRIVATE_KEY=${PRIVATE_KEY}
-      - RELAYER_ADDRESS=${RELAYER_ADDRESS}
-      - INPUTBOX_ADDRESS=${INPUTBOX_ADDRESS}
-      - DAPP_ADDRESS=${DAPP_ADDRESS}
-      - JWT_SECRET=${JWT_SECRET}
-      - JWT_ACCESS_EXPIRATION_MINUTES=${JWT_ACCESS_EXPIRATION_MINUTES}
-      - JWT_REFRESH_EXPIRATION_DAYS=${JWT_REFRESH_EXPIRATION_DAYS}
-      - THIRDWEB_SECRET_KEY=${THIRDWEB_SECRET_KEY}
-      - ADMIN_PRIVATE_KEY=${ADMIN_PRIVATE_KEY}
-      - THIRDWEB_CLIENT_DOMAIN=${THIRDWEB_CLIENT_DOMAIN}
-      - LOG_FOLDER=${LOG_FOLDER}
-      - LOG_FILE=${LOG_FILE}
-      - LOG_LEVEL=${LOG_LEVEL}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-      - REDIS_PROTOCOL=${REDIS_PROTOCOL}
-      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_USERNAME=${REDIS_USERNAME}
-    restart: always
-    depends_on:
-      redis:
-        condition: service_started
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    command: -c port=${DB_PORT}
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
+  # Redis key-value store
   redis:
     image: redis:alpine
     ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
+      - ${REDIS_PORT:-6379}:6379
     volumes:
       - redis-data:/data
     environment:
-      # Pass NODE_ENV and REDIS_PASSWORD to the container.
       - NODE_ENV=${NODE_ENV}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-    # Conditionally require a password only in production.
     command: >
       sh -c "if [ \"$NODE_ENV\" = \"production\" ]; then redis-server --requirepass ${REDIS_PASSWORD}; else redis-server; fi"
     restart: always
@@ -62,3 +48,4 @@ networks:
 
 volumes:
   redis-data:
+  postgres-data:

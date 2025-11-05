@@ -36,25 +36,37 @@ class VaultController {
     console.log("depositAmountInWei", depositAmountInWei);
 
     try {
-      const callData = encodeFunctionData({
-        abi: ctsiTokenConfigABI,
-        functionName: "transfer",
-        args: [getConfigService.vaultContractAddress, depositAmountInWei],
-      });
+      // const callData = encodeFunctionData({
+      //   abi: ctsiTokenConfigABI,
+      //   functionName: "transfer",
+      //   args: [getConfigService.vaultContractAddress, depositAmountInWei],
+      // });
 
-      console.log("callData", callData);
+      // console.log("callData", callData);
 
-      const voucher: VoucherV2 = {
-        type: "voucher",
-        destination: getConfigService.cartesiTokenContractAddress,
-        payload: callData,
-        value: zeroHash,
-      };
-      console.log("voucher", voucher);
+      // const voucher: VoucherV2 = {
+      //   type: "voucher",
+      //   destination: getConfigService.cartesiTokenContractAddress,
+      //   payload: callData,
+      //   value: zeroHash,
+      // };
+      // console.log("voucher", voucher);
 
       getConfigService.vaultBalance += depositBody.amount;
 
-      return voucher;
+      const repositoryNotice = RepositoryService.createRepositoryNotice(
+        "vault_deposited",
+        getConfigService
+      );
+
+      // Also create specific config notice
+      const configNotice = RepositoryService.createDataNotice(
+        "vault",
+        "deposited",
+        getConfigService
+      );
+
+      return repositoryNotice;
     } catch (error) {
       console.debug("Error depositing funds", error);
       return new Error_out("Failed to deposit funds");

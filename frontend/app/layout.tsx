@@ -62,7 +62,7 @@ export default function RootLayout({
           </LayoutWrapper>
         </ThirdwebProvider>
       </body>
-      <AdSenseScript clientId="ca-pub-6093920640789352" testMode={false} />
+      {/* <AdSenseScript clientId="ca-pub-6093920640789352" testMode={false} /> */}
     </html>
   );
 }

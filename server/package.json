@@ -28,10 +28,13 @@
     "docker:up": "docker-compose up -d",
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f",
     "docker:prisma:migrate": "docker-compose exec app yarn prisma migrate deploy",
     "docker:prisma:studio": "docker-compose exec app yarn prisma studio",
     "promote:admin": "ts-node ./scripts/promote-admin.ts",
-    "seed:ads": "ts-node ./scripts/seed-ads.ts"
+    "seed:ads": "ts-node -r tsconfig-paths/register ./src/scripts/seed-ads.ts"
   },
   "_moduleAliases": {
     "@": ".",

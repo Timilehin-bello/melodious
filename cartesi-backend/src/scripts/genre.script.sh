@@ -2,9 +2,9 @@
 
 # Set common variables
 INPUT_BOX_ADDRESS="0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051"
-APPLICATION_ADDRESS="0xab7528bb862fb57e8a2bcd567a2e929a0be56a5e"
+APPLICATION_ADDRESS="0x88b4f6feC72DfEc31D8E4827C4CAF9468E847415"
 MNEMONIC="test test test test test test test test test test test junk"
-RPC_URL="http://localhost:8545/"
+RPC_URL="http://127.0.0.1:6751/anvil/"
 
 # Function to send input using cast
 send_input() {
@@ -18,18 +18,59 @@ send_input() {
         "addInput(address,bytes)(bytes32)" $APPLICATION_ADDRESS $input
 }
 
+# Helper: encode JSON payload to hex (0x-prefixed)
+to_hex() {
+    local json="$1"
+    if command -v xxd >/dev/null 2>&1; then
+        echo "0x$(printf '%s' "$json" | xxd -p -c 9999)"
+    else
+        echo "0x$(printf '%s' "$json" | hexdump -v -e '/1 "%02x"')"
+    fi
+}
+
 echo "Testing Genre functions..."
 
 # 1. Create a new Genre
 
 echo "1. Creating a Genre..."
-CREATE_INPUT="7b226d6574686f64223a20226372656174655f67656e7265222c202261726773223a207b226e616d65223a2022476f7370656c222c2022696d61676555726c223a202268747470733a2f2f696d672e6672656570696b2e636f6d2f667265652d70686f746f2f6272696768742d6c696768742d6a657375732d63726f73735f32332d323135303937383833382e6a7067222c20226465736372697074696f6e223a2022476f7370656c206d7573696320697320746865204166726963616e2d416d65726963616e2043687269737469616e20736f6e677320636f6d707269736564206f662068796d6e7320616e64206f74686572206f72616c20747261646974696f6e73227d7d"
-send_input $CREATE_INPUT 0
+GENRE_1_JSON='{"method":"create_genre","args":{"name":"Gospel","imageUrl":"https://chocolate-actual-weasel-471.mypinata.cloud/ipfs/QmNqi4VCA7nE3bFsfmcrKJoM4vi8t22r46xkBYWrAyNekT","description":"Gospel music is the African-American Christian songs comprised of hymns and other oral traditions"}}'
+CREATE_INPUT=$(to_hex "$GENRE_1_JSON")
+send_input "$CREATE_INPUT" 0
+
+echo "2. Creating a Genre..."
+GENRE_2_JSON='{"method":"create_genre","args":{"name":"Rock","imageUrl":"https://chocolate-actual-weasel-471.mypinata.cloud/ipfs/QmNqi4VCA7nE3bFsfmcrKJoM4vi8t22r46xkBYWrAyNekT","description":"Rock sound"}}'
+CREATE_INPUT=$(to_hex "$GENRE_2_JSON")
+send_input "$CREATE_INPUT" 0
+
+echo "3. Creating a Genre..."
+GENRE_3_JSON='{"method":"create_genre","args":{"name":"Classical","imageUrl":"https://chocolate-actual-weasel-471.mypinata.cloud/ipfs/QmNqi4VCA7nE3bFsfmcrKJoM4vi8t22r46xkBYWrAyNekT","description":"Classical sound"}}'
+CREATE_INPUT=$(to_hex "$GENRE_3_JSON")
+send_input "$CREATE_INPUT" 0
+
+echo "4. Creating a Genre..."
+GENRE_4_JSON='{"method":"create_genre","args":{"name":"R & B","imageUrl":"https://chocolate-actual-weasel-471.mypinata.cloud/ipfs/QmNqi4VCA7nE3bFsfmcrKJoM4vi8t22r46xkBYWrAyNekT","description":"R & B sound"}}'
+CREATE_INPUT=$(to_hex "$GENRE_4_JSON")
+send_input "$CREATE_INPUT" 0
+
+
+echo "5. Creating a Genre..."
+GENRE_5_JSON='{"method":"create_genre","args":{"name":"Hip Hop","imageUrl":"https://chocolate-actual-weasel-471.mypinata.cloud/ipfs/QmNqi4VCA7nE3bFsfmcrKJoM4vi8t22r46xkBYWrAyNekT","description":"Hip Hop sound"}}'
+CREATE_INPUT=$(to_hex "$GENRE_5_JSON")
+send_input "$CREATE_INPUT" 0
+
+
+echo "6. Creating vault deposit..."
+VAULT_DEPOSIT_JSON='{"method":"vault_deposit","args":{"amount":1000000}}'
+CREATE_INPUT=$(to_hex "$VAULT_DEPOSIT_JSON")
+send_input "$CREATE_INPUT" 0
+
+
+
 
 # 2. Update Genre
-echo "2. Updating Genre..."
-UPDATE_INPUT="7b226d6574686f64223a20227570646174655f67656e7265222c202261726773223a207b226964223a20312c20226e616d65223a2022476f7370656c222c2022696d61676555726c223a202268747470733a2f2f696d672e6672656570696b2e636f6d2f667265652d70686f746f2f6272696768742d6c696768742d6a657375732d63726f73735f32332d323135303937383833382e6a7067222c20226465736372697074696f6e223a2022476f7370656c206d75736963206973206172652043687269737469616e20736f6e6773207468617420636f6d707269736573206f662068796d6e7320616e64206f74686572206f72616c20747261646974696f6e73227d7d"
-send_input $UPDATE_INPUT 0
+# echo "2. Updating Genre..."
+# UPDATE_INPUT="7b226d6574686f64223a20227570646174655f67656e7265222c202261726773223a207b226964223a20312c20226e616d65223a2022476f7370656c222c2022696d61676555726c223a202268747470733a2f2f696d672e6672656570696b2e636f6d2f667265652d70686f746f2f6272696768742d6c696768742d6a657375732d63726f73735f32332d323135303937383833382e6a7067222c20226465736372697074696f6e223a2022476f7370656c206d75736963206973206172652043687269737469616e20736f6e6773207468617420636f6d707269736573206f662068796d6e7320616e64206f74686572206f72616c20747261646974696f6e73227d7d"
+# send_input $UPDATE_INPUT 0
 
 # echo "   Appending to the User (3/5)..."
 # APPEND_INPUT_2="7b22616374696f6e223a20226a616d2e617070656e64222c20226a616d4944223a20302c2022656e747279223a224c696665206973206173206368616f746963206173206120737175697272656c20696e20747261666669632c2064617274696e67206261636b20616e6420666f7274682c20686f70696e6720666f722074686520626573742e227d"
