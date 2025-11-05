@@ -30,11 +30,16 @@ Decentralized, Cartesi-powered music streaming. Melodious combines Cartesi Rollu
 ### 1) Start Cartesi dApp locally
 
 1. Open a terminal and go to `cartesi-backend`.
-   - `yarn install`
-   - `yarn build` (optional but recommended)
+   Commands:
+   ```bash
+   yarn install
+   yarn build   # optional but recommended
+   ```
 2. Build and run the Cartesi machine:
-   - `cartesi build`
-   - `cartesi run --services explorer,graphql --epoch-length 1`
+   ```bash
+   cartesi build
+   cartesi run --services explorer,graphql --epoch-length 1
+   ```
 3. Copy the printed dApp contract address. You’ll use it as `DAPP_ADDRESS` in the steps below.
 
 Notes:
@@ -44,12 +49,18 @@ Notes:
 ### 2) Deploy smart contracts (Cannon network)
 
 1. Open a new terminal, go to `smart-contract`.
-   - `yarn install`
-   - `cp .env.example .env`
-   - In `.env`, set:
-     - `DAPP_ADDRESS=<your_dapp_address_from_step_1>`
+   Commands:
+   ```bash
+   cd smart-contract
+   yarn install
+   cp .env.example .env
+   # in .env
+   DAPP_ADDRESS=<your_dapp_address_from_step_1>
+   ```
 2. Deploy everything to Cannon:
-   - `yarn deploy:cannon`
+   ```bash
+   yarn deploy:cannon
+   ```
 3. After deployment, capture addresses from the logs:
    - `CartesiToken`
    - `MelodiousVault`
@@ -59,14 +70,19 @@ Notes:
 
 Mandatory (but useful):
 
-- Mint CTSI to your wallet for testing:
-  - Set env or args and run: `MINT_TO=<your_wallet> MINT_AMOUNT=10000 yarn mint:ctsi-to`
+ - Mint CTSI to your wallet for testing:
+   ```bash
+   MINT_TO=<your_wallet> MINT_AMOUNT=10000 yarn mint:ctsi-to
+   ```
 
 ### 3) Send config to the dApp (Cartesi input)
 
 With the contract addresses from step 2, send a configuration payload so the Cartesi backend knows where to find each component.
 
 1. In a terminal, run: `cartesi send`
+```bash
+cartesi send
+```
 2. Accept the default RPC URL.
 3. Paste your application address (`DAPP_ADDRESS`).
 4. Choose “string” encoding.
@@ -100,17 +116,29 @@ This persists configuration inside the Cartesi application state. You can later 
 The dApp expects base genres to exist. Seed them via the provided script.
 
 - Requirements: Foundry’s `cast` is installed.
-  - macOS: `curl -L https://foundry.paradigm.xyz | bash && foundryup`
-  - Linux: `curl -L https://foundry.paradigm.xyz | bash && foundryup` (if missing tools: `sudo apt update && sudo apt install -y curl git`)
+  - macOS:
+    ```bash
+    curl -L https://foundry.paradigm.xyz | bash && foundryup
+    ```
+  - Linux (Debian/Ubuntu):
+    ```bash
+    sudo apt update && sudo apt install -y curl git
+    curl -L https://foundry.paradigm.xyz | bash && foundryup
+    ```
   - Windows (WSL2 + Ubuntu): enable WSL2, install Ubuntu from Microsoft Store, then run the Linux command above inside WSL. Ensure Docker Desktop uses the WSL2 backend.
-  - Verify: `cast --version`
+  - Verify:
+    ```bash
+    cast --version
+    ```
 
 Steps:
 - Open `cartesi-backend/src/scripts/genre.script.sh` and set:
   - `APPLICATION_ADDRESS="<your DAPP_ADDRESS>"`
   - Confirm `INPUT_BOX_ADDRESS` and `RPC_URL` match your local setup (`http://127.0.0.1:6751/anvil`). But no need to change it since it's already there. Just change your `APPLICATION_ADDRESS` to your `DAPP_ADDRESS`
 - From in `cartesi-backend/`, run:
-  - `bash src/scripts/genre.script.sh`
+  ```bash
+  bash src/scripts/genre.script.sh
+  ```
 
 What it does:
 - Sends Cartesi inputs to create multiple genres via the InputBox (`addInput`).
@@ -119,40 +147,57 @@ What it does:
 ### 4) Boot the API server
 
 1. Open a terminal and go to `server`.
-   - `yarn install`
-   - `cp .env.example .env`
-   - In `.env`, set at least:
-     - `DAPP_ADDRESS=<your_dapp_address>`
-     - `RPC_URL=http://127.0.0.1:6751/anvil`
-     - `INPUTBOX_ADDRESS=0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051`
-2. Start infra (Postgres + Redis): `yarn infra:up`
-3. Start server in dev (DB reset + push): `yarn start:dev` (choose “yes” when prompted to reset)
-4. Seed ads data: `yarn seed:ads`
+   ```bash
+   cd server
+   yarn install
+   cp .env.example .env
+   # in .env (minimum)
+   DAPP_ADDRESS=<your_dapp_address>
+   RPC_URL=http://127.0.0.1:6751/anvil
+   INPUTBOX_ADDRESS=0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051
+   
+   yarn infra:up
+   yarn start:dev   # choose “yes” when prompted to reset
+   yarn seed:ads
+   ```
 
-Subsequent runs for development: use `yarn start:test` to avoid DB reset.
+Subsequent runs for development:
+```bash
+yarn start:test
+```
 
 ### 4a) Wallet Setup (Rabby recommended)
 
 - Install Rabby Wallet: https://rabby.io (Chrome/Brave/Arc supported).
 - Import the local test mnemonic (Anvil default):
-  - `test test test test test test test test test test test junk`
+  ```text
+  test test test test test test test test test test test junk
+  ```
   - Only for local dev; never use on mainnet.
 - Add the local Cannon chain in your wallet:
   - RPC URL: `http://127.0.0.1:6751/anvil`
   - Chain ID: `13370`
   - Currency symbol: `ETH`
 - MetaMask note: users sometimes hit RPC/connectivity issues on local custom chains; if you see chain mismatch or connection loops, prefer Rabby for smoother local testing.
-- Test RPC connectivity: `cast block-number --rpc-url http://127.0.0.1:6751/anvil`
+- Test RPC connectivity:
+  ```bash
+  cast block-number --rpc-url http://127.0.0.1:6751/anvil
+  ```
 
 ### 5) Start the frontend
 
 1. Open a terminal and go to `frontend`.
-   - `yarn install`
-   - `cp .env.example .env` in `.env`and set:
-   - `NEXT_PUBLIC_DAPP_ADDRESS=<your_dapp_address>`
-   - `NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS=<CartesiToken>`
-   - `NEXT_PUBLIC_RPC_URL=http://127.0.0.1:6751/anvil` (matches your wallet network)
-2. Start the app: `yarn dev`
+   ```bash
+   cd frontend
+   yarn install
+   cp .env.example .env
+   # in .env
+   NEXT_PUBLIC_DAPP_ADDRESS=<your_dapp_address>
+   NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS=<CartesiToken>
+   NEXT_PUBLIC_RPC_URL=http://127.0.0.1:6751/anvil
+   
+   yarn dev
+   ```
 
 Tip: Frontend also has codegen scripts (`yarn codegen`) for GraphQL and typechain.
 
