@@ -46,6 +46,7 @@ Notes:
 
 - The Cannon chain (`anvil`) runs under Cartesi at `http://127.0.0.1:6751/anvil` (`chainId 13370`).
 - GraphQL endpoint typically runs at `http://127.0.0.1:6751/graphql`.
+
 ### 2) Deploy smart contracts (Cannon network)
 
 1. Open a new terminal, go to `smart-contract`.
@@ -70,19 +71,21 @@ Notes:
 
 Mandatory (but useful):
 
- - Mint CTSI to your wallet for testing:
-   ```bash
-   MINT_TO=<your_wallet> MINT_AMOUNT=10000 yarn mint:ctsi-to
-   ```
+- Mint CTSI to your wallet for testing:
+  ```bash
+  MINT_TO=<your_wallet> MINT_AMOUNT=10000 yarn mint:ctsi-to
+  ```
 
 ### 3) Send config to the dApp (Cartesi input)
 
 With the contract addresses from step 2, send a configuration payload so the Cartesi backend knows where to find each component.
 
 1. In a terminal, run: `cartesi send`
+
 ```bash
 cartesi send
 ```
+
 2. Accept the default RPC URL.
 3. Paste your application address (`DAPP_ADDRESS`).
 4. Choose “string” encoding.
@@ -113,6 +116,7 @@ cartesi send
 This persists configuration inside the Cartesi application state. You can later update via `{"method":"update_config",...}`.
 
 ### 3a) Seed initial Genres (required)
+
 The dApp expects base genres to exist. Seed them via the provided script.
 
 - Requirements: Foundry’s `cast` is installed.
@@ -132,6 +136,7 @@ The dApp expects base genres to exist. Seed them via the provided script.
     ```
 
 Steps:
+
 - Open `cartesi-backend/src/scripts/genre.script.sh` and set:
   - `APPLICATION_ADDRESS="<your DAPP_ADDRESS>"`
   - Confirm `INPUT_BOX_ADDRESS` and `RPC_URL` match your local setup (`http://127.0.0.1:6751/anvil`). But no need to change it since it's already there. Just change your `APPLICATION_ADDRESS` to your `DAPP_ADDRESS`
@@ -141,12 +146,14 @@ Steps:
   ```
 
 What it does:
+
 - Sends Cartesi inputs to create multiple genres via the InputBox (`addInput`).
 - You can verify in the frontend or by querying GraphQL notices that genres are present.
 
 ### 4) Boot the API server
 
 1. Open a terminal and go to `server`.
+
    ```bash
    cd server
    yarn install
@@ -155,13 +162,19 @@ What it does:
    DAPP_ADDRESS=<your_dapp_address>
    RPC_URL=http://127.0.0.1:6751/anvil
    INPUTBOX_ADDRESS=0xc70074BDD26d8cF983Ca6A5b89b8db52D5850051
-   
+
    yarn infra:up
    yarn start:dev   # choose “yes” when prompted to reset
+
+   Open a new terminal and go to server directory and run the command to seed ads.
+   ```
+
+   ```bash
    yarn seed:ads
    ```
 
 Subsequent runs for development:
+
 ```bash
 yarn start:test
 ```
@@ -187,6 +200,7 @@ yarn start:test
 ### 5) Start the frontend
 
 1. Open a terminal and go to `frontend`.
+
    ```bash
    cd frontend
    yarn install
@@ -195,7 +209,7 @@ yarn start:test
    NEXT_PUBLIC_DAPP_ADDRESS=<your_dapp_address>
    NEXT_PUBLIC_CARTESI_TOKEN_ADDRESS=<CartesiToken>
    NEXT_PUBLIC_RPC_URL=http://127.0.0.1:6751/anvil
-   
+
    yarn dev
    ```
 
@@ -236,6 +250,7 @@ Frontend (`frontend`):
 - Contract calls failing on Cannon: confirm `cartesi run` is active, `.env` values are accurate, and you deployed to `http://127.0.0.1:6751/anvil`.
 
 ## Notes
+
 - `genre.script.sh` seeds base genres and is part of the required local setup. It uses Foundry’s `cast` to submit inputs to the Cartesi InputBox.
 - All addresses shown in examples are for local development. Replace with your own when deploying elsewhere.
 
