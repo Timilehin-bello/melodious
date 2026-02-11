@@ -41,7 +41,7 @@
     "@urql/core": "^5.0.4",
     "@urql/next": "^1.1.1",
     "array-shuffle": "^3.0.0",
-    "axios": "^1.7.9",
+    "axios": "^1.13.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
